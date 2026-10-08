@@ -1,7 +1,7 @@
-// VERSION: new
+// VERSION: 3.1.2
 //  面板核心配置区 (放在最顶端方便修改)
-const CURRENT_VERSION = "new"; 
-const GITHUB_RAW_URL = "链接";
+const CURRENT_VERSION = "3.1.2"; 
+const GITHUB_RAW_URL = "https://raw.githubusercontent.com/MakkaPakka518/ProxyHub_Emby/refs/heads/FAKE/worker.js";
 
 // ==========================================
 // 1. 网页界面-单播报版本
