@@ -1,6 +1,6 @@
-// VERSION: 2.3.0
+// VERSION: new
 //  面板核心配置区 (放在最顶端方便修改)
-const CURRENT_VERSION = "2.3.0"; 
+const CURRENT_VERSION = "new"; 
 const GITHUB_RAW_URL = "伪装版本更新地址";
 
 // ==========================================
