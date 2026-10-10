@@ -1,6 +1,6 @@
-// VERSION: 3.1.2
+// VERSION: 3.1.3
 //  面板核心配置区 (放在最顶端方便修改)
-const CURRENT_VERSION = "3.1.2"; 
+const CURRENT_VERSION = "3.1.3"; 
 const GITHUB_RAW_URL = "https://raw.githubusercontent.com/MakkaPakka518/ProxyHub_Emby/refs/heads/main/worker.js";
 // ==========================================
 // 代码部分
