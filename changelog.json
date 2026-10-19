@@ -1,6 +1,15 @@
 {
   "versions": [
     {
+      "version": "3.4.30",
+      "title": "EMOS 聚合显示(EMOS 模式节点可开启)",
+      "items": [
+        "EMOS 聚合显示:EMOS 模式的节点在节点编辑里新增「开启 EMOS 聚合」开关,开启后聚合播放器(SenPlayer 等)按 TMDB 编号跨服查询同一部剧时,会自动把本节点列为播放源,EMOS 内容也能参与跨服聚合展示",
+        "实现原理:拦截 AnyProviderIdEquals 查询 → 按 TMDB 编号在 EMOS 内匹配命中条目 → 返回带 ProviderIds{Tmdb} 的条目;未命中/普通请求原样透传,不影响原有行为",
+        "播放层零改动:聚合后点播的 PlaybackInfo/分片照常透传 EMOS,兼容直连与转码;目录抓取带模块级内存缓存(10 分钟)+ D1 持久缓存(1 小时),不增加源站压力"
+      ]
+    },
+    {
       "version": "3.4.29",
       "title": "Cloudflare 边缘缓存增强(Static 直连视频共享缓存 + 面板开关)",
       "items": [
