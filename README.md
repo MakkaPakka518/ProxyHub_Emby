@@ -1,8 +1,12 @@
 # 𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖 Emby 反代面板
 
-| version | platform | storage | panel |
-| --- | --- | --- | --- |
-| v3.4.38 | Cloudflare Workers | D1 (SQLite) | 单文件 Worker 可视化面板 |
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v3.4.38-32ade6" alt="version">
+  <img src="https://img.shields.io/badge/platform-Cloudflare%20Workers-32ade6" alt="platform">
+  <img src="https://img.shields.io/badge/storage-D1%20%28SQLite%29-32ade6" alt="storage">
+  <img src="https://img.shields.io/badge/panel-%E5%8F%AF%E8%A7%86%E5%8C%96%E9%9D%A2%E6%9D%BF-32ade6" alt="panel">
+</p>
+
 
 
 一个部署在 Cloudflare Workers 上的 Emby 反代节点管理面板：集中管理多个 Emby 源站的反代节点，支持添加/编辑/删除节点、切换反代模式、全局测速、DNS 管理、流量统计、数据大屏，还带**订阅者只读模式**、**节点申请审核**和**多级权限体系**。
