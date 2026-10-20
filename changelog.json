@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "3.4.36",
+      "title": "UI 优化",
+      "items": [
+        "UI 优化"
+      ]
+    },
+    {
       "version": "3.4.35",
       "title": "UI 优化",
       "items": [
