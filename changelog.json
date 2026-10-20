@@ -1,6 +1,17 @@
 {
   "versions": [
     {
+      "version": "3.4.44",
+      "title": "【重大 Bug 修复】PlaybackInfo 强制直连块不再受 direct_play 开关门控,修复部分剧 0KB 无法播放",
+      "items": [
+        "【重大 Bug】3.4.43 的 PlaybackInfo「禁转码+强制直连」块被 direct_play 节点开关门控:开关关闭时该块跳过,PlaybackInfo 返回源站原始内容,部分剧(如 original.mkv 大文件)播放器判定无法起播 → 0KB;伪装版同块无条件执行所以一直正常(用户实测同剧伪装版能播、普通版不能播,打开 direct_play 后能播实锤)",
+        "强制直连块改为无条件执行(与伪装版 3.6.52 完全一致):SupportsTranscoding=false + SupportsDirectStream/SupportsDirectPlay=true + 清 Transcoding 系字段 + IsRemote=false + Protocol=Http + Path 兜底,无论开关状态都生效",
+        "移除节点编辑弹窗「强制直连播放(禁转码)」开关及前端/接口/SELECT/INSERT 对应逻辑(direct_play 列保留兼容,不再生效)",
+        "媒体流仍走面板代理形式(跨源 URL 裸拼接 + 302 encodeURIComponent),流量经 CF,未开启「外部跳转直连/302 域名规则」时不会直连推流域名"
+      ],
+      "date": "2026-10-21"
+    },
+    {
       "version": "3.4.43",
       "title": "【重大 Bug 修复】移除 Static 直连视频边缘缓存,视频流不再进 CF 缓存层,播放速度恢复正常",
       "items": [
@@ -18,6 +29,15 @@
         "302 Location 跨源恢复为 面板/前缀/encodeURIComponent(完整URL),与 EmbyProxyCF-Lite 一致,避免裸 ? & 解析错乱",
         "媒体地址 DirectStreamUrl/TranscodingUrl 保持 面板/前缀/http://推流域名 裸拼接(与 Lite 一致,反代层拼回 search,签名不丢)",
         "「外部跳转直连」/「302 域名规则」未开启时一律面板代理形式,开启才直连推流域名"
+      ]
+    },
+    {
+      "version": "3.4.41",
+      "title": "恢复媒体流经 CF 代理",
+      "items": [
+        "播放媒体地址(跨源)恢复面板/前缀/http://推流域名 拼接形式:播放器连接面板域名,由 CF Worker 反代取流,流量经 CF",
+        "跨源 30x Location 同样恢复代理拼接形式;「外部跳转直连」开关开启时才直连推流域名",
+        "修复 3.4.40 裸直连推流域名绕过开关语义的问题"
       ]
     },
     {
