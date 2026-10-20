@@ -1,5 +1,10 @@
 # 𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖 Emby 反代面板
 
+| version | platform | storage | panel |
+| --- | --- | --- | --- |
+| v3.4.38 | Cloudflare Workers | D1 (SQLite) | 单文件 Worker 可视化面板 |
+
+
 一个部署在 Cloudflare Workers 上的 Emby 反代节点管理面板：集中管理多个 Emby 源站的反代节点，支持添加/编辑/删除节点、切换反代模式、全局测速、DNS 管理、流量统计、数据大屏，还带**订阅者只读模式**、**节点申请审核**和**多级权限体系**。
 
 单文件 Worker，登录页 + 管理面板全部在一个 `worker.js` 里，复制粘贴就能部署，不需要任何构建。
