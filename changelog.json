@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "3.4.37",
+      "title": "修复 EMOS 聚合播放",
+      "items": [
+        "修复 EMOS 聚合启播慢/个别播放器 0KB:视频 30x 重定向由 Worker 直接跟随取流返回 200/206"
+      ]
+    },
+    {
       "version": "3.4.36",
       "title": "UI 优化",
       "items": [
