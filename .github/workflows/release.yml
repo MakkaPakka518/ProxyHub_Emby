@@ -1,0 +1,45 @@
+name: 自动发版
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: '发布说明(留空自动读取 changelog.json 最新版本)'
+        required: false
+        default: ''
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 生成版本号与发布说明
+        id: meta
+        env:
+          NOTES: ${{ github.event.inputs.notes }}
+        run: |
+          set -e
+          python3 - <<'EOF'
+          import json
+          d = json.load(open('changelog.json'))
+          v = d['versions'][0]
+          body = '## ' + v['version'] + (' ' + v['title'] if v.get('title') else '') + '\n\n'
+          body += '\n'.join('- ' + it for it in v.get('items', []))
+          with open('body.md', 'w') as f:
+              f.write(body)
+          print(v['version'])
+          EOF
+      - name: 创建 Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER=$(python3 -c "import json;print(json.load(open('changelog.json'))['versions'][0]['version'])")
+          if [ -n "$NOTES" ]; then printf '%s\n' "$NOTES" > body.md; fi
+          gh release create "v${VER}" \
+            --title "v${VER}" \
+            --notes-file body.md \
+            worker.js changelog.json
