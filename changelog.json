@@ -1,6 +1,16 @@
 {
   "versions": [
     {
+      "version": "3.4.39",
+      "title": "修复起播回归",
+      "items": [
+        "修复部分服务器播放 0KB/报错(主因):跨源签名流(cflocal 等防盗链 URL)不再收进代理,原样下发给客户端直连,签名校验通过",
+        "禁转码直连改为禁转码+开启直连(SupportsDirectStream/SupportsDirectPlay=true),不再出现播放器判定无可用流",
+        "跨源 30x Location 恢复原样下发(3.4.36/37 行为)",
+        "强制直连播放开关仍可在节点设置中关闭"
+      ]
+    },
+    {
       "version": "3.4.38",
       "title": "起播优化",
       "items": [
