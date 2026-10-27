@@ -1,7 +1,7 @@
 # 𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖 Emby 反代面板
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v4.0.8-32ade6" alt="version">
+  <img src="https://img.shields.io/badge/version-v4.0.9-32ade6" alt="version">
   <img src="https://img.shields.io/badge/platform-Cloudflare%20Workers-32ade6" alt="platform">
   <img src="https://img.shields.io/badge/storage-D1%20%28SQLite%29-32ade6" alt="storage">
   <img src="https://img.shields.io/badge/panel-%E5%8F%AF%E8%A7%86%E5%8C%96%E9%9D%A2%E6%9D%BF-32ade6" alt="panel">
