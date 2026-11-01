@@ -3,6 +3,43 @@ const CURRENT_VERSION = "4.0.9";
 
 import { connect as __cfSocketConnect } from "cloudflare:sockets";
 globalThis.__cfConnect = __cfSocketConnect;
+// Bark 内置铃声（Finb/Bark 的 Sounds 目录）；空值沿用客户端默认铃声。
+const BARK_SOUNDS = [
+  ['', '跟随 Bark 默认'], ['alarm', '警报 · alarm'], ['anticipate', '期待 · anticipate'],
+  ['bell', '铃声 · bell'], ['birdsong', '鸟鸣 · birdsong'], ['bloom', '绽放 · bloom'],
+  ['calypso', '卡利普索 · calypso'], ['chime', '风铃 · chime'], ['choo', '汽笛 · choo'],
+  ['descent', '下降 · descent'], ['electronic', '电子 · electronic'], ['fanfare', '号角 · fanfare'],
+  ['glass', '玻璃 · glass'], ['gotosleep', '入睡 · gotosleep'], ['healthnotification', '健康 · healthnotification'],
+  ['horn', '喇叭 · horn'], ['ladder', '阶梯 · ladder'], ['mailsent', '邮件已发送 · mailsent'],
+  ['minuet', '小步舞曲 · minuet'], ['multiwayinvitation', '邀请 · multiwayinvitation'], ['newmail', '新邮件 · newmail'],
+  ['newsflash', '快讯 · newsflash'], ['noir', '黑色电影 · noir'], ['paymentsuccess', '支付成功 · paymentsuccess'],
+  ['shake', '摇动 · shake'], ['sherwoodforest', '森林 · sherwoodforest'], ['silence', '静音 · silence'],
+  ['spell', '咒语 · spell'], ['suspense', '悬念 · suspense'], ['telegraph', '电报 · telegraph'],
+  ['tiptoes', '轻步 · tiptoes'], ['typewriters', '打字机 · typewriters'], ['update', '更新 · update']
+];
+function normalizeBarkSound(value) {
+  if (typeof value !== 'string' || !BARK_SOUNDS.some(sound => sound[0] === value)) throw new Error('不支持的 Bark 铃声');
+  return value;
+}
+// 观看时间的旧存储格式是北京时间；带时区的备份时间按其自身时区解析。
+// 此纯函数也注入面板，进度、临期提示和后台保号提醒共用同一口径。
+function getWatchState(route, now = Date.now()) {
+  const limit = Number(route.watch_limit);
+  const enabled = Number.isFinite(limit) && limit > 0;
+  const state = { enabled, limit: enabled ? limit : 0, status: enabled ? 'unknown' : 'disabled', hasRecord: !!route.last_play, elapsedDays: null, remainingDays: null, percent: 0, dueAt: null };
+  const raw = String(route.last_play || '').trim().replace(' ', 'T');
+  if (!raw) return state;
+  const playedAt = Date.parse(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw) ? raw : raw + '+08:00');
+  if (!Number.isFinite(playedAt) || !Number.isFinite(now) || playedAt > now) return state;
+  state.elapsedDays = (now - playedAt) / 86400000;
+  if (!enabled) return state;
+  state.remainingDays = limit - state.elapsedDays;
+  state.dueAt = playedAt + limit * 86400000;
+  state.percent = Math.min(100, Math.max(0, state.elapsedDays / limit * 100));
+  // 延续刚观看后不提醒的规则；不足一天的观看下限到期时也能正确告警。
+  state.status = state.remainingDays <= 0 ? 'overdue' : (state.elapsedDays >= 1 && state.remainingDays <= 3 ? 'warning' : 'safe');
+  return state;
+}
 //网页区域
 // ============ isolate 级内存缓存 / 一次性初始化(减少每个请求的 D1 读写) ============
 const memoStore = new Map();
@@ -43,8 +80,90 @@ const ROUTE_COLS = [
   "redirect_direct TEXT DEFAULT 'off'", "redirect_rules TEXT DEFAULT ''", "node_user TEXT DEFAULT ''", "node_pass TEXT DEFAULT ''",
   "emos_id TEXT DEFAULT ''", "emos_name TEXT DEFAULT ''", "emos_aggregate TEXT DEFAULT 'off'", "strm_opt TEXT DEFAULT 'off'", "force_direct TEXT DEFAULT 'off'",
   "direct_play TEXT DEFAULT 'on'", "edge_cache TEXT DEFAULT 'on'",
-  "owner TEXT DEFAULT ''"
+  "owner TEXT DEFAULT ''", "tg_bot_url TEXT DEFAULT ''"
 ];
+// 使用 Telegram 通用链接唤起客户端，保留 Bot 的 start/startapp 等深链参数。
+function normalizeNodeBotUrl(value) {
+  const raw = String(value == null ? '' : value).trim();
+  if (!raw) return '';
+  if (raw.length > 2048 || /[\s\\<>"\u0000-\u001f]/.test(raw)) throw new Error('TG Bot 链接格式不正确');
+  let text = raw;
+  if (/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(text)) text = 'https://t.me/' + text.replace(/^@/, '');
+  else if (/^(?:www\.)?(?:t\.me|telegram\.me)\//i.test(text)) text = 'https://' + text;
+  let url;
+  try { url = new URL(text); } catch (e) { throw new Error('请填写 @Bot用户名 或 https://t.me/机器人链接'); }
+  if (url.protocol === 'tg:' && url.hostname === 'resolve') {
+    const domain = url.searchParams.get('domain') || '';
+    if (!/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(domain)) throw new Error('TG Bot 用户名格式不正确');
+    const params = new URLSearchParams(url.search);
+    params.delete('domain');
+    url = new URL('https://t.me/' + domain);
+    url.search = params.toString();
+  }
+  if (!['http:', 'https:'].includes(url.protocol) || !['t.me', 'telegram.me', 'www.t.me', 'www.telegram.me'].includes(url.hostname) || url.username || url.password || url.port || url.hash || !/^\/[A-Za-z][A-Za-z0-9_]{4,31}\/?$/.test(url.pathname)) {
+    throw new Error('请填写 Telegram Bot 链接（https://t.me/机器人名，可带 start 参数）');
+  }
+  url.protocol = 'https:';
+  url.hostname = 't.me';
+  url.pathname = url.pathname.replace(/\/$/, '');
+  return url.toString();
+}
+// 解析 302/307 域名规则，供节点保存与反代共用。
+function parseRedirectRules(text) {
+  const rules = [];
+  if (!text) return rules;
+  if (typeof text === 'string' && text.trim().charAt(0) === '[') {
+    try {
+      const arr = JSON.parse(text);
+      if (Array.isArray(arr)) return arr.filter(x => x && x.d).map(x => ({ d: String(x.d).toLowerCase(), a: x.a === 'direct' ? 'direct' : 'proxy' }));
+    } catch (e) {}
+  }
+  for (const line of String(text).split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t) continue;
+    const parts = t.split(',').map(s => s.trim());
+    if (parts.length < 2 || !parts[0]) continue;
+    let domain = parts[0].replace(/^https?:\/\//i, '').replace(/\/.*$/, '').trim();
+    domain = domain.replace(/^www\./i, '');
+    if (!domain || /\s|\//.test(domain)) continue;
+    const action = /^(direct|直连|不走反代)$/i.test(parts[1]) ? 'direct' : (/^(proxy|代理|走反代)$/i.test(parts[1]) ? 'proxy' : null);
+    if (!action) continue;
+    rules.push({ d: domain.toLowerCase(), a: action });
+  }
+  return rules;
+}
+// 编辑使用 UPDATE，保留 last_play / sort_order / owner；兼容批量操作的 snake_case 字段。
+async function saveRouteConfig(env, data, prefix, oldRow, owner = '') {
+  const value = (camel, column, fallback) => data[camel] !== undefined ? data[camel] :
+    (data[column] !== undefined ? data[column] : (oldRow && oldRow[column] !== undefined ? oldRow[column] : fallback));
+  const watchLimit = Number(value('watchLimit', 'watch_limit', 0));
+  if (!Number.isFinite(watchLimit) || watchLimit < 0) throw new Error('观看下限需为大于等于 0 的天数');
+  const rules = parseRedirectRules(value('redirect_rules', 'redirect_rules', ''));
+  const cfg = {
+    target: value('target', 'target', ''), mode: value('mode', 'mode', 'off') || 'off',
+    remark: value('remark', 'remark', '') || '', icon: value('icon', 'icon', '') || '',
+    cache_img: value('cache_img', 'cache_img', 'on') === 'off' ? 'off' : 'on',
+    custom_ip: value('fakeIp', 'custom_ip', '') || '', watch_limit: String(watchLimit),
+    tg_bot_url: normalizeNodeBotUrl(value('tgBotUrl', 'tg_bot_url', '')),
+    node_user: value('nodeUser', 'node_user', '') || '', node_pass: value('nodePass', 'node_pass', '') || '',
+    redirect_direct: value('redirect_direct', 'redirect_direct', 'off') === 'on' ? 'on' : 'off',
+    redirect_rules: rules.length ? JSON.stringify(rules) : '',
+    emos_id: value('emosId', 'emos_id', '') || '', emos_name: value('emosName', 'emos_name', '') || '',
+    emos_aggregate: value('emosAggregate', 'emos_aggregate', 'off') === 'on' ? 'on' : 'off',
+    strm_opt: value('strmOpt', 'strm_opt', 'off') === 'on' ? 'on' : 'off',
+    force_direct: value('forceDirect', 'force_direct', 'off') === 'on' ? 'on' : 'off'
+  };
+  const columns = Object.keys(cfg);
+  if (oldRow) {
+    const result = await env.DB.prepare('UPDATE routes SET prefix = ?, ' + columns.map(key => key + ' = ?').join(', ') + " WHERE prefix = ? AND IFNULL(owner, '') = ?")
+      .bind(prefix, ...Object.values(cfg), oldRow.prefix, String(owner)).run();
+    if (!result.meta || !result.meta.changes) throw new Error('节点已删除或归属已变更，请刷新后重试');
+  } else {
+    await env.DB.prepare('INSERT INTO routes (prefix, ' + columns.join(', ') + ', owner) VALUES (' + new Array(columns.length + 2).fill('?').join(', ') + ')')
+      .bind(prefix, ...Object.values(cfg), String(owner)).run();
+  }
+  memoDelPrefix('route:');
+}
 // 路由表及其关联表的完整初始化(三处入口共用,避免各自初始化不全却共用一个"已完成"标记)
 function ensureRoutesSchema(env) {
   return ddlOnce('routes', async () => {
@@ -637,6 +756,45 @@ const CSS_COMMON = `
     body.dark .hero-chip{color:var(--primary-2);background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.28);box-shadow:0 0 16px rgba(0,229,255,.15)}
     body.dark .hero-chip{color:var(--primary-2);background:rgba(0,229,255,.10);border-color:rgba(0,229,255,.34);box-shadow:0 0 18px rgba(0,229,255,.22);text-shadow:0 0 8px rgba(0,229,255,.55)}
     .hero-chip{text-shadow:0 0 10px rgba(0,229,255,.35)}
+
+    /* ============ 保号观看进度 ============ */
+    .watch-meter{--watch-color:var(--success);display:flex;flex-direction:column;gap:7px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:11px;background:var(--bg-soft);font-size:12px}
+    .watch-meter.watch-warning{--watch-color:#bf7a05}
+    body.dark .watch-meter.watch-warning{--watch-color:#fbbf24}
+    .watch-meter.watch-overdue{--watch-color:var(--danger)}
+    .watch-meter.watch-unknown,.watch-meter.watch-disabled{--watch-color:var(--text-sec)}
+    .watch-meter-head,.watch-meter-foot{display:flex;justify-content:space-between;align-items:center;gap:6px 12px;flex-wrap:wrap;min-width:0}
+    .watch-meter-head strong{color:var(--watch-color);font-size:12px}
+    .watch-meter-foot{font-size:11px;color:var(--text-sec);line-height:1.5}
+    .watch-track{height:7px;width:100%;overflow:hidden;border-radius:999px;background:var(--border)}
+    .watch-track>span{display:block;height:100%;border-radius:inherit;background:var(--watch-color);transition:width .25s ease}
+    .watch-unknown .watch-track{border:1px dashed var(--text-sec);background:transparent}
+    .watch-disabled{padding:8px 12px}
+    .node-summary .node-tg-link,.watch-alert-actions .node-tg-link{padding:7px 9px;font-size:12px;min-height:32px}
+    .node-tg-link svg{width:14px;height:14px;flex-shrink:0}
+    .node-bot-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+    .node-bot-field .node-bot-input{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .node-bot-input input{flex:1 1 220px;min-width:0}
+    .node-bot-input a[hidden]{display:none}
+    .watch-alert-panel[hidden]{display:none}
+    .card.watch-alert-panel{border-color:rgba(217,140,16,.4)}
+    .watch-alert-summary{margin:10px 0 12px;font-size:12px;line-height:1.6;color:var(--text-sec)}
+    .watch-alert-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-height:330px;overflow-y:auto;overscroll-behavior:contain}
+    .watch-alert-item{--watch-color:var(--text-sec);display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-width:0;padding:12px;border:1px solid var(--border);border-left:3px solid var(--watch-color);border-radius:10px;background:var(--bg-soft)}
+    .watch-alert-item.watch-warning{--watch-color:#bf7a05}
+    body.dark .watch-alert-item.watch-warning{--watch-color:#fbbf24}
+    .watch-alert-item.watch-overdue{--watch-color:var(--danger)}
+    .watch-alert-node{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;width:100%;padding:0;border:0;background:transparent;color:var(--text);cursor:pointer;text-align:left;line-height:1.5}
+    .watch-alert-node:hover .watch-alert-name{color:var(--primary)}
+    .watch-alert-name{font-weight:700;font-size:13px;overflow-wrap:anywhere}
+    .watch-alert-node small{color:var(--text-sec);font-size:11px;overflow-wrap:anywhere}
+    .watch-alert-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    .watch-alert-actions strong{font-size:12px;color:var(--watch-color)}
+    .watch-alert-node:focus-visible,.node-tg-link:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+    .emby-card.watch-focused{outline:2px solid var(--primary);outline-offset:3px}
+    @media(max-width:900px){.watch-alert-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:540px){.watch-alert-list{grid-template-columns:minmax(0,1fr);max-height:360px}}
+    @media(prefers-reduced-motion:reduce){.watch-track>span{transition:none}}
 
     /* ============ 五种反代模式卡片(NEBULA) ============ */
     .mode-cards-card{padding:20px 22px 22px}
@@ -1484,6 +1642,15 @@ function toSvg(s){
                 </div>
             </div>
 
+            <section class="card watch-alert-panel" id="watchAlerts" aria-labelledby="watchAlertsTitle" hidden>
+                <div class="card-header">
+                    <h2 id="watchAlertsTitle">${I.warn} 保号提醒 <span class="card-sub" id="watchAlertsCount"></span></h2>
+                    <div class="card-tools"><button type="button" class="btn-ghost" id="watchRefreshBtn" onclick="refreshWatchStatus(true)">${I.refresh} 刷新状态</button></div>
+                </div>
+                <div class="watch-alert-summary" id="watchAlertsSummary" aria-live="polite"></div>
+                <div class="watch-alert-list" id="watchAlertList"></div>
+            </section>
+
             <div class="card mode-cards-card">
                 <div class="card-header" style="margin-bottom:14px;">
                     <h2 class="glow-h">五种反代模式 <span class="card-sub">节点按需选择,模式决定请求头处理方式</span></h2>
@@ -1892,6 +2059,14 @@ function toSvg(s){
                     <div class="field"><label>模拟 IP（可选，抹除真实 IP 只传此 IP）</label><input type="text" id="nodeFakeIp" placeholder="如 1.2.3.4"></div>
                     <div class="field"><label>观看下限（天）</label><input type="number" id="watchLimit" placeholder="如 7 / 14 / 21；0 = 不限制" step="0.1" min="0"></div>
                 </div>
+                <div class="node-bot-field sub-lite">
+                    <label for="nodeTgBotUrl">TG Bot 打卡入口（可选）</label>
+                    <div class="node-bot-input">
+                        <input type="text" id="nodeTgBotUrl" placeholder="@ExampleBot 或 https://t.me/ExampleBot?start=checkin" maxlength="2048" autocomplete="off" spellcheck="false" oninput="updateNodeBotPreview()" aria-describedby="nodeBotHint">
+                        <a id="nodeTgBotPreview" class="btn-ghost" href="#" target="_blank" rel="noopener noreferrer" hidden>打开 Bot</a>
+                    </div>
+                    <span id="nodeBotHint" style="font-size:12px; color:var(--text-sec);">填写后，节点卡片和保号提醒中显示「TG 打卡」按钮，点击打开对应机器人。</span>
+                </div>
                 <div class="form-row sub-lite" id="emosFields" style="display:none;">
                     <div class="field"><label>EMOS-PROXY-ID（必填）</label><input type="text" id="nodeEmosId" value="eK3QYG29Ms" placeholder="你的用户ID，形如 eABCDEFGHs"></div>
                     <div class="field"><label>EMOS-PROXY-NAME（必填）</label><input type="text" id="nodeEmosName" value="玛卡巴卡的反代面板" placeholder="你的称号，如 @xx的反代"></div>
@@ -2098,6 +2273,11 @@ function toSvg(s){
                             <option value="critical">critical（紧急）</option>
                             <option value="passive">passive</option>
                         </select>
+                        <label for="barkSound" style="display:block; font-size:13px; margin-bottom:6px;">Bark 通知铃声</label>
+                        <select id="barkSound" style="width:100%; margin-bottom:6px;" aria-describedby="barkSoundHint" onchange="barkSoundDirty = true">
+                            ${BARK_SOUNDS.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+                        </select>
+                        <div id="barkSoundHint" style="font-size:12px; color:var(--text-sec); margin-bottom:10px;">选择后点「测试 Bark」试听；保存后用于保号和版本通知。试听使用已保存的设备 Key。</div>
                         <input type="text" id="barkServer" placeholder="Bark 服务地址（默认 https://api.day.app）" style="width:100%; margin-bottom:10px;">
                         <input type="text" id="tgToken" placeholder="TG Bot Token（@BotFather 获取，留空不修改）" style="width:100%; margin-bottom:8px;">
                         <input type="text" id="tgChatId" placeholder="TG Chat ID（留空不修改）" style="width:100%; margin-bottom:10px;">
@@ -2265,6 +2445,146 @@ function toSvg(s){
 
     <script>
         const modeNames = { 'off': '保守', 'realip_only': '严格', 'dual': '兼容', 'strict': '强力', 'emos': 'EMOS' };
+        ${getWatchState.toString()}
+        ${normalizeNodeBotUrl.toString()}
+
+        function updateNodeBotPreview() {
+            const input = document.getElementById('nodeTgBotUrl');
+            const link = document.getElementById('nodeTgBotPreview');
+            if (!input || !link) return;
+            try {
+                const url = normalizeNodeBotUrl(input.value);
+                input.setCustomValidity('');
+                link.hidden = !url;
+                link.href = url || '#';
+            } catch (e) {
+                input.setCustomValidity(e.message);
+                link.hidden = true;
+                link.removeAttribute('href');
+            }
+        }
+        function renderNodeBotLink(route) {
+            let url = '';
+            try { url = normalizeNodeBotUrl(route.tg_bot_url); } catch (e) {}
+            return url ? '<a class="btn-ghost node-tg-link" href="' + escHtml(url) + '" target="_blank" rel="noopener noreferrer" title="打开该节点的 Telegram 打卡机器人">${I.robot}<span>TG 打卡</span></a>' : '';
+        }
+
+        function formatWatchDays(value) {
+            const rounded = Math.round(Math.abs(value) * 10) / 10;
+            return rounded === 0 && value !== 0 ? '不足 0.1' : String(rounded);
+        }
+        function watchStateLabel(state) {
+            if (!state.enabled) return '未设置观看下限';
+            if (state.status === 'unknown') return state.hasRecord ? '观看时间待确认' : '待首次观看';
+            if (state.remainingDays === 0) return '已到观看下限';
+            if (state.status === 'overdue') return '已超 ' + formatWatchDays(state.remainingDays) + ' 天';
+            return '剩余 ' + formatWatchDays(state.remainingDays) + ' 天';
+        }
+        function watchAgeText(state) {
+            if (state.elapsedDays === null) return '暂无有效播放记录';
+            return state.elapsedDays < 1 ? '最近 24 小时观看过' : formatWatchDays(state.elapsedDays) + ' 天前观看';
+        }
+        function renderWatchProgress(route) {
+            const state = getWatchState(route);
+            const attr = ' class="watch-meter watch-' + state.status + '" data-watch-prefix="' + escHtml(route.prefix) + '"';
+            if (!state.enabled) return '<div' + attr + '><span style="color:var(--text-sec)">未设置观看下限</span></div>';
+            const label = watchStateLabel(state);
+            const percent = Number(state.percent.toFixed(1));
+            const progressAttrs = state.elapsedDays === null ? '' : ' aria-valuenow="' + percent + '"';
+            return '<div' + attr + '><div class="watch-meter-head"><span>保号周期</span><strong>' + escHtml(label) + '</strong></div>' +
+                '<div class="watch-track" role="progressbar" aria-label="距观看下限的周期进度" aria-valuemin="0" aria-valuemax="100"' + progressAttrs + ' aria-valuetext="' + escHtml(label) + '"><span style="width:' + percent + '%"></span></div>' +
+                '<div class="watch-meter-foot"><span>' + escHtml(watchAgeText(state)) + '</span><span>观看下限 ' + state.limit + ' 天</span></div></div>';
+        }
+
+        function updateWatchAlerts() {
+            const panel = document.getElementById('watchAlerts');
+            const list = document.getElementById('watchAlertList');
+            if (!panel || !list) return;
+            const rank = { overdue: 0, warning: 1, unknown: 2 };
+            const rows = (window.globalRoutesData || []).map(route => ({ route, state: getWatchState(route) }))
+                .filter(item => Object.prototype.hasOwnProperty.call(rank, item.state.status))
+                .sort((a, b) => rank[a.state.status] - rank[b.state.status] ||
+                    (a.state.remainingDays ?? Infinity) - (b.state.remainingDays ?? Infinity) || String(a.route.prefix).localeCompare(String(b.route.prefix)));
+            panel.hidden = rows.length === 0;
+            const counts = { overdue: 0, warning: 0, unknown: 0 };
+            rows.forEach(item => counts[item.state.status]++);
+            document.getElementById('watchAlertsCount').textContent = rows.length + ' 个节点待关注';
+            document.getElementById('watchAlertsSummary').textContent = '已到期 ' + counts.overdue + ' · 即将到期 ' + counts.warning + ' · 待确认 ' + counts.unknown + '。提前 3 天预警；点击节点名定位，真实观看后重新计时。';
+            list.innerHTML = rows.map(({ route, state }) => '<article class="watch-alert-item watch-' + state.status + '">' +
+                '<button type="button" class="watch-alert-node" data-watch-focus="' + escHtml(route.prefix) + '" title="定位节点并展开详情">' +
+                '<span class="watch-alert-name">' + escHtml(route.remark || route.prefix) + '</span><small>/' + escHtml(route.prefix) + ' · 观看下限 ' + state.limit + ' 天</small></button>' +
+                '<div class="watch-alert-actions"><strong>' + escHtml(watchStateLabel(state)) + '</strong>' + renderNodeBotLink(route) + '</div></article>').join('');
+        }
+        function updateWatchDisplays() {
+            const routes = new Map((window.globalRoutesData || []).map(route => [route.prefix, route]));
+            document.querySelectorAll('[data-watch-prefix]').forEach(el => {
+                const route = routes.get(el.getAttribute('data-watch-prefix'));
+                if (route) el.outerHTML = renderWatchProgress(route);
+            });
+            document.querySelectorAll('[data-watch-age]').forEach(el => {
+                const route = routes.get(el.getAttribute('data-watch-age'));
+                if (!route) return;
+                const state = getWatchState(route);
+                el.textContent = watchAgeText(state);
+                el.style.color = state.status === 'overdue' ? 'var(--danger)' : 'var(--text-sec)';
+            });
+            updateWatchAlerts();
+        }
+        async function focusWatchNode(prefix) {
+            const findCard = () => Array.from(document.querySelectorAll('.emby-card')).find(card => card.getAttribute('data-prefix') === prefix);
+            let card = findCard();
+            if (!card) { await load(); card = findCard(); }
+            if (!card) return showToast('节点已变更，请刷新状态');
+            clearTimeout(searchTimer);
+            activeModeFilter = '';
+            document.getElementById('searchNode').value = '';
+            closeModeMenu();
+            document.querySelectorAll('.emby-card').forEach(el => el.style.display = 'flex');
+            if (document.getElementById('list-grid').style.display === 'none') toggleNodesCollapse();
+            if (window.ROLE === 'sub' || window.ROLE === 'subadmin') document.getElementById('nodesToolbar').style.display = 'none';
+            const detail = card.querySelector('.node-detail');
+            const toggle = card.querySelector('[onclick="toggleNodeDetail(this)"]');
+            if (detail && detail.style.display === 'none' && toggle) toggleNodeDetail(toggle);
+            card.tabIndex = -1;
+            card.classList.add('watch-focused');
+            card.focus({ preventScroll: true });
+            card.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+            setTimeout(() => card.classList.remove('watch-focused'), 2000);
+        }
+        document.getElementById('watchAlertList').addEventListener('click', event => {
+            const button = event.target.closest('[data-watch-focus]');
+            if (button) focusWatchNode(button.getAttribute('data-watch-focus'));
+        });
+        let watchRefreshPending = false, lastWatchRefreshAt = 0;
+        async function refreshWatchStatus(manual = false) {
+            if (watchRefreshPending || !Array.isArray(window.globalRoutesData)) return;
+            watchRefreshPending = true;
+            const button = document.getElementById('watchRefreshBtn');
+            if (button) button.disabled = true;
+            try {
+                const response = await fetch('/api/routes');
+                if (!response.ok) throw new Error('读取观看状态失败');
+                let routes = await response.json();
+                if (!Array.isArray(routes)) throw new Error('观看状态数据无效');
+                if (window.ROLE !== 'user') routes = routes.filter(route => !route.owner);
+                window.globalRoutesData = routes;
+                lastWatchRefreshAt = Date.now();
+                updateModeCards();
+                updateWatchDisplays();
+                if (manual) showToast('观看状态已刷新');
+            } catch (e) {
+                if (manual) showToast(e.message);
+            } finally {
+                watchRefreshPending = false;
+                if (button) button.disabled = false;
+            }
+        }
+        function refreshWatchOnReturn() {
+            if (!document.hidden && Date.now() - lastWatchRefreshAt > 15000 && document.getElementById('view-nodes').classList.contains('active')) refreshWatchStatus();
+        }
+        document.addEventListener('visibilitychange', refreshWatchOnReturn);
+        window.addEventListener('focus', refreshWatchOnReturn);
+        setInterval(refreshWatchOnReturn, 60000);
 
         // ===== 折叠交互(v3.4.32)=====
         function toggleNodesCollapse(){
@@ -3269,6 +3589,7 @@ function toSvg(s){
                             oldPrefix: r.prefix, prefix: r.prefix, target: r.target || '', mode: mode,
                             remark: r.remark || '', icon: r.icon || '', cache_img: r.cache_img || 'off',
                             fakeIp: r.custom_ip || 'off', watchLimit: r.watch_limit || 0,
+                            tgBotUrl: r.tg_bot_url || '',
                             nodeUser: r.node_user || '', nodePass: r.node_pass || '',
                             redirect_direct: r.redirect_direct === 'on' ? 'on' : 'off', redirect_rules: r.redirect_rules || '[]',
                             emosId: r.emos_id || '', emosName: r.emos_name || '', emosAggregate: r.emos_aggregate === 'on' ? 'on' : 'off',
@@ -3410,7 +3731,9 @@ function toSvg(s){
 
                 //  新增：把节点流量数据存进全局内存，供大屏瞬间读取！
                 window.globalRoutesData = data;
+                lastWatchRefreshAt = Date.now();
                 updateModeCards();
+                updateWatchAlerts();
 
                 const container = document.getElementById('list-grid');
                 if(data.length === 0) {
@@ -3431,17 +3754,9 @@ function toSvg(s){
                     const mainTarget = targets[0] || '';
                     
                     const remarkName = r.remark || '未命名媒体库';
-                    const lastPlay = r.last_play ? r.last_play : '暂无播放记录';
-                    let watchDaysText = '暂无播放记录', watchOverdue = false;
-                    if (r.last_play) {
-                        try {
-                            const lpUtc = Date.parse(r.last_play.replace(' ', 'T') + 'Z') - 8 * 3600000;
-                            const diffDays = Math.floor((Date.now() - lpUtc) / 86400000);
-                            watchDaysText = diffDays <= 0 ? '今天观看过' : (diffDays + ' 天前观看');
-                            const wl = parseFloat(r.watch_limit);
-                            if (wl > 0 && diffDays > wl) { watchOverdue = true; watchDaysText += ' · 已超 ' + (diffDays - wl) + ' 天'; }
-                        } catch (e) {}
-                    }
+                    const watchState = getWatchState(r);
+                    const watchDaysText = watchAgeText(watchState);
+                    const watchOverdue = watchState.status === 'overdue';
                     
                     const iconHtml = r.icon ? \`<img src="\${r.icon}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">\` : '${I.film}';
                     const pingAttr = mainTarget ? 'onclick="pingTarget(' + idx + ', \\'' + mainTarget + '\\')" title="点击重新测速"' : 'title="订阅模式不可测速"';
@@ -3462,8 +3777,8 @@ function toSvg(s){
                                 <input type="checkbox" class="node-cb admin-only" value="\${r.prefix}" style="width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--primary); flex-shrink: 0;">
                                 <div class="emby-icon" style="margin: 0; display: flex; align-items: center;">\${iconHtml}</div>
                                 <div>
-                                    <div style="font-weight: 600; font-size: 16px; color: var(--text);">\${remarkName}</div>
-                                    <div style="font-size: 13px; color: var(--text-sec); margin-top:2px;">/\${r.prefix}</div>
+                                    <div style="font-weight: 600; font-size: 16px; color: var(--text);">\${escHtml(remarkName)}</div>
+                                    <div style="font-size: 13px; color: var(--text-sec); margin-top:2px;">/\${escHtml(r.prefix)}</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center;">
@@ -3475,10 +3790,13 @@ function toSvg(s){
                             <span id="ping-\${idx}" class="ping-badge" \${pingAttr}>\${pingText}</span>
                             <span class="bw-val" data-bw="\${esc(r.prefix)}" style="font-size:12px; color:var(--text-sec);">\${todayBw}</span>
                             <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+                                \${renderNodeBotLink(r)}
                                 <button class="icon-btn" onclick="copyTxt('\${proxyUrl}')" title="复制直达链接">${SVG_COPY}</button>
                                 <button class="icon-btn" onclick="toggleNodeDetail(this)" title="展开详情" style="transition:transform .25s;">${I.arrowdown}</button>
                             </div>
                         </div>
+
+                        \${renderWatchProgress(r)}
 
                         <div class="node-detail" style="display:none; flex-direction:column; gap:14px;">
                             <div style="background: rgba(120,120,120,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -3526,7 +3844,7 @@ function toSvg(s){
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">最后活跃:</span>
-                                    <span style="color:\${watchOverdue ? '#ff3b30' : 'var(--text-sec)'}; font-weight:\${watchOverdue ? '700' : 'normal'};">\${watchOverdue ? '${I.warn} ' : ''}\${watchDaysText}</span>
+                                    <span data-watch-age="\${escHtml(r.prefix)}" style="color:\${watchOverdue ? 'var(--danger)' : 'var(--text-sec)'};">\${watchDaysText}</span>
                                 </div>
                             </div>
 
@@ -3539,6 +3857,7 @@ function toSvg(s){
                     </div>\`);
                 });
                 container.innerHTML = htmlParts.join('');
+                if (window.ROLE === 'sub' || window.ROLE === 'subadmin') container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
                 // 自动测速:6 路并发的队列(原先每个节点错开 500ms,110 个节点最后一个要等近一分钟才开始测)
                 (function () { const q = proxyNodesForPing.filter(n => n.url); function next() { const n = q.shift(); if (!n) return; Promise.resolve(pingTarget(n.idx, n.url)).then(next, next); } for (let i = 0; i < 6; i++) next(); })();
                 if (data.some(r => r.todayBandwidth === '统计中…')) loadBandwidth();
@@ -3583,6 +3902,8 @@ function toSvg(s){
             document.getElementById('nodeCache').checked = (cacheImg !== 'off');
             document.getElementById('nodeFakeIp').value = customIp || '';
             document.getElementById('watchLimit').value = watchLimit || '0';
+            document.getElementById('nodeTgBotUrl').value = ((window.globalRoutesData || []).find(r => r.prefix === prefix) || {}).tg_bot_url || '';
+            updateNodeBotPreview();
             document.getElementById('nodeUser').value = nodeUser || '';
             document.getElementById('nodePass').value = nodePass || '';
             document.getElementById('nodeEmosId').value = emosId || 'eK3QYG29Ms';
@@ -3839,6 +4160,7 @@ function toSvg(s){
         function openNodeModal() {
             const f = document.getElementById('addForm');
             f.reset();
+            updateNodeBotPreview();
             document.getElementById('oldPrefix').value='';
             selectIcon('','默认');
             document.getElementById('nodeCache').checked=true;
@@ -4003,6 +4325,7 @@ function toSvg(s){
             } else alert('恢复失败：' + (data.error || ''));
         }
         function openAccountModal() {
+            barkSoundDirty = false;
             const modal = document.getElementById('accountModal');
             modal.style.display = 'block';
             const sp = document.getElementById('accountSubPanel');
@@ -4140,6 +4463,7 @@ function toSvg(s){
                 if (d.success) showToast(' 安全设置已保存'); else alert('保存失败: ' + (d.error || ''));
             } catch (e) { alert('保存失败: ' + e); }
         }
+        let barkSoundDirty = false;
         async function loadNotifyState() {
             try {
                 const res = await fetch('/api/account/notify');
@@ -4149,6 +4473,7 @@ function toSvg(s){
                     const setChk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v !== false; };
                     set('barkKey', data.barkKey);
                     set('barkLevel', data.barkLevel || 'active');
+                    if (!barkSoundDirty) set('barkSound', data.barkSound || '');
                     set('barkServer', data.barkServer || 'https://api.day.app');
                     setChk('barkNotify', data.barkNotify);
                     set('tgToken', data.tgToken);
@@ -4171,6 +4496,7 @@ function toSvg(s){
         async function saveNotifySettings() {
             const barkKey = document.getElementById('barkKey').value.trim();
             const barkLevel = document.getElementById('barkLevel').value;
+            const barkSound = document.getElementById('barkSound').value;
             const barkServer = document.getElementById('barkServer').value.trim();
             const barkNotify = document.getElementById('barkNotify').checked;
             const tgToken = document.getElementById('tgToken').value.trim();
@@ -4187,9 +4513,9 @@ function toSvg(s){
             const tgGroupBotToken = document.getElementById('tgGroupBotToken').value.trim();
             const tgGroupChatId = document.getElementById('tgGroupChatId').value.trim();
             const tgGroupHour = parseFloat(document.getElementById('tgGroupHour').value) || 20;
-            const res = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notify: { barkKey, barkLevel, barkServer, barkNotify, tgToken, tgChatId, tgNotify, serverChanKey, serverChanNotify, dingTalkWebhook, dingTalkNotify, checkIntervalHours, tgGroupEnabled, tgGroupBotToken, tgGroupChatId, tgGroupHour } }) });
+            const res = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notify: { barkKey, barkLevel, barkSound, barkServer, barkNotify, tgToken, tgChatId, tgNotify, serverChanKey, serverChanNotify, dingTalkWebhook, dingTalkNotify, checkIntervalHours, tgGroupEnabled, tgGroupBotToken, tgGroupChatId, tgGroupHour } }) });
             const data = await res.json();
-            if (data.success) { showToast('保号通知设置已保存'); closeAccountModal(); }
+            if (data.success) { barkSoundDirty = false; showToast('保号通知设置已保存'); closeAccountModal(); }
             else alert('保存失败：' + (data.error || ''));
         }
         // 一键发送日报:立即发送当天真实日报(返回全文预览,验证数据链路)
@@ -4212,7 +4538,9 @@ function toSvg(s){
             alert(data.success ? '群 Bot 测试消息发送成功' : ('发送失败：' + (data.error || '')));
         }
         async function testNotifyFn(type) {
-            const res = await fetch('/api/test-notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type }) });
+            const payload = { type };
+            if (type === 'bark') payload.barkSound = document.getElementById('barkSound').value;
+            const res = await fetch('/api/test-notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await res.json();
             alert(data.success ? '测试通知发送成功' : ('发送失败：' + (data.error || '')));
         }
@@ -4680,6 +5008,9 @@ function toSvg(s){
             const cache_img = document.getElementById('nodeCache').checked ? 'on' : 'off';
             const fakeIp = document.getElementById('nodeFakeIp').value.trim();
             const watchLimit = document.getElementById('watchLimit').value.trim() || '0';
+            let tgBotUrl;
+            try { tgBotUrl = normalizeNodeBotUrl(document.getElementById('nodeTgBotUrl').value); }
+            catch (err) { return showToast(err.message); }
             const nodeUser = document.getElementById('nodeUser').value.trim();
             const nodePass = document.getElementById('nodePass').value.trim();
             const emosId = document.getElementById('nodeEmosId').value.trim();
@@ -4704,12 +5035,13 @@ function toSvg(s){
             try {
                 const res = await fetch('/api/routes', { 
                     method: 'POST', 
-                    body: JSON.stringify({oldPrefix, prefix, target, mode, remark, icon, cache_img, fakeIp, watchLimit, nodeUser, nodePass, redirect_direct, redirect_rules, emosId, emosName, emosAggregate, strmOpt, forceDirect})
+                    body: JSON.stringify({oldPrefix, prefix, target, mode, remark, icon, cache_img, fakeIp, watchLimit, tgBotUrl, nodeUser, nodePass, redirect_direct, redirect_rules, emosId, emosName, emosAggregate, strmOpt, forceDirect})
                 });
                 const data = await res.json();
                 if(!data.success) throw new Error(data.error || '部署失败');
                 
                 document.getElementById('addForm').reset();
+                updateNodeBotPreview();
                 document.getElementById('oldPrefix').value = ''; 
                 selectIcon('', '默认');
                 document.getElementById('nodeCache').checked = true;
@@ -5042,14 +5374,16 @@ function toSvg(s){
             sendDnsRequest(topIps, btn);
         }
         async function loadDNS() {
+            const container = document.getElementById('dnsStatus');
+            if (!container) return;
             try {
-                const res = await fetch('/api/get-dns'); const data = await res.json(); const container = document.getElementById('dnsStatus');
+                const res = await fetch('/api/get-dns'); const data = await res.json();
                 if (data.success && data.result) {
                     const records = data.result.filter(r => r.type === 'A' || r.type === 'AAAA' || r.type === 'CNAME');
                     if (records.length === 0) container.innerHTML = '<span class="badge" style="background:rgba(255,149,0,0.1);color:#ff9500;">暂无解析记录</span>';
                     else container.innerHTML = records.map(r => \`<span class="badge" style="background:rgba(0,113,227,0.1);color:var(--primary);border:1px solid rgba(0,113,227,0.2);">\${r.type} | \${r.content}</span>\`).join('');
                 } else container.innerHTML = \`<span class="badge" style="background:rgba(255,59,48,0.1);color:#ff3b30;">\${data.error || '获取失败'}</span>\`;
-            } catch (e) { document.getElementById('dnsStatus').innerHTML = '<span class="badge" style="background:rgba(255,59,48,0.1);color:#ff3b30;">网络异常</span>'; }
+            } catch (e) { container.innerHTML = '<span class="badge" style="background:rgba(255,59,48,0.1);color:#ff3b30;">网络异常</span>'; }
         }
         
         function logout() {
@@ -5103,6 +5437,9 @@ function toSvg(s){
 
     //  新增：前端探针自动检测脚本
         async function fetchCfTrace() {
+            const entryElem = document.getElementById('trace-entry');
+            const egressElem = document.getElementById('trace-egress');
+            if (!entryElem || !egressElem) return;
             try {
                 const res = await fetch('/api/trace');
                 const data = await res.json();
@@ -5112,11 +5449,10 @@ function toSvg(s){
                     if (data.entryCity && data.entryCity !== '未知') entryText += ' ' + data.entryCity;
                     entryText += ' (' + data.entryColo + ')';
                     
-                    document.getElementById('trace-entry').innerText = entryText;
+                    entryElem.innerText = entryText;
                     
                     // 落地机房处理
                     const egressText = data.egressColo;
-                    const egressElem = document.getElementById('trace-egress');
                     egressElem.innerText = egressText;
                     
                     // 核心逻辑：如果入口和落地机房不一致，显示高亮提示（智能调度触发）
@@ -5126,8 +5462,8 @@ function toSvg(s){
                     }
                 }
             } catch(e) {
-                document.getElementById('trace-entry').innerText = '获取超时';
-                document.getElementById('trace-egress').innerText = '获取超时';
+                entryElem.innerText = '获取超时';
+                egressElem.innerText = '获取超时';
             }
         }
         
@@ -6092,7 +6428,7 @@ async function getHeatmap(env, days = 7) {
 
 // ============ 保号通知（Bark / Telegram / Server酱 / 钉钉）============
 async function getNotifyCfg(env) {
-    let cfg = { barkKey: '', barkLevel: 'active', barkServer: 'https://api.day.app', barkNotify: true, tgToken: '', tgChatId: '', tgNotify: true, serverChanKey: '', serverChanNotify: false, dingTalkWebhook: '', dingTalkNotify: false };
+    let cfg = { barkKey: '', barkLevel: 'active', barkSound: '', barkServer: 'https://api.day.app', barkNotify: true, tgToken: '', tgChatId: '', tgNotify: true, serverChanKey: '', serverChanNotify: false, dingTalkWebhook: '', dingTalkNotify: false };
     try {
         if (env && env.DB) {
             const row = await env.DB.prepare("SELECT value FROM app_config WHERE key = 'notify_settings'").first();
@@ -6101,6 +6437,7 @@ async function getNotifyCfg(env) {
     } catch (e) {}
     if (!cfg.serverChanKey && env && env.SERVERCHAN_KEY) cfg.serverChanKey = String(env.SERVERCHAN_KEY).trim();
     if (!cfg.dingTalkWebhook && env && env.DINGTALK_WEBHOOK) cfg.dingTalkWebhook = String(env.DINGTALK_WEBHOOK).trim();
+    try { cfg.barkSound = normalizeBarkSound(cfg.barkSound); } catch (e) { cfg.barkSound = ''; }
     return cfg;
 }
 // v3.5.3:播放器 UA → 真实名称归并（排行榜用）
@@ -6159,10 +6496,12 @@ async function getLogo(env) {
 async function sendBarkN(cfg, title, body) {
     try {
         if (!cfg.barkKey) return false;
+        const payload = { title: title, body: body, level: cfg.barkLevel || 'active' };
+        if (cfg.barkSound) payload.sound = normalizeBarkSound(cfg.barkSound);
         const r = await fetch((cfg.barkServer || 'https://api.day.app').replace(/\/+$/, '') + '/' + String(cfg.barkKey).trim(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify({ title: title, body: body, level: cfg.barkLevel || 'active' })
+            body: JSON.stringify(payload)
         });
         return r.ok;
     } catch (e) { return false; }
@@ -6218,16 +6557,10 @@ async function scanOverdueNotify(env, ctx) {
         const { results } = await env.DB.prepare('SELECT prefix, remark, target, last_play, watch_limit FROM routes').all();
         const remind = {};   // prefix → {remark, days, wl, remain}
         for (const r of (results || [])) {
-            const wl = parseFloat(r.watch_limit);
-            if (!wl || wl <= 0 || !r.last_play) continue;
-            const lpUtc = Date.parse(String(r.last_play).replace(' ', 'T') + 'Z') - 8 * 3600000;
-            if (isNaN(lpUtc)) continue;
-            const diffDays = Math.floor((Date.now() - lpUtc) / 86400000);
-            if (diffDays <= 0) continue;     // v3.4.68:今天观看过(含刚播)不提醒,修复 watch_limit≤3 时刚观看即被提醒"0天没观看"
-            const remain = wl - diffDays;   // 剩余天数:0=到期当天,负=已超限,>3=安全期
-            if (remain > 3) continue;        // 安全期(含刚播放进入新倒计时,观看后自动解除提醒),不提醒
+            const watch = getWatchState(r);
+            if (watch.status !== 'warning' && watch.status !== 'overdue') continue;
             if (last.sent && last.sent[r.prefix] === todayStr) continue;   // 该节点今日已提醒
-            remind[r.prefix] = { remark: r.remark || r.prefix, days: diffDays, wl: wl, remain: remain };
+            remind[r.prefix] = { remark: r.remark || r.prefix, days: Number(watch.elapsedDays.toFixed(1)), wl: watch.limit, remain: watch.remainingDays };
         }
         const prefixes = Object.keys(remind);
         if (!prefixes.length) {
@@ -7496,7 +7829,7 @@ const __NORMAL_WORKER = {
             // v3.5.4:返回 TG 群机器人日报配置(脱敏)
             let tgg = {};
             try { const tgR = await env.DB.prepare("SELECT value FROM app_config WHERE key = 'tg_group_settings'").first(); if (tgR && tgR.value) tgg = JSON.parse(tgR.value); } catch (e) {}
-            return Response.json({ success: true, barkKey: cfg.barkKey ? '********' : '', barkLevel: cfg.barkLevel || 'active', barkServer: cfg.barkServer || 'https://api.day.app', barkNotify: cfg.barkNotify !== false, tgToken: cfg.tgToken ? '********' : '', tgChatId: cfg.tgChatId || '', tgNotify: cfg.tgNotify !== false, serverChanKey: cfg.serverChanKey ? '********' : '', serverChanNotify: cfg.serverChanNotify === true, dingTalkWebhook: cfg.dingTalkWebhook ? '********' : '', dingTalkNotify: cfg.dingTalkNotify === true, checkIntervalHours: checkIntervalHours, tgGroupEnabled: tgg.enabled !== false, tgGroupBotToken: tgg.botToken ? '********' : '', tgGroupChatId: tgg.chatId || '', tgGroupHour: tgg.hour || 20 });
+            return Response.json({ success: true, barkKey: cfg.barkKey ? '********' : '', barkLevel: cfg.barkLevel || 'active', barkSound: cfg.barkSound || '', barkServer: cfg.barkServer || 'https://api.day.app', barkNotify: cfg.barkNotify !== false, tgToken: cfg.tgToken ? '********' : '', tgChatId: cfg.tgChatId || '', tgNotify: cfg.tgNotify !== false, serverChanKey: cfg.serverChanKey ? '********' : '', serverChanNotify: cfg.serverChanNotify === true, dingTalkWebhook: cfg.dingTalkWebhook ? '********' : '', dingTalkNotify: cfg.dingTalkNotify === true, checkIntervalHours: checkIntervalHours, tgGroupEnabled: tgg.enabled !== false, tgGroupBotToken: tgg.botToken ? '********' : '', tgGroupChatId: tgg.chatId || '', tgGroupHour: tgg.hour || 20 });
         }
 
         // 自定义头像（登录后可见）
@@ -7513,6 +7846,7 @@ const __NORMAL_WORKER = {
                 const type = String(body.type || 'bark');
                 const cfg = await getNotifyCfg(env);
                 if (type === 'bark') {
+                    if (body.barkSound !== undefined) cfg.barkSound = normalizeBarkSound(body.barkSound);
                     if (!cfg.barkKey) return Response.json({ success: false, error: '未配置 Bark Key' });
                     const ok = await sendBarkN(cfg, 'Emby 反代面板', '保号通知测试成功 ');
                     return Response.json({ success: ok, error: ok ? '' : 'Bark 发送失败，请检查 Key/服务地址' });
@@ -7692,7 +8026,7 @@ const __NORMAL_WORKER = {
             // v3.5.4:返回 TG 群机器人日报配置(脱敏)
             let tgg = {};
             try { const tgR = await env.DB.prepare("SELECT value FROM app_config WHERE key = 'tg_group_settings'").first(); if (tgR && tgR.value) tgg = JSON.parse(tgR.value); } catch (e) {}
-            return Response.json({ success: true, barkKey: cfg.barkKey ? '********' : '', barkLevel: cfg.barkLevel || 'active', barkServer: cfg.barkServer || 'https://api.day.app', barkNotify: cfg.barkNotify !== false, tgToken: cfg.tgToken ? '********' : '', tgChatId: cfg.tgChatId || '', tgNotify: cfg.tgNotify !== false, serverChanKey: cfg.serverChanKey ? '********' : '', serverChanNotify: cfg.serverChanNotify === true, dingTalkWebhook: cfg.dingTalkWebhook ? '********' : '', dingTalkNotify: cfg.dingTalkNotify === true, checkIntervalHours: checkIntervalHours, tgGroupEnabled: tgg.enabled !== false, tgGroupBotToken: tgg.botToken ? '********' : '', tgGroupChatId: tgg.chatId || '', tgGroupHour: tgg.hour || 20 });
+            return Response.json({ success: true, barkKey: cfg.barkKey ? '********' : '', barkLevel: cfg.barkLevel || 'active', barkSound: cfg.barkSound || '', barkServer: cfg.barkServer || 'https://api.day.app', barkNotify: cfg.barkNotify !== false, tgToken: cfg.tgToken ? '********' : '', tgChatId: cfg.tgChatId || '', tgNotify: cfg.tgNotify !== false, serverChanKey: cfg.serverChanKey ? '********' : '', serverChanNotify: cfg.serverChanNotify === true, dingTalkWebhook: cfg.dingTalkWebhook ? '********' : '', dingTalkNotify: cfg.dingTalkNotify === true, checkIntervalHours: checkIntervalHours, tgGroupEnabled: tgg.enabled !== false, tgGroupBotToken: tgg.botToken ? '********' : '', tgGroupChatId: tgg.chatId || '', tgGroupHour: tgg.hour || 20 });
         }
 
         // 测试通知（bark / tg）
@@ -7703,6 +8037,7 @@ const __NORMAL_WORKER = {
                 const type = String(body.type || 'bark');
                 const cfg = await getNotifyCfg(env);
                 if (type === 'bark') {
+                    if (body.barkSound !== undefined) cfg.barkSound = normalizeBarkSound(body.barkSound);
                     if (!cfg.barkKey) return Response.json({ success: false, error: '未配置 Bark Key' });
                     const ok = await sendBarkN(cfg, 'Emby 反代面板', '保号通知测试成功 ');
                     return Response.json({ success: ok, error: ok ? '' : 'Bark 发送失败，请检查 Key/服务地址' });
@@ -7777,6 +8112,7 @@ const __NORMAL_WORKER = {
                     const cfg = {
                         barkKey: (n.barkKey && n.barkKey !== '********') ? String(n.barkKey).trim() : (old.barkKey || ''),
                         barkLevel: ['critical', 'active', 'timeSensitive', 'passive'].includes(n.barkLevel) ? n.barkLevel : (old.barkLevel || 'active'),
+                        barkSound: n.barkSound !== undefined ? normalizeBarkSound(n.barkSound) : (old.barkSound || ''),
                         barkServer: (n.barkServer && n.barkServer !== 'https://api.day.app') ? String(n.barkServer).trim().replace(/\/+$/, '') : (old.barkServer || 'https://api.day.app'),
                         barkNotify: n.barkNotify !== false,
                         tgToken: (n.tgToken && n.tgToken !== '********') ? String(n.tgToken).trim() : (old.tgToken || ''),
@@ -8649,12 +8985,15 @@ if (ROLE !== 'admin') return new Response('Forbidden', { status: 403 });
                 // v3.5.0:路由表 schema 初始化仅首次执行
                 await ensureRoutesSchema(env);
                 const routes = await request.json();
-                for (const r of routes) {
+                if (!Array.isArray(routes)) return Response.json({ success: false, error: '备份格式需为节点数组' });
+                const normalized = routes.map(r => ({ ...r, tg_bot_url: normalizeNodeBotUrl(r.tg_bot_url || '') }));
+                for (const r of normalized) {
                     if (r.prefix && r.target && !r.owner) {
-                        await env.DB.prepare('INSERT OR REPLACE INTO routes (prefix, target, mode, remark, last_play, icon, cache_img, sort_order, custom_ip, watch_limit, node_user, node_pass, redirect_direct, redirect_rules, emos_id, emos_name, emos_aggregate, strm_opt, force_direct) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                            .bind(r.prefix, r.target, r.mode || 'off', r.remark || '', r.last_play || '', r.icon || '', r.cache_img || 'on', r.sort_order || 0, r.custom_ip || '', r.watch_limit || '0', r.node_user || '', r.node_pass || '', r.redirect_direct === 'on' ? 'on' : 'off', r.redirect_rules || '', r.emos_id || '', r.emos_name || '', r.emos_aggregate === 'on' ? 'on' : 'off', r.strm_opt === 'on' ? 'on' : 'off', r.force_direct === 'on' ? 'on' : 'off').run();
+                        await env.DB.prepare('INSERT OR REPLACE INTO routes (prefix, target, mode, remark, last_play, icon, cache_img, sort_order, custom_ip, watch_limit, tg_bot_url, node_user, node_pass, redirect_direct, redirect_rules, emos_id, emos_name, emos_aggregate, strm_opt, force_direct) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                            .bind(r.prefix, r.target, r.mode || 'off', r.remark || '', r.last_play || '', r.icon || '', r.cache_img || 'on', r.sort_order || 0, r.custom_ip || '', r.watch_limit || '0', r.tg_bot_url, r.node_user || '', r.node_pass || '', r.redirect_direct === 'on' ? 'on' : 'off', r.redirect_rules || '', r.emos_id || '', r.emos_name || '', r.emos_aggregate === 'on' ? 'on' : 'off', r.strm_opt === 'on' ? 'on' : 'off', r.force_direct === 'on' ? 'on' : 'off').run();
                     }
                 }
+                memoDelPrefix('route:');
                 return Response.json({ success: true });
             } catch (e) { return Response.json({ success: false, error: e.message }); }
         }
@@ -8708,7 +9047,7 @@ if (request.method === 'POST' && ROLE !== 'admin' && ROLE !== 'subadmin' && ROLE
                 const todayStr = new Date(Date.now() + 8 * 3600000).toISOString().split('T')[0];
                 let whereSql = " WHERE IFNULL(r.owner, '') = '' ";
                 let bindArgs = [todayStr];
-                if (ROLE === 'user' && AUTH_USER) { whereSql = " WHERE r.owner = ? "; bindArgs = [String(AUTH_USER.id), todayStr]; }
+                if (ROLE === 'user' && AUTH_USER) { whereSql = " WHERE r.owner = ? "; bindArgs = [todayStr, String(AUTH_USER.id)]; }
                 let { results: routes } = await env.DB.prepare(`
                     SELECT r.*, 
                     IFNULL(s.count, 0) as todayReqs,
@@ -8849,16 +9188,8 @@ if (request.method === 'POST' && ROLE !== 'admin' && ROLE !== 'subadmin' && ROLE
                                 if (hit) return Response.json({ success: false, error: '你已有相同源站的节点「' + (hit.remark || hit.prefix) + '」,请勿重复添加' });
                             }
                         }
-                        const parsedRules = parseRedirectRules(data.redirect_rules);
-                        const rulesJson = parsedRules.length ? JSON.stringify(parsedRules) : '';
-                        const oldSort = oldRow ? (oldRow.sort_order || 0) : 0;
-                        const modeOk = ['off', 'realip_only', 'dual', 'strict', 'emos'].indexOf(data.mode) >= 0 ? data.mode : 'off';
-                        if (oldRow && oldPrefix !== fullPrefix) {
-                            await env.DB.prepare('UPDATE routes SET prefix = ? WHERE prefix = ? AND owner = ?').bind(fullPrefix, oldPrefix, uid).run();
-                        }
-                        await env.DB.prepare('INSERT OR REPLACE INTO routes (prefix, target, mode, remark, icon, cache_img, sort_order, custom_ip, watch_limit, node_user, node_pass, redirect_direct, redirect_rules, emos_id, emos_name, emos_aggregate, strm_opt, force_direct, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                            .bind(fullPrefix, data.target, modeOk, data.remark || '', data.icon || '', data.cache_img === 'off' ? 'off' : 'on', oldSort, data.fakeIp || '', data.watchLimit || '0', data.nodeUser || '', data.nodePass || '', data.redirect_direct === 'on' ? 'on' : 'off', rulesJson, data.emosId || '', data.emosName || '', data.emosAggregate === 'on' ? 'on' : 'off', data.strmOpt === 'on' ? 'on' : 'off', data.forceDirect === 'on' ? 'on' : 'off', uid).run();
-                        memoDelPrefix('route:');
+                        if (data.mode !== undefined && !['off', 'realip_only', 'dual', 'strict', 'emos'].includes(data.mode)) data.mode = 'off';
+                        await saveRouteConfig(env, data, fullPrefix, oldRow, uid);
                         return Response.json({ success: true });
                     } catch (e) { return Response.json({ success: false, error: '保存失败：' + e.message }); }
                 }
@@ -8884,20 +9215,11 @@ if (request.method === 'POST' && ROLE !== 'admin' && ROLE !== 'subadmin' && ROLE
                         }
                     }
                 }
-                let currentSortOrder = 0;
-                if (data.oldPrefix && data.oldPrefix !== data.prefix) {
-                    const oldRow = await env.DB.prepare('SELECT sort_order FROM routes WHERE prefix = ?').bind(data.oldPrefix).first();
-                    if(oldRow) currentSortOrder = oldRow.sort_order;
-                    await env.DB.prepare('DELETE FROM routes WHERE prefix = ?').bind(data.oldPrefix).run();
-                } else {
-                    const oldRow = await env.DB.prepare('SELECT sort_order FROM routes WHERE prefix = ?').bind(data.prefix).first();
-                    if(oldRow) currentSortOrder = oldRow.sort_order;
-                }
-                
-                const parsedRules = parseRedirectRules(data.redirect_rules);
-                const rulesJson = parsedRules.length ? JSON.stringify(parsedRules) : '';
-                await env.DB.prepare('INSERT OR REPLACE INTO routes (prefix, target, mode, remark, icon, cache_img, sort_order, custom_ip, watch_limit, node_user, node_pass, redirect_direct, redirect_rules, emos_id, emos_name, emos_aggregate, strm_opt, force_direct) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                    .bind(data.prefix, data.target, data.mode || 'off', data.remark || '', data.icon || '', data.cache_img || 'on', currentSortOrder, data.fakeIp || '', data.watchLimit || '0', data.nodeUser || '', data.nodePass || '', data.redirect_direct === 'on' ? 'on' : 'off', rulesJson, data.emosId || '', data.emosName || '', data.emosAggregate === 'on' ? 'on' : 'off', data.strmOpt === 'on' ? 'on' : 'off', data.forceDirect === 'on' ? 'on' : 'off').run();
+                const oldRow = data.oldPrefix ? await env.DB.prepare('SELECT * FROM routes WHERE prefix = ?').bind(data.oldPrefix).first() : null;
+                if (data.oldPrefix && !oldRow) return Response.json({ success: false, error: '节点不存在，请刷新后重试' });
+                try {
+                    await saveRouteConfig(env, data, data.prefix, oldRow, oldRow ? oldRow.owner || '' : '');
+                } catch (e) { return Response.json({ success: false, error: '保存失败：' + e.message }); }
                 // 成员添加节点审计:子管理员/已授权订阅用户直接添加节点时记录 IP 与设备,供管理员排查乱加(保留 7 天,可一键封禁)
                 if (ROLE === 'subadmin' || (ROLE === 'sub' && await subCanAdd(env, getCookie(request, 'admin_token')))) {
                     try {
@@ -9142,32 +9464,6 @@ if (request.method === 'POST' && ROLE !== 'admin' && ROLE !== 'subadmin' && ROLE
         function hasJsonRewriteCandidate(text, targetOrigins) {
             return targetOrigins.some(origin => text.includes(origin))
                 || /(^|["'\s(])(?:\/img\/|\/emby\/Items\/[^"'\s)]+\/Images\/|\/Items\/[^"'\s)]+\/Images\/)/i.test(text);
-        }
-
-        // 解析 302/307 域名规则文本（每行：域名,直连 或 域名,代理），返回 [{d, a}]
-        function parseRedirectRules(text) {
-            const rules = [];
-            if (!text) return rules;
-            // 兼容新前端提交的 JSON 数组格式 [{"d":"a.com","a":"direct"}]
-            if (typeof text === 'string' && text.trim().charAt(0) === '[') {
-                try {
-                    const arr = JSON.parse(text);
-                    if (Array.isArray(arr)) return arr.filter(x => x && x.d).map(x => ({ d: String(x.d).toLowerCase(), a: x.a === 'direct' ? 'direct' : 'proxy' }));
-                } catch (e) {}
-            }
-            for (const line of String(text).split(/\r?\n/)) {
-                const t = line.trim();
-                if (!t) continue;
-                const parts = t.split(',').map(s => s.trim());
-                if (parts.length < 2 || !parts[0]) continue;
-                let domain = parts[0].replace(/^https?:\/\//i, '').replace(/\/.*$/, '').trim();
-                domain = domain.replace(/^www\./i, '');
-                if (!domain || /\s|\//.test(domain)) continue;
-                const action = /^(direct|直连|不走反代)$/i.test(parts[1]) ? 'direct' : (/^(proxy|代理|走反代)$/i.test(parts[1]) ? 'proxy' : null);
-                if (!action) continue;
-                rules.push({ d: domain.toLowerCase(), a: action });
-            }
-            return rules;
         }
 
         function rewriteRedirectLocation(location, targetUrl, targetOrigins, proxyOrigin, safePrefix) {
