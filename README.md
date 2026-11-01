@@ -1,7 +1,7 @@
 # 𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖 Emby 反代面板
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v4.1.0-32ade6" alt="version">
+  <img src="https://img.shields.io/badge/version-v4.1.1-32ade6" alt="version">
   <img src="https://img.shields.io/badge/platform-Cloudflare%20Workers-32ade6" alt="platform">
   <img src="https://img.shields.io/badge/storage-D1%20%28SQLite%29-32ade6" alt="storage">
   <img src="https://img.shields.io/badge/panel-%E5%8F%AF%E8%A7%86%E5%8C%96%E9%9D%A2%E6%9D%BF-32ade6" alt="panel">
@@ -304,16 +304,19 @@ Worker → **Settings** → **Domains & Routes** → **Add**，在worker域界�
 
 > 绑定名必须为 **`DB`**，否则面板不工作。
 
-## 明文源码回归验证
+## 源码与发布文件回归验证
 
 使用 Node.js 22.17+，无需安装项目依赖：
 
 ```bash
 node --check 明文/worker.js
+node --check worker.js
 node --experimental-vm-modules --test test/retention.test.mjs
 ```
 
 测试装载实际 Worker，以内存 SQLite 模拟 D1，覆盖铃声保存/试听、观看边界、旧库升级、节点编辑与批量操作、备份兼容和用户权限；Telegram 连接及通知网络请求均使用模拟实现。
+
+4.1.1 起额外检查根目录混淆发布文件：将页面脚本放入独立浏览器环境，验证 Bot 字段留空、填写和清空均可正常校验及保存。重新生成 `worker.js` 后需运行同一组测试，确保前端函数没有依赖 Worker 内的混淆变量。
 
 ---
 

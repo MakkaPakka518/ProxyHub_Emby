@@ -8,6 +8,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const source = readFileSync(new URL('../明文/worker.js', import.meta.url), 'utf8');
+const publishedSource = readFileSync(new URL('../worker.js', import.meta.url), 'utf8');
 const DAY = 86400000;
 const NOW = Date.parse('2026-11-01T12:00:00+08:00');
 const ago = days => new Date(NOW - days * DAY).toISOString();
@@ -39,7 +40,7 @@ class MemoryD1 {
   }
 }
 
-async function fixture(t, setup) {
+async function fixture(t, setup, workerSource = source) {
   const DB = new MemoryD1();
   t.after(() => DB.sqlite.close());
   if (setup) setup(DB.sqlite);
@@ -54,7 +55,7 @@ async function fixture(t, setup) {
       return Response.json({ code: 200 });
     }
   });
-  const module = new vm.SourceTextModule(source + '\nexport { getWatchState, normalizeNodeBotUrl, normalizeBarkSound, BARK_SOUNDS, ensureRoutesSchema, saveRouteConfig, getNotifyCfg, sendBarkN, HTML_UI };', { context });
+  const module = new vm.SourceTextModule(workerSource + '\nexport { getWatchState, normalizeNodeBotUrl, normalizeBarkSound, BARK_SOUNDS, ensureRoutesSchema, saveRouteConfig, getNotifyCfg, sendBarkN, HTML_UI };', { context });
   await module.link(specifier => {
     assert.equal(specifier, 'cloudflare:sockets');
     return new vm.SyntheticModule(['connect'], function () {
@@ -135,6 +136,54 @@ test('Telegram usernames and deep links normalize to safe universal links', asyn
     assert.throws(() => api.normalizeNodeBotUrl(value), undefined, value);
   }
 });
+
+for (const [name, workerSource] of [['plaintext', source], ['published', publishedSource]]) {
+  test(name + ': optional Bot validation works without Worker-only dependencies', async t => {
+    const { api } = await fixture(t, null, workerSource);
+    const html = api.HTML_UI;
+    const inputTag = html.match(/<input\b[^>]*\bid="nodeTgBotUrl"[^>]*>/)[0];
+    assert.ok(!/\brequired(?:\s|=|>)/.test(inputTag));
+    const script = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
+      .map(m => m[1]).find(code => code.includes('function updateNodeBotPreview'));
+    const helpers = script.slice(0, script.indexOf('function renderNodeBotLink'));
+    const input = { value: '', validationMessage: '', setCustomValidity(message) { this.validationMessage = message; } };
+    const link = { hidden: false, href: '#', removeAttribute(key) { delete this[key]; } };
+    const browser = vm.createContext({ URL, URLSearchParams, document: {
+      getElementById: id => ({ nodeTgBotUrl: input, nodeTgBotPreview: link })[id]
+    } });
+    vm.runInContext(helpers, browser);
+    for (const value of [undefined, null, '', '   ', '@ExampleBot', 't.me/ExampleBot?start=sign', 'tg://resolve?domain=ExampleBot&start=sign']) {
+      assert.equal(browser.normalizeNodeBotUrl(value), api.normalizeNodeBotUrl(value));
+      input.value = value == null ? '' : value;
+      browser.updateNodeBotPreview();
+      assert.equal(input.validationMessage, '', 'valid or blank input must not block saving');
+      assert.equal(link.hidden, !String(input.value).trim());
+    }
+    input.value = 'javascript:alert(1)';
+    browser.updateNodeBotPreview();
+    assert.ok(input.validationMessage);
+    input.value = '';
+    browser.updateNodeBotPreview();
+    assert.equal(input.validationMessage, '', 'clearing invalid input must clear custom validity');
+    assert.equal(link.hidden, true);
+  });
+
+  test(name + ': nodes save with an omitted, blank, whitespace or null Bot', async t => {
+    const f = await fixture(t, null, workerSource);
+    for (const [i, bot] of [{}, { tgBotUrl: '' }, { tgBotUrl: '   ' }, { tgBotUrl: null }].entries()) {
+      const prefix = 'optional' + i;
+      const result = await f.create({ prefix, target: 'https://' + prefix + '.example', ...bot });
+      assert.equal(result.success, true, JSON.stringify(result));
+      assert.equal(f.row(prefix).tg_bot_url, '');
+      assert.equal((await f.json('/api/routes', 'POST', { oldPrefix: prefix, prefix, tgBotUrl: '' })).success, true);
+    }
+    await f.create({ tgBotUrl: '@ExampleBot' });
+    f.DB.sqlite.prepare('UPDATE routes SET last_play = ? WHERE prefix = ?').run('2026-10-20 12:00:00', 'demo');
+    assert.equal((await f.json('/api/routes', 'POST', { oldPrefix: 'demo', prefix: 'demo', tgBotUrl: '' })).success, true);
+    assert.equal(f.row('demo').tg_bot_url, '');
+    assert.equal(f.row('demo').last_play, '2026-10-20 12:00:00');
+  });
+}
 
 test('Bark settings persist, mask the key and preview the unsaved sound only', async t => {
   const f = await fixture(t);

@@ -1,5 +1,5 @@
-// VERSION: 4.1.0
-const CURRENT_VERSION = "4.1.0";
+// VERSION: 4.1.1
+const CURRENT_VERSION = "4.1.1";
 
 import { connect as __cfSocketConnect } from "cloudflare:sockets";
 globalThis.__cfConnect = __cfSocketConnect;
@@ -2446,7 +2446,32 @@ function toSvg(s){
     <script>
         const modeNames = { 'off': '保守', 'realip_only': '严格', 'dual': '兼容', 'strict': '强力', 'emos': 'EMOS' };
         ${getWatchState.toString()}
-        ${normalizeNodeBotUrl.toString()}
+        // 客户端校验必须独立：服务端函数混淆后会引用仅存在于 Worker 的字符串表。
+        function normalizeNodeBotUrl(value) {
+            const raw = String(value == null ? '' : value).trim();
+            if (!raw) return '';
+            if (raw.length > 2048 || /[\\s\\\\<>"\\u0000-\\u001f]/.test(raw)) throw new Error('TG Bot 链接格式不正确');
+            let text = raw;
+            if (/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(text)) text = 'https://t.me/' + text.replace(/^@/, '');
+            else if (/^(?:www\\.)?(?:t\\.me|telegram\\.me)\\//i.test(text)) text = 'https://' + text;
+            let url;
+            try { url = new URL(text); } catch (e) { throw new Error('请填写 @Bot用户名 或 https://t.me/机器人链接'); }
+            if (url.protocol === 'tg:' && url.hostname === 'resolve') {
+                const domain = url.searchParams.get('domain') || '';
+                if (!/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(domain)) throw new Error('TG Bot 用户名格式不正确');
+                const params = new URLSearchParams(url.search);
+                params.delete('domain');
+                url = new URL('https://t.me/' + domain);
+                url.search = params.toString();
+            }
+            if (!['http:', 'https:'].includes(url.protocol) || !['t.me', 'telegram.me', 'www.t.me', 'www.telegram.me'].includes(url.hostname) || url.username || url.password || url.port || url.hash || !/^\\/[A-Za-z][A-Za-z0-9_]{4,31}\\/?$/.test(url.pathname)) {
+                throw new Error('请填写 Telegram Bot 链接（https://t.me/机器人名，可带 start 参数）');
+            }
+            url.protocol = 'https:';
+            url.hostname = 't.me';
+            url.pathname = url.pathname.replace(/\\/$/, '');
+            return url.toString();
+        }
 
         function updateNodeBotPreview() {
             const input = document.getElementById('nodeTgBotUrl');
