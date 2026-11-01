@@ -1,7 +1,7 @@
 # 𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖 Emby 反代面板
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v4.0.9-32ade6" alt="version">
+  <img src="https://img.shields.io/badge/version-v4.1.0-32ade6" alt="version">
   <img src="https://img.shields.io/badge/platform-Cloudflare%20Workers-32ade6" alt="platform">
   <img src="https://img.shields.io/badge/storage-D1%20%28SQLite%29-32ade6" alt="storage">
   <img src="https://img.shields.io/badge/panel-%E5%8F%AF%E8%A7%86%E5%8C%96%E9%9D%A2%E6%9D%BF-32ade6" alt="panel">
@@ -261,7 +261,7 @@ Worker → **Settings** → **Domains & Routes** → **Add**，在worker域界�
 - 节点卡片「最后活跃」显示距上次真实观看的天数（如 `3 天前观看`）；没记录显示「暂无播放记录」
 - 节点编辑弹窗 → **观看下限（天）**（如 `7 / 14 / 21`，`0` = 不限制）：设置后超过该天数未观看，卡片自动红色报警（⚠️ 已超 X 天）
 
-### 保号进度与 TG Bot 快捷入口（明文源码）
+### 4.1.0：保号进度与 TG Bot 快捷入口（明文源码）
 
 以下功能维护于 [`明文/worker.js`](明文/worker.js)：
 
@@ -281,7 +281,7 @@ Worker → **Settings** → **Domains & Routes** → **Add**，在worker域界�
 
 **面板内配置（v3.3.2+）**：网页右上角头像 → **账户设置** → **保号提醒通知（Bark / Telegram）** 区域，可直接填写 Bark Key / 级别、TG Token / Chat ID、启停开关并保存（无需改环境变量，保存在 D1），还有 **测试 Bark / 测试 TG** 按钮立即验证；留空不修改已有配置。环境变量仍优先于面板配置。
 
-**Bark 铃声（明文源码）**：同一区域新增「Bark 通知铃声」，提供 32 种 Bark 内置声音（含静音）和「跟随 Bark 默认」。选好后点击「测试 Bark」可试听当前选择，测试使用已保存的设备 Key，且不会保存当前选择；点「保存」后，保号提醒、版本通知等 Bark 推送统一使用所选铃声。选择默认后保存可恢复客户端默认声音，旧客户端未提交铃声字段时保留已有设置。
+**Bark 铃声（4.1.0 明文源码）**：同一区域新增「Bark 通知铃声」，提供 32 种 Bark 内置声音（含静音）和「跟随 Bark 默认」。选好后点击「测试 Bark」可试听当前选择，测试使用已保存的设备 Key，且不会保存当前选择；点「保存」后，保号提醒、版本通知等 Bark 推送统一使用所选铃声。选择默认后保存可恢复客户端默认声音，旧客户端未提交铃声字段时保留已有设置。
 
 
 > 💡 **保号提醒 App v1.0.3**：设置页已升级为真实通知配置表单——直接填写 Bark Key/级别、TG Token/Chat ID 并保存（走 `/api/config`），支持「测试 Bark / 测试 TG」按钮即时验证；无需再依赖环境变量。
@@ -345,4 +345,3 @@ A：用 `ADMIN_TOKEN` 环境变量密码登录（永远有效），进 logo → 
 
 
 ---
-
