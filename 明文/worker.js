@@ -1,5 +1,8 @@
 // VERSION: 4.0.9
 const CURRENT_VERSION = "4.0.9"; 
+
+import { connect as __cfSocketConnect } from "cloudflare:sockets";
+globalThis.__cfConnect = __cfSocketConnect;
 //网页区域
 // ============ isolate 级内存缓存 / 一次性初始化(减少每个请求的 D1 读写) ============
 const memoStore = new Map();
@@ -1457,7 +1460,7 @@ function toSvg(s){
         </div>
         <div class="topbar-center"></div>
         <div class="topbar-actions">
-            <div class="tb-group">
+            <div class="tb-group"><button class="tb-icon-btn admin-only" id="tgEntryBtn" onclick="openTgPanel()" title="TG 签到" style="color:#ffd166;">${I.check}</button>
                 <button class="tb-icon-btn" id="themeToggle" onclick="toggleDarkMode()" title="切换深色模式">${I.moon}</button>
                 <button class="tb-icon-btn admin-only" id="nodeReqBtn" onclick="openNodeReqModal()" title="节点申请" style="position:relative;">${I.robot}<span id="nodeReqBadge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff3b30; color:#fff; font-size:10px; font-weight:700; border-radius:999px; padding:1px 5px; min-width:16px; text-align:center;"></span></button>
                 <button class="tb-icon-btn" onclick="openDashboard()" title="数据统计">${I.chart}</button>
@@ -5582,6 +5585,46 @@ function toSvg(s){
     <div class="pf-arrow">查看公开仓库 ↗</div>
 </div>
 
+<div id="tgOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:var(--bg);flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--card-glass);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-bottom:1px solid var(--border);color:var(--text);flex:0 0 auto;">
+    <strong style="font-size:15px;font-weight:700;letter-spacing:.01em;">TG 签到</strong>
+    <div style="display:flex;gap:8px;">
+      <button onclick="tgReload()" style="background:var(--bg-soft);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:7px 14px;font-size:13px;font-weight:600;">刷新</button>
+      <button onclick="closeTgPanel()" style="background:var(--danger-soft);border:1px solid var(--border);color:var(--danger);border-radius:12px;padding:7px 14px;font-size:13px;font-weight:600;">关闭</button>
+    </div>
+  </div>
+  <div style="flex:1 1 auto;min-height:0;display:block;">
+    <iframe id="tgFrame" title="TG 签到" allow="clipboard-write; web-share" style="width:100%;height:100%;border:0;background:var(--bg);display:block;"></iframe>
+  </div>
+</div>
+<script>
+function tgIsDark(){ try { return document.body.classList.contains('dark') || localStorage.getItem('emby_proxy_dark') === '1'; } catch (e) { return false; } }
+function tgSyncTheme(dark){
+    var f = document.getElementById('tgFrame');
+    if (!f || !f.contentWindow) return;
+    try { f.contentWindow.postMessage({ type: 'emby-theme', dark: !!dark }, '*'); } catch (e) {}
+}
+function openTgPanel(){
+    var o = document.getElementById('tgOverlay'), f = document.getElementById('tgFrame');
+    if (!o || !f) return;
+    if (!f.getAttribute('src')) f.setAttribute('src', '/tg');
+    o.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    tgSyncTheme(tgIsDark());
+    f.onload = function(){ tgSyncTheme(tgIsDark()); };
+}
+function closeTgPanel(){
+    var o = document.getElementById('tgOverlay');
+    if (o) o.style.display = 'none';
+    document.documentElement.style.overflow = '';
+}
+function tgReload(){
+    var f = document.getElementById('tgFrame');
+    if (f) f.setAttribute('src', '/tg?t=' + Date.now());
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeTgPanel(); });
+</script>
+
 <nav class="ds-dock">
     <button class="ds-dock-item active" onclick="switchDsView('nodes', this)">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
@@ -6733,7 +6776,7 @@ function ipMatchAny(ip, list) {
 const emosCatalogCache = new Map();
 let emosCatTableReady = false; // DDL 只执行一次,避免每次请求重复建表开销
 
-export default {
+const __NORMAL_WORKER = {
     // 每天自动运行发送 TG 统计
     async scheduled(event, env, ctx) {
         if (env.TG_BOT_TOKEN && env.TG_CHAT_ID && env.DB) {
@@ -10005,4 +10048,7376 @@ if (request.method === 'POST' && ROLE !== 'admin' && ROLE !== 'subadmin' && ROLE
         return Response.json({ success: false, error: String((e && e.message) || e) }, { status: 500 });
     }
 }
+};
+
+/* ===== 以下为 TG 签到模块（自动生成，勿手改） ===== */
+var require=function(m){m=String(m).replace(/^node:/,'');if(m==='util'){var f=function(o){try{return typeof o==='string'?o:JSON.stringify(o)}catch(e){return String(o)}};f.custom=Symbol.for('nodejs.util.inspect.custom');return{inspect:f,promisify:function(x){return x},inherits:function(){},format:function(x){return String(x)},deprecate:function(x){return x}};}return{};};
+var __TGM = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __esm = (fn, res, err) => function __init() {
+    if (err) throw err[0];
+    try {
+      return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+    } catch (e) {
+      throw err = [e], e;
+    }
+  };
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // src/tg/shims/cf-global.js
+  function connect(addr, options) {
+    const f = globalThis.__cfConnect;
+    if (!f) throw new Error("cloudflare:sockets 未注入");
+    return f(addr, options);
+  }
+  var init_cf_global = __esm({
+    "src/tg/shims/cf-global.js"() {
+    }
+  });
+
+  // src/tg/socks5.js
+  var socks5_exports = {};
+  __export(socks5_exports, {
+    makeSocksFactory: () => makeSocksFactory,
+    parseProxyUrl: () => parseProxyUrl2
+  });
+  function parseProxyUrl2(u) {
+    if (!u) return null;
+    let s = String(u).trim();
+    if (!/^[a-z0-9+]+:\/\//i.test(s)) s = "socks5://" + s;
+    try {
+      const url = new URL(s);
+      const proto = url.protocol.replace(":", "");
+      if (!/^socks5h?$/.test(proto)) return null;
+      const port = Number(url.port || 1080);
+      return {
+        host: url.hostname,
+        port,
+        user: decodeURIComponent(url.username || ""),
+        pass: decodeURIComponent(url.password || ""),
+        raw: s
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+  function cat(a, b) {
+    const out = new Uint8Array(a.length + b.length);
+    out.set(a, 0);
+    out.set(b, a.length);
+    return out;
+  }
+  function makeSocksFactory(cfg, LOG) {
+    const lg = (m) => {
+      if (LOG) LOG.push(m);
+    };
+    return async function connectViaSocks(addr) {
+      const raw = connect({ hostname: cfg.host, port: cfg.port }, { secureTransport: "off" });
+      lg("opened");
+      await raw.opened;
+      lg("opened-done");
+      const reader = raw.readable.getReader();
+      const writer = raw.writable.getWriter();
+      const readExact = async (n) => {
+        let buf = pending;
+        pending = new Uint8Array(0);
+        while (buf.length < n) {
+          const { value, done } = await reader.read();
+          if (done) throw new Error("socks5: 代理连接被关闭");
+          buf = cat(buf, value);
+        }
+        const head = buf.subarray(0, n);
+        const rest = buf.subarray(n);
+        if (rest.length) pending = cat(pending, rest);
+        return head;
+      };
+      let pending = new Uint8Array(0);
+      const methods = cfg.user ? [0, 2] : [0];
+      await writer.write(new Uint8Array([5, methods.length, ...methods]));
+      lg("greet-sent");
+      const g = await readExact(2);
+      lg("greet-recv:" + g[1]);
+      if (g[0] !== 5) throw new Error("socks5: 代理协议不匹配");
+      if (g[1] === 255) throw new Error("socks5: 代理拒绝了认证方式");
+      if (g[1] === 2) {
+        const u = enc.encode(cfg.user || "");
+        const p = enc.encode(cfg.pass || "");
+        await writer.write(new Uint8Array([1, u.length, ...u, p.length, ...p]));
+        lg("auth-sent");
+        const a = await readExact(2);
+        lg("auth-recv:" + a[1]);
+        if (a[1] !== 0) throw new Error("socks5: 用户名或密码错误");
+      }
+      const host = String(addr.hostname || "");
+      const port = Number(addr.port || 443);
+      let req;
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+        const ip = host.split(".").map(Number);
+        req = new Uint8Array([5, 1, 0, 1, ...ip, port >> 8, port & 255]);
+      } else {
+        const h = enc.encode(host);
+        req = new Uint8Array([5, 1, 0, 3, h.length, ...h, port >> 8, port & 255]);
+      }
+      await writer.write(req);
+      lg("connect-sent");
+      const rep = await readExact(4);
+      lg("connect-recv:" + rep[1] + "," + rep[3]);
+      if (rep[1] !== 0) throw new Error("socks5: 目标连接失败（代码 " + rep[1] + "）");
+      const atyp = rep[3];
+      if (atyp === 1) await readExact(4 + 2);
+      else if (atyp === 4) await readExact(16 + 2);
+      else {
+        const l = await readExact(1);
+        await readExact(l[0] + 2);
+      }
+      lg("tunnel-ready");
+      let ctrl = null;
+      let closed = false;
+      const readable = new ReadableStream({
+        start(c) {
+          ctrl = c;
+          if (pending.length) {
+            try {
+              c.enqueue(pending);
+            } catch (e) {
+            }
+            pending = new Uint8Array(0);
+          }
+        },
+        cancel() {
+          closed = true;
+          try {
+            raw.close();
+          } catch (e) {
+          }
+        }
+      });
+      const writable = new WritableStream({
+        async write(chunk) {
+          await writer.write(chunk);
+        },
+        async close() {
+          try {
+            await writer.close();
+          } catch (e) {
+          }
+        },
+        abort() {
+          try {
+            raw.close();
+          } catch (e) {
+          }
+        }
+      });
+      (async () => {
+        try {
+          for (; ; ) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (value && value.byteLength) ctrl.enqueue(value);
+          }
+        } catch (e) {
+        }
+        try {
+          ctrl.close();
+        } catch (e) {
+        }
+      })();
+      return {
+        readable,
+        writable,
+        opened: Promise.resolve(),
+        closed: new Promise((res) => {
+          setTimeout(res, 36e5);
+        }),
+        secureTransport: "off",
+        close: async () => {
+          closed = true;
+          try {
+            await raw.close();
+          } catch (e) {
+          }
+        }
+      };
+    };
+  }
+  var enc;
+  var init_socks5 = __esm({
+    "src/tg/socks5.js"() {
+      init_cf_global();
+      enc = new TextEncoder();
+    }
+  });
+
+  // src/tg/nodo.js
+  var nodo_exports = {};
+  __export(nodo_exports, {
+    PANEL_HTML: () => PANEL_HTML,
+    tgEnv: () => tgEnv,
+    tgWorker: () => index_default
+  });
+
+  // src/tg/panel.js
+  var PANEL_HTML = `<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<title>签到面板</title>
+<style>
+:root{
+  /* 与主反代面板同一套设计令牌（3.8.27 起统一观感） */
+  --bg:#f6f7fd; --surface:#ffffff; --ink:#131627; --muted:#5d6480; --line:#e3e7f4; --field:#eef1fb;
+  --stamp:#3d7bff; --stamp-soft:rgba(61,123,255,.14); --wait:#f5a623; --wait-soft:rgba(245,166,35,.14); --bad:#ff4d6a; --bad-soft:rgba(255,77,106,.12); --off:#9aa1bd; --off-soft:#e9ecf8;
+  --green:#0fbf7f; --green-soft:rgba(15,191,127,.12); --go-bg:#3d7bff; --go-fg:#ffffff;
+  --primary:#3d7bff; --on-primary:#ffffff; --scrim:rgba(20,24,50,.45);
+  --grad:linear-gradient(135deg,#00d4ff 0%,#3d7bff 100%);
+  --rad:18px; --rad-md:13px; --rad-sm:10px;
+  --sh-sm:0 1px 2px rgba(20,24,50,.05),0 2px 6px rgba(20,24,50,.06);
+  --sh:0 2px 6px rgba(20,24,50,.06),0 8px 22px rgba(20,24,50,.08);
+  --sh-lg:0 6px 16px rgba(20,24,50,.1),0 20px 46px rgba(20,24,50,.14);
+  --glass:rgba(255,255,255,.72); --blur:blur(22px) saturate(180%); --ease:cubic-bezier(.22,.7,.28,1);
+  --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#060a13; --surface:#0d1526; --ink:#e8eefc; --muted:#8a94b0; --line:#1b2740; --field:#0b1220;
+  --stamp:#4da3ff; --stamp-soft:rgba(77,163,255,.16); --wait:#ffb84d; --wait-soft:rgba(255,184,77,.15); --bad:#ff5c7a; --bad-soft:rgba(255,92,122,.14); --off:#566084; --off-soft:#141d31;
+  --green:#22e39a; --green-soft:rgba(34,227,154,.14); --go-bg:#4da3ff; --go-fg:#ffffff;
+  --primary:#4da3ff; --on-primary:#04070e; --scrim:rgba(0,0,0,.6);
+  --grad:linear-gradient(135deg,#00e5ff 0%,#4da3ff 100%);
+  --sh-sm:0 1px 3px rgba(0,0,0,.4);
+  --sh:0 2px 8px rgba(0,0,0,.4),0 10px 26px rgba(0,0,0,.42);
+  --sh-lg:0 4px 14px rgba(0,0,0,.5),0 18px 44px rgba(0,0,0,.55);
+  --glass:rgba(10,16,30,.72);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;touch-action:pan-x pan-y}
+body{touch-action:pan-x pan-y}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--font);min-height:100vh;min-height:100dvh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px calc(88px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:12px;padding:12px 2px 14px}
+.top h1{margin:0;font-size:22px;line-height:1.2;letter-spacing:.02em;flex:1}
+.top .sub{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:8px;width:40px;height:40px;display:grid;place-items:center;color:var(--ink)}
+.iconbtn:hover{background:var(--field)}
+.linkbtn{background:none;border:0;color:var(--muted);padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 10px;position:relative}
+.note{margin:10px 0 0;padding:8px 10px;border-radius:6px;background:var(--field);color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.note.bad{background:var(--bad-soft);color:var(--bad)}
+.note.ok{background:var(--green-soft);color:var(--green)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--primary);background:var(--primary);color:var(--on-primary);font-weight:600}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.bar2{display:flex;margin:0 0 14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  background:var(--surface);box-shadow:0 1px 2px rgba(15,22,29,.06)}
+.bar2 .btn{flex:1;min-height:46px;padding:0 10px;border:0;border-radius:0;background:transparent;
+  color:var(--ink);font-size:14.5px;font-weight:600;letter-spacing:.01em}
+.bar2 .btn:active{background:var(--field)}
+.bar2 .btn + .btn{border-left:1px solid var(--line)}
+.bar2 .btn.go{background:var(--go-bg);color:var(--go-fg);font-weight:700}
+.bar2 .btn.go:active{filter:brightness(.95)}
+.bar2 .btn.go[disabled]{opacity:.45}
+.bar2 .btn.stop{color:#c0392b}
+.bar2 .btn.stop:active{background:rgba(192,57,43,.10)}
+.bar2 .btn[disabled]{opacity:.45}
+.bar{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.bar .btn{flex:1 1 140px}
+.banner{background:var(--wait-soft);color:var(--wait);border-radius:8px;padding:10px 12px;margin:0 0 12px;font-size:14px}
+.banner b{font-weight:700}
+.empty{text-align:center;color:var(--muted);padding:34px 12px}
+.empty .btn{margin-top:12px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav.tabs .in{display:flex;width:100%;max-width:720px}
+nav.tabs button{flex:1;background:none;border:0;padding:13px 4px 12px;color:var(--muted);font-weight:600;font-size:14px;border-top:3px solid transparent;margin-top:-1px}
+nav.tabs button[aria-current=page]{color:var(--ink);border-top-color:var(--stamp)}
+label{display:block;margin:0 0 12px;font-size:14px;font-weight:600}
+label small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:3px}
+input[type=text],input[type=password],input[type=number],input[type=time],select,textarea{width:100%;min-height:44px;padding:9px 11px;margin-top:5px;background:var(--field);border:1px solid var(--line);border-radius:8px;font-weight:400}
+input[type=checkbox]{width:20px;height:20px;vertical-align:-4px;margin-right:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.scrim{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92dvh;overflow:auto;border-radius:14px 14px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));animation:up .18s ease-out}
+@media (min-width:640px){.scrim{align-items:center}.sheet{border-radius:14px}}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet h2{margin:0 0 12px;font-size:18px}
+.sheet .foot{display:flex;gap:8px;margin-top:6px}
+.sheet .foot .btn{flex:1}
+.hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+.err{color:var(--bad);font-size:14px;margin:0 0 10px;overflow-wrap:anywhere}
+.log{border-bottom:1px solid var(--line);padding:10px 2px}
+.log:last-child{border-bottom:0}
+.log button.head{all:unset;display:block;width:100%;cursor:pointer;box-sizing:border-box}
+.log .t{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.log .m{overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 7px;border-radius:99px;margin-right:6px}
+.tag.ok{background:var(--green-soft);color:var(--green)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+pre.lines{margin:8px 0 0;padding:9px 10px;background:var(--field);border-radius:6px;white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono)}
+.chk{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.chk:last-child{border-bottom:0}
+.chk .v{font-weight:700}
+.chk .v.ok{color:var(--green)}.chk .v.bad{color:var(--bad)}
+h3{font-size:15px;margin:2px 0 8px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--primary);color:var(--on-primary);padding:10px 16px;border-radius:8px;z-index:30;max-width:88vw;font-size:14px;overflow-wrap:anywhere}
+.qrbox{background:#fff;border-radius:12px;padding:10px;width:min(100%,280px);margin:4px auto 12px;line-height:0}
+.qrbox svg{width:100%;height:auto;display:block}
+a.btn{text-decoration:none}
+.sheet .stack{display:grid;gap:8px;margin:0 0 10px}
+.login{max-width:380px;margin:0 auto;padding:18vh 20px 40px}
+.login h1{font-size:26px;margin:0 0 4px}
+.login p{color:var(--muted);margin:0 0 20px}
+
+/* ── 任务卡片：默认收起 ── */
+.tcard .head{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:0;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tcard .act.run{height:24px;padding:0 9px;border-radius:999px;border:1px solid var(--acc);background:transparent;color:var(--acc);font-size:11px;font-weight:600;line-height:1}
+.tcard .act.run:active{background:var(--acc);color:#fff}
+.tcard .tname{flex:1;min-width:0;font-weight:650;font-size:16px;overflow-wrap:anywhere}
+.tcard .chev{flex:none;color:var(--muted);transition:transform .15s}
+.tcard.open .chev{transform:rotate(180deg)}
+.tcard .detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:none}
+.tcard.open .detail{display:block}
+.tcard .meta{color:var(--muted);font-size:13px;margin-top:3px;overflow-wrap:anywhere}
+.tcard .meta b{color:var(--ink);font-weight:600}
+.tcard .controls{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:10px}
+.tcard .switchrow{display:flex;align-items:center;gap:10px}
+.tcard .switchrow .lab{font-size:14px;font-weight:600}
+.tcard .mini-pill{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--off-soft);color:var(--muted)}
+.tcard .mini-pill.ok{background:var(--green-soft);color:var(--green)}
+.tcard .mini-pill.bad{background:var(--bad-soft);color:var(--bad)}
+.tcard .mini-pill.run{background:var(--stamp-soft);color:var(--stamp)}
+/* 操作行：开关在左，编辑/删除靠右，全部在卡片内、一行排开 */
+.tcard .switchrow .spacer{flex:1 1 auto;min-width:4px}
+.tcard .act{flex:none;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:13.5px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:60px}
+.tcard .act:hover{background:var(--field)}
+.tcard .act:active{transform:scale(.97)}
+.tcard .act.danger{color:var(--bad)}
+.tcard .act.danger:hover{background:var(--bad-soft);border-color:var(--bad-soft)}
+/* 开关：开绿色、关背景色 */
+.switch{position:relative;width:48px;height:28px;border-radius:99px;background:var(--off);border:0;padding:0;flex:none;transition:background .15s}
+.switch[aria-checked=true]{background:var(--green)}
+.switch[disabled]{opacity:.45;cursor:default}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch[aria-checked=true]::after{transform:translateX(20px)}
+/* 设置：可折叠分区 */
+.secthead{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:2px 0;text-align:left;color:var(--ink);font-size:15px;font-weight:700}
+.secthead .grow{flex:1;min-width:0}
+.secthead .secthint{font-size:12px;font-weight:500;color:var(--muted)}
+.secthead .chev{color:var(--muted);display:inline-flex;transition:transform .15s}
+.secthead .chev.open{transform:rotate(180deg)}
+.secbody{margin-top:10px}
+.secbody[hidden]{display:none}
+/* 密钥输入：默认打点，眼睛显示，点「编辑」才可改 */
+.cfgfield{display:flex;align-items:center;gap:6px;width:100%;margin-top:5px}
+.cfgfield input{width:auto;flex:1 1 auto;margin:0;min-width:0;font-family:var(--mono);font-size:14px;letter-spacing:.02em}
+.cfgfield input[type=password]{letter-spacing:.16em}
+.cfgfield input.editing{border-color:var(--stamp);background:var(--field);letter-spacing:0}
+.cfgfield input:disabled{opacity:.85}
+.fbtn{flex:none;height:38px;min-width:34px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--muted);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin:0}
+.fbtn:hover{color:var(--ink)}
+.fbtn.danger{color:var(--bad)}
+.fbtn[aria-pressed=true]{background:var(--stamp-soft);color:var(--stamp);border-color:var(--stamp-soft)}
+/* 任务头像 */
+.avatar{flex:none;width:34px;height:34px;border-radius:10px;background:var(--field);border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;font-size:13px;font-weight:700;color:var(--muted);line-height:1}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar img.ic{object-fit:contain;padding:2px}
+.avatar.lg{width:52px;height:52px;border-radius:14px;font-size:16px}
+.avrow{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.avrow .avacts{display:flex;flex-wrap:wrap;gap:6px}
+/* 图标库列表 */
+.pxhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.librow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.librow:last-child{border-bottom:0}
+.libmain{flex:1 1 auto;min-width:0}
+.libname{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.liburl{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.librow.edit{display:block;padding:12px 0}
+.librow.edit .libacts{display:flex;gap:8px;margin-top:10px}
+/* 图标选择器 */
+.libtabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+.libtabs::-webkit-scrollbar{display:none}
+.libtab{flex:none;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:12.5px;font-weight:600}
+.libtab.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.icongrid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;padding:2px;margin-top:6px}
+.iconcell{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--field);display:grid;place-items:center;overflow:hidden;padding:3px}
+.iconcell img{width:100%;height:100%;object-fit:contain;display:block}
+.iconcell.on{border-color:var(--stamp);box-shadow:0 0 0 2px var(--stamp-soft)}
+.pickerfoot{display:flex;gap:8px;margin-top:10px;position:sticky;bottom:-1px;padding:10px 0 2px;background:var(--surface);border-top:1px solid var(--line);z-index:2}
+.pickerfoot .btn{flex:1}
+
+/* ── 折叠区块 ── */
+.secbody[hidden]{display:none}
+.clock{font-variant-numeric:tabular-nums}
+.unihead{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.unirow{display:flex;align-items:center;gap:8px;min-width:0}
+.unititle{font-weight:600;flex:none}
+.unitag{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:16px;padding:2px 8px;border-radius:999px;background:var(--bg2,rgba(127,127,127,.12));color:var(--muted)}
+.unitag.on{color:var(--acc);background:rgba(45,170,110,.12)}
+.unirow .chev{flex:none;margin-left:auto}
+.secclick{cursor:pointer;-webkit-user-select:none;user-select:none}
+.chev{display:inline-flex;align-items:center;color:var(--dim);transition:transform .18s ease}
+.chev.open{transform:rotate(180deg)}
+/* ── 通知平台 ── */
+.ntfblk{border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin:8px 0}
+.ntfin{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:9px 11px;border-radius:10px;
+  border:1px solid var(--line);background:var(--bg2);color:var(--fg);font-size:13px;-webkit-appearance:none}
+.ntfin:focus{outline:none;border-color:var(--acc)}
+/* ── 拖拽排序 ── */
+.dragbtn{display:inline-flex;align-items:center;justify-content:center;flex:none;width:26px;height:30px;margin:0 0 0 -4px;
+  border-radius:8px;color:var(--dim);background:var(--bg2);touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab}
+.dragbtn:active{color:var(--acc)}
+.tcard.dragging{opacity:.75;transform:scale(.99);box-shadow:0 8px 24px rgba(0,0,0,.25);border-color:var(--acc);pointer-events:none}
+body{-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.sumline{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:var(--card,#fff);font-size:12.5px;color:#8a8f98;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.sumline b{color:#1d9b5f;font-size:15px}
+.sumline .bad{color:#c9443d}
+</style>
+
+<style id="unify-proxy">
+/* ===== 与主反代面板统一：字体 / 圆角 / 阴影 / 主色按钮 / 底栏毛玻璃 ===== */
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;font-size:14.5px;line-height:1.62;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--ink)}
+.wrap{max-width:760px;padding:16px 18px calc(96px + env(safe-area-inset-bottom))}
+.top{padding:14px 2px 12px}
+.top h1{font-size:21px;font-weight:700;letter-spacing:.01em}
+.iconbtn{width:38px;height:38px;border-radius:var(--rad-md);background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh-sm);color:var(--ink)}
+.iconbtn:hover{background:var(--field)}
+.card{border-radius:var(--rad);border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-sm);padding:16px 18px;margin-bottom:14px}
+.card h3{font-size:15.5px;font-weight:700;letter-spacing:.01em}
+.btn{border-radius:var(--rad-md);font-weight:600;letter-spacing:.01em;min-height:44px;border:1px solid transparent;transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s var(--ease)}
+.btn:not(.ghost):not(.h){background:var(--grad);color:#fff;box-shadow:0 8px 20px -12px rgba(61,123,255,.8)}
+.btn:not(.ghost):not(.h):hover{transform:translateY(-1px);box-shadow:0 12px 26px -12px rgba(61,123,255,.85)}
+.btn.ghost{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.btn.ghost:hover{background:var(--field)}
+.bar2{border-radius:var(--rad-md);background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh-sm)}
+nav.tabs{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-top:1px solid var(--line)}
+nav.tabs button{border-top-width:2px;font-size:13.5px}
+nav.tabs button[aria-current=page]{color:var(--stamp)}
+input[type=text],input[type=password],input[type=number],input[type=time],input[type=url],select,textarea{border-radius:var(--rad-sm);background:var(--field);border:1px solid var(--line);padding:10px 13px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--stamp);box-shadow:0 0 0 3px var(--stamp-soft)}
+.sheet{border-radius:var(--rad) var(--rad) 0 0;box-shadow:var(--sh-lg)}
+.badge,.pill{border-radius:999px}
+.hint{color:var(--muted)}
+.login{border-radius:var(--rad);box-shadow:var(--sh)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ---------- 关闭页面缩放：双指捏合、双击放大、Ctrl+滚轮都不再生效 ---------- */
+(function(){
+  function block(e){ e.preventDefault(); }
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(t){   // Safari 捏合手势
+    document.addEventListener(t, block, { passive: false });
+  });
+  document.addEventListener('touchmove', function(e){
+    if (e.touches && e.touches.length > 1) e.preventDefault();            // 双指拖动
+  }, { passive: false });
+  window.addEventListener('wheel', function(e){
+    if (e.ctrlKey || e.metaKey) e.preventDefault();                       // 桌面端 Ctrl/⌘ + 滚轮
+  }, { passive: false });
+  // 双击兜底：旧版 iOS 忽略 touch-action，连续两次 touchend 时拦截缩放。只拦截非交互元素，避免影响按钮连点
+  var lastTap = 0;
+  document.addEventListener('touchend', function(e){
+    var now = Date.now();
+    if (now - lastTap < 320) {
+      var t = e.target;
+      var interactive = t && t.closest && t.closest('button,a,input,select,textarea,label,[data-act]');
+      if (!interactive) e.preventDefault();
+    }
+    lastTap = now;
+  }, { passive: false });
+})();
+
+var makeQrSvg = (function(){
+var M = {}, C = {};
+function R(n){ n = n.replace("./", ""); if (C[n]) return C[n].exports; var m = C[n] = { exports: {} }; M[n](m, m.exports, R); return m.exports; }
+M["QRMode"] = function(module, exports, require){
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+};
+M["QR8bitByte"] = function(module, exports, require){
+var QRMode = require('./QRMode');
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+QR8bitByte.prototype = {
+	getLength : function() {
+		return this.data.length;
+	},
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+module.exports = QR8bitByte;
+};
+M["QRBitBuffer"] = function(module, exports, require){
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+QRBitBuffer.prototype = {
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	getLengthInBits : function() {
+		return this.length;
+	},
+	putBit : function(bit) {
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+		this.length++;
+	}
+};
+module.exports = QRBitBuffer;
+};
+M["QRErrorCorrectLevel"] = function(module, exports, require){
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+};
+M["QRMaskPattern"] = function(module, exports, require){
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+};
+M["QRMath"] = function(module, exports, require){
+var QRMath = {
+	glog : function(n) {
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		return QRMath.LOG_TABLE[n];
+	},
+	gexp : function(n) {
+		while (n < 0) {
+			n += 255;
+		}
+		while (n >= 256) {
+			n -= 255;
+		}
+		return QRMath.EXP_TABLE[n];
+	},
+	EXP_TABLE : new Array(256),
+	LOG_TABLE : new Array(256)
+};
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+module.exports = QRMath;
+};
+M["QRPolynomial"] = function(module, exports, require){
+var QRMath = require('./QRMath');
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+	var offset = 0;
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+QRPolynomial.prototype = {
+	get : function(index) {
+		return this.num[index];
+	},
+	getLength : function() {
+		return this.num.length;
+	},
+	multiply : function(e) {
+		var num = new Array(this.getLength() + e.getLength() - 1);
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+		return new QRPolynomial(num, 0);
+	},
+	mod : function(e) {
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+		var num = new Array(this.getLength() );
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+module.exports = QRPolynomial;
+};
+M["QRRSBlock"] = function(module, exports, require){
+var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+QRRSBlock.RS_BLOCK_TABLE = [
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+	var length = rsBlock.length / 3;
+	var list = [];
+	for (var i = 0; i < length; i++) {
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	return list;
+};
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+module.exports = QRRSBlock;
+};
+M["QRUtil"] = function(module, exports, require){
+var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+var QRUtil = {
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+    getBCHDigit : function(data) {
+        var digit = 0;
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+        return digit;
+    },
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+    getMask : function(maskPattern, i, j) {
+        switch (maskPattern) {
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+        var a = new QRPolynomial([1], 0);
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+        return a;
+    },
+    getLengthInBits : function(mode, type) {
+        if (1 <= type && type < 10) {
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+        } else if (type < 27) {
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+        } else if (type < 41) {
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+    getLostPoint : function(qrCode) {
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount; col++) {
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+                for (var r = -1; r <= 1; r++) {
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+                    for (var c = -1; c <= 1; c++) {
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+        var darkCount = 0;
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+        return lostPoint;       
+    }
+};
+module.exports = QRUtil;
+};
+M["index"] = function(module, exports, require){
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+QRCode.prototype = {
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	make : function() {
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	makeImpl : function(test, maskPattern) {
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		for (var row = 0; row < this.moduleCount; row++) {
+			this.modules[row] = new Array(this.moduleCount);
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+		this.mapData(this.dataCache, maskPattern);
+	},
+	setupPositionProbePattern : function(row, col)  {
+		for (var r = -1; r <= 7; r++) {
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			for (var c = -1; c <= 7; c++) {
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	getBestMaskPattern : function() {
+		var minLostPoint = 0;
+		var pattern = 0;
+		for (var i = 0; i < 8; i++) {
+			this.makeImpl(true, i);
+			var lostPoint = QRUtil.getLostPoint(this);
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+		return pattern;
+	},
+	createMovieClip : function(target_mc, instance_name, depth) {
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+		this.make();
+		for (var row = 0; row < this.modules.length; row++) {
+			var y = row * cs;
+			for (var col = 0; col < this.modules[row].length; col++) {
+				var x = col * cs;
+				var dark = this.modules[row][col];
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		return qr_mc;
+	},
+	setupTimingPattern : function() {
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	setupPositionAdjustPattern : function() {
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		for (var i = 0; i < pos.length; i++) {
+			for (var j = 0; j < pos.length; j++) {
+				var row = pos[i];
+				var col = pos[j];
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				for (var r = -2; r <= 2; r++) {
+					for (var c = -2; c <= 2; c++) {
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	setupTypeNumber : function(test) {
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	setupTypeInfo : function(test, maskPattern) {
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+		for (var v = 0; v < 15; v++) {
+			mod = (!test && ( (bits >> v) & 1) === 1);
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+		for (var h = 0; h < 15; h++) {
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+		this.modules[this.moduleCount - 8][8] = (!test);
+	},
+	mapData : function(data, maskPattern) {
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+			if (col === 6) col--;
+			while (true) {
+				for (var c = 0; c < 2; c++) {
+					if (this.modules[row][col - c] === null) {
+						var dark = false;
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+						if (mask) {
+							dark = !dark;
+						}
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+				row += inc;
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+	}
+};
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	var buffer = new QRBitBuffer();
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+	while (true) {
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+QRCode.createBytes = function(buffer, rsBlocks) {
+	var offset = 0;
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	for (var r = 0; r < rsBlocks.length; r++) {
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		dcdata[r] = new Array(dcCount);
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+	}
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+	var data = new Array(totalCodeCount);
+	var index = 0;
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+	return data;
+};
+module.exports = QRCode;
+};
+var QRCode = R("index"), EC = R("QRErrorCorrectLevel");
+return function(text){
+  var q = new QRCode(-1, EC.M); q.addData(text); q.make();
+  var n = q.getModuleCount(), pad = 2, size = n + pad * 2, d = '';
+  for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (q.modules[r][c]) d += 'M' + (c + pad) + ' ' + (r + pad) + 'h1v1h-1z';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" shape-rendering="crispEdges" role="img" aria-label="Telegram 登录二维码"><rect width="' + size + '" height="' + size + '" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
+};
+})();
+(function(){'use strict';
+
+/* ---------- 主题 ---------- */
+(function initTheme(){
+  // 完全跟随主反代面板：共用 localStorage.emby_proxy_dark（'1'=暗 '0'/未设置=亮，与主面板默认一致）
+  var saved = 'light';
+  try {
+    if (localStorage.getItem('emby_proxy_dark') === '1') saved = 'dark';
+  } catch(e){}
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+// 主题跟随主面板：同源 iframe 里由父页面推送，单独打开时读同一份 localStorage
+function applyPanelTheme(dark){
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+}
+window.addEventListener('message', function(ev){
+  if (!ev || !ev.data || ev.data.type !== 'emby-theme') return;
+  applyPanelTheme(!!ev.data.dark);
+});
+
+
+var $ = function(s, r){ return (r || document).querySelector(s); };
+
+/* ===== iOS 兼容：选文件 / 存文件 / 复制 ===== */
+function mmIsIOS(){
+  var ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+function mmParentBridge(){
+  try {
+    if (window.parent && window.parent !== window && typeof window.parent.mmPickTextRaw === 'function') return window.parent;
+  } catch (e) {}
+  return null;
+}
+function mmPickTextRaw(accept){
+  return new Promise(function(resolve, reject){
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = accept || '.json,application/json,text/plain';
+    inp.setAttribute('style', 'position:fixed;left:8px;top:8px;width:1px;height:1px;opacity:0.01;z-index:2147483000');
+    document.body.appendChild(inp);
+    var settled = false;
+    function cleanup(){ if (inp.parentNode) inp.parentNode.removeChild(inp); }
+    inp.addEventListener('change', function(){
+      var f = inp.files && inp.files[0];
+      if (!f) { cleanup(); reject(new Error('没有选择文件')); return; }
+      var rd = new FileReader();
+      rd.onload = function(){ settled = true; cleanup(); resolve({ name: f.name, text: String(rd.result || '') }); };
+      rd.onerror = function(){ cleanup(); reject(new Error('读取文件失败')); };
+      rd.readAsText(f);
+    });
+    setTimeout(function(){ if (!settled) cleanup(); }, 90000);
+    inp.click();
+  });
+}
+function mmDownloadRaw(blob, name){
+  try {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ try { a.remove(); URL.revokeObjectURL(url); } catch (e) {} }, 8000);
+    return 'download';
+  } catch (e) { return 'fail'; }
+}
+function mmSaveTextRaw(name, text, mime){
+  mime = mime || 'application/json';
+  var blob = new Blob([text], { type: mime });
+  try {
+    if (navigator.canShare && window.File) {
+      var file = new File([blob], name, { type: mime });
+      if (navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], title: name }).then(function(){ return 'share'; }, function(e){
+          if (e && e.name === 'AbortError') return 'cancel';
+          if (mmCopyFallbackRaw(text)) return 'copy';
+          return mmDownloadRaw(blob, name);
+        });
+      }
+    }
+  } catch (e) {}
+  return Promise.resolve(mmDownloadRaw(blob, name));
+}
+function mmCopyFallbackRaw(text){
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', 'readonly');
+    ta.setAttribute('style', 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:12px');
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { ta.setSelectionRange(0, text.length); } catch (e) {}
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+function mmCopyTextRaw(text){
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function(){ return true; }, function(){ return mmCopyFallbackRaw(text); });
+    }
+  } catch (e) {}
+  return Promise.resolve(mmCopyFallbackRaw(text));
+}
+function mmPickText(accept){
+  var p = mmParentBridge();
+  return p ? p.mmPickTextRaw(accept) : mmPickTextRaw(accept);
+}
+function mmSaveText(name, text, mime){
+  var p = mmParentBridge();
+  return p ? p.mmSaveTextRaw(name, text, mime) : mmSaveTextRaw(name, text, mime);
+}
+function mmCopyText(text){
+  var p = mmParentBridge();
+  return p ? p.mmCopyTextRaw(text) : mmCopyTextRaw(text);
+}
+try {
+  window.mmPickTextRaw = mmPickTextRaw;
+  window.mmSaveTextRaw = mmSaveTextRaw;
+  window.mmCopyTextRaw = mmCopyTextRaw;
+  window.mmPickText = mmPickText;
+  window.mmSaveText = mmSaveText;
+  window.mmCopyText = mmCopyText;
+} catch (e) {}
+
+var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+// 所有 id 都要先编码再拼进 URL：导入的备份里可能带 ../ 之类的内容，
+// 不编码会被浏览器 / URL 规范化成另一个接口（例如 POST /api/run/all）。
+var eid = function(x){ return encodeURIComponent(String(x == null ? '' : x)); };
+var hasApi = function(){ return !!(S.data && S.data.env && S.data.env.TG_API); };
+var S = {pxOpen:false, libOpen:false, notifyOpen:false, schOpen:false, ntfDraft:{},  tab: 'tasks', authed: null, data: null, logs: null, openLog: {}, openTasks: {}, timer: null, coreOpen: false, reveal: {}, editing: {}, cfgDraft: {}, libEdit: null, iconCache: {}, pxTimer: null };
+
+function setCron(v){
+  var msg = v ? ('正在把触发器改为 ' + v) : '正在移除签到触发器';
+  showTip(msg);
+  api('POST', '/api/cron', { cron: v })
+    .then(function(){ toast(v ? ('触发器已改为 ' + v) : '已移除签到触发器'); return load(); })
+    .catch(function(err){ toast(err.message || '设置失败'); });
+}
+function loadCron(){
+  api('GET', '/api/cron')
+    .then(function(){ toast('已读取线上触发器'); return load(); })
+    .catch(function(err){ toast(err.message || '读取失败'); });
+}
+function showTip(msg){
+  var h = document.getElementById('tip'); if (!h) { h = document.createElement('div'); h.id = 'tip'; h.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:99;background:var(--card);color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.18)'; document.body.appendChild(h); }
+  h.textContent = msg; h.style.display = 'block'; clearTimeout(showTip.t); showTip.t = setTimeout(function(){ h.style.display = 'none'; }, 1800);
+}
+function api(method, path, body){
+  return fetch(path, {
+    method: method,
+    headers: { 'content-type': 'application/json', 'x-requested-with': 'panel' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    credentials: 'same-origin'
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(j){
+      if (r.status === 401 && path !== '/api/login') { S.authed = false; render(); }
+      if (!r.ok) throw new Error(j.error || ('请求失败 (' + r.status + ')'));
+      return j;
+    });
+  });
+}
+function toast(msg){
+  var old = $('.toast'); if (old) old.remove();
+  var d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role', 'status'); d.textContent = msg;
+  document.body.appendChild(d);
+  setTimeout(function(){ d.remove(); }, 3200);
+}
+function pad(n){ return (n < 10 ? '0' : '') + n; }
+function fmtTs(ts){
+  if (!ts) return '从未';
+  var tz = (S.data && S.data.settings.tz) || 8;
+  return new Date(ts + tz * 3600e3).toISOString().slice(5, 16).replace('T', ' ');
+}
+function pxText(t){
+  if (!t) return '还没测试过。点下面按钮会真连一次 Telegram，约 5–15 秒。';
+  if (t.pending) return '测试中…（通常 3–10 秒）';
+  var bits = [t.ok ? '✅ 代理可用' : '❌ 代理不可用'];
+  if (t.ip) bits.push('出口 IP <b>' + esc(t.ip) + '</b>');
+  if (t.ms) bits.push('代理握手 ' + t.ms + ' ms');
+  if (t.tgOk) bits.push('Telegram 已连上' + (t.tgMs ? '（' + t.tgMs + ' ms）' : ''));
+  if (t.via) bits.push('经 ' + esc(t.via));
+  var s = bits.join('｜') + '｜' + fmtTs(t.ts);
+  if (t.err) s += '<br>' + esc(t.err);
+  return s;
+}
+function pollProxyTest(){
+  var n = 0;
+  clearInterval(S.pxTimer);
+  S.pxTimer = setInterval(function(){
+    n++;
+    api('GET', '/api/state').then(function(r){
+      var el = $('#pxNote');
+      if (!el) { clearInterval(S.pxTimer); return; }
+      var t = r.proxyTest;
+      el.innerHTML = pxText(t);
+      if ((t && !t.pending) || n >= 20) clearInterval(S.pxTimer);
+    }).catch(function(){ if (n >= 20) clearInterval(S.pxTimer); });
+  }, 4000);
+}
+function bkText(d){
+  return JSON.stringify(d, null, 2);
+}
+function bkExport(){
+  toast('正在打包…');
+  api('GET', '/api/backup').then(function(d){
+    var txt = bkText(d);
+    var head = '任务 ' + ((d.tasks || []).length) + ' 个 · 账号 ' + ((d.accounts || []).length) + ' 个 · ' + (txt.length / 1024).toFixed(1) + ' KB';
+    var fname = 'tg-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    openSheet('导出备份', '<p class="hint">' + esc(head) + '。点「保存文件」会调起系统面板（iOS 上选「存储到文件」即可）；也可以点「复制」自己粘贴保存。</p>' +
+      '<textarea id="bkText" class="inp" style="height:200px;font-family:ui-monospace,monospace;font-size:11px;line-height:1.4" readonly>' + esc(txt) + '</textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:10px">' +
+      '<button class="btn" id="bkCopy" style="flex:1">复制</button>' +
+      '<button class="btn h" id="bkDl" style="flex:1">保存文件</button></div>', function(body, close){
+        var ta = $('#bkText', body);
+        $('#bkCopy', body).onclick = function(){
+          mmCopyText(txt).then(function(ok){ toast(ok ? '已复制到剪贴板' : '复制失败，请长按文本框手动复制'); });
+        };
+        $('#bkDl', body).onclick = function(){
+          mmSaveText(fname, txt, 'application/json').then(function(r){
+            if (r === 'share' || r === 'download') toast('已保存');
+            else if (r === 'copy') toast('已复制，粘贴到备忘录或文件里即可保存');
+            else if (r !== 'cancel') toast('保存失败，请点「复制」');
+          });
+        };
+      });
+  }).catch(function(e){ toast(e.message); });
+}
+function bkImportSheet(){
+  openSheet('导入备份', '<p class="hint">把导出的 JSON 整段粘到下面，或点「选择文件」读取 .json 文件。没有账号也能先导入任务，之后再补账号。</p>' +
+    '<textarea id="bkIn" class="inp" style="height:170px;font-family:ui-monospace,monospace;font-size:11px;line-height:1.4" placeholder="粘贴备份 JSON"></textarea>' +
+    '<div style="display:flex;gap:8px;margin-top:10px;align-items:center">' +
+    '<button class="btn" id="bkPick" style="flex:1">选择文件</button>' +
+    '</div>' +
+    '<label class="row" style="margin-top:10px;display:flex;gap:8px;align-items:center;font-size:13px">' +
+    '<input type="checkbox" id="bkReplace" style="width:auto"> <span>覆盖现有任务（不勾选＝合并，同名同号不重复）</span></label>' +
+    '<button class="btn h" id="bkGo" style="width:100%;margin-top:12px">开始导入</button>', function(body, close){
+      var ta = $('#bkIn', body);
+      $('#bkPick', body).onclick = function(){
+        mmPickText('.json,application/json,text/plain').then(function(f){
+          ta.value = f.text;
+          toast('已读入 ' + f.name);
+        }).catch(function(e){
+          var m = (e && e.message) || '';
+          if (m.indexOf('没有选择') < 0) toast(m || '读取失败');
+        });
+      };
+      $('#bkGo', body).onclick = function(){
+        var raw = (ta.value || '').trim();
+        if (!raw) { toast('先粘贴备份内容'); return; }
+        var obj;
+        try { obj = JSON.parse(raw); } catch (e) { toast('JSON 解析失败：' + e.message); return; }
+        obj.mode = $('#bkReplace', body).checked ? 'replace' : 'merge';
+        var btn = $('#bkGo', body); busy(btn, true, '导入中…');
+        api('POST', '/api/backup', obj).then(function(r){
+          var x = (r && r.result) || {};
+          close(); load(); loadLogs();
+          var msg = '导入完成：任务 ' + (x.tasks || 0) + ' 个 · 账号 ' + (x.accounts || 0) + ' 个' + (x.skipped ? ' · 跳过 ' + x.skipped + ' 条' : '');
+          var extra = [];
+          if (x.tasksUnassigned) extra.push('有 ' + x.tasksUnassigned + ' 个任务暂时没绑定账号：先去「账号」页添加账号，再在任务里选上就能执行。');
+          (x.errors || []).forEach(function(s){ extra.push(s); });
+          if (!extra.length) { toast(msg); return; }
+          openSheet('导入结果', '<p class="hint">' + esc(msg) + '</p>' +
+            extra.map(function(s){ return '<p class="err">' + esc(s) + '</p>'; }).join('') +
+            '<button class="btn block" id="bkOk">知道了</button>', function(b2, c2){ $('#bkOk', b2).onclick = c2; });
+        }).catch(function(e){ busy(btn, false, '开始导入'); toast(e.message); });
+      };
+    });
+}
+function openSheet(title, html, mount){
+  var scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h2>' + esc(title) + '</h2><div class="body">' + html + '</div></div>';
+  document.body.appendChild(scrim);
+  var prevFocus = document.activeElement;
+  function close(){ document.removeEventListener('keydown', onKey); scrim.remove(); if (prevFocus && prevFocus.focus) prevFocus.focus(); }
+  function onKey(e){ if (e.key === 'Escape') close(); }
+  document.addEventListener('keydown', onKey);
+  scrim.addEventListener('mousedown', function(e){ if (e.target === scrim) close(); });
+  var first = $('input,select,button', scrim); if (first) first.focus();
+  if (mount) mount($('.body', scrim), close, scrim);
+  return { close: close, body: $('.body', scrim) };
+}
+function busy(btn, on, label){ if (!btn) return; btn.disabled = on; if (label) btn.textContent = label; }
+
+/* ---------- 数据 ---------- */
+function load(quiet){
+  return api('GET', '/api/state').then(function(d){
+    var sig = JSON.stringify(d);
+    // 数据没变化就不重绘：避免每 30 秒/每次轮询把头像一个不差地重建，
+    // 也不会打断正在输入的输入框或把手滑的位置顶掉。
+    if (sig === S.lastSig) { S.data = d; return; }
+    S.lastSig = sig;
+    S.data = d;
+    if (!quiet || S.tab === 'tasks' || S.tab === 'settings' || S.tab === 'accounts') render();
+  }).catch(function(e){ if (!quiet) toast(e.message); });
+}
+function loadLogs(){
+  return api('GET', '/api/logs').then(function(d){ S.logs = d.logs; render(); }).catch(function(e){ toast(e.message); });
+}
+function typingNow(){
+  var a = document.activeElement;
+  return !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+}
+function scheduleRefresh(){
+  clearInterval(S.timer);
+  S.timer = setInterval(function(){
+    if (!S.authed || document.hidden || $('.scrim') || typingNow()) return;
+    S.tab === 'logs' ? loadLogs() : load(true);
+  }, 30000);
+}
+function pollSoon(){ [1500, 5000].forEach(function(ms){ setTimeout(function(){ if (S.authed && !$('.scrim') && !typingNow()) load(true); }, ms); }); }
+
+/* ---------- 视图 ---------- */
+function ntfKey(id){ return 'notify' + id.charAt(0).toUpperCase() + id.slice(1) + 'On'; }
+function ntfOn(d, k){ return S.ntfDraft[k] != null ? !!S.ntfDraft[k] : !!(d && d.settings && d.settings[k]); }
+function ntfBlock(d, id, title, fields){
+  var k = ntfKey(id), on = ntfOn(d, k), h = '<div class="ntfblk"><div class="pxhead"><h4 style="margin:0;font-size:14px">' + title + '</h4>' +
+    '<button class="switch" role="switch" data-act="ntf-on" data-key="' + k + '" aria-checked="' + (on ? 'true' : 'false') + '"><i></i></button></div>';
+  fields.forEach(function(f){
+    var v = (d && d.settings && d.settings[f[0]] != null) ? d.settings[f[0]] : '';
+    h += '<input class="ntfin" data-nkey="' + f[0] + '" value="' + esc(v) + '" placeholder="' + esc(f[2]) + '" aria-label="' + esc(f[1]) + '" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text">';
+  });
+  return h + '</div>';
+}
+function ntfPayload(){
+  var p = { notifyOn: ntfOn(S.data, 'notifyOn') };
+  ['bark', 'ding', 'sc', 'tg'].forEach(function(id){ p[ntfKey(id)] = ntfOn(S.data, ntfKey(id)); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-nkey]'), function(inp){ p[inp.getAttribute('data-nkey')] = inp.value.trim(); });
+  return p;
+}
+function saveNotify(){
+  api('POST', '/api/notify/config', ntfPayload()).then(function(){ S.ntfDraft = {}; toast('通知设置已保存'); load(); })
+    .catch(function(e){ toast(e.message); });
+}
+function testNotify(){
+  var n = $('#ntfNote'); if (n) n.textContent = '发送中…';
+  api('POST', '/api/notify/test', ntfPayload()).then(function(r){
+    if (n) n.textContent = (r && r.text) || '已发送';
+    toast(r && r.ok === false ? '有通道没发出去，见下方结果' : '测试通知已发送');
+  }).catch(function(e){ if (n) n.textContent = e.message; toast(e.message); });
+}
+function decorateSecs(){
+  var map = { '网络代理': 'pxOpen', '调度': 'schOpen', '通知平台': 'notifyOpen', '备份与恢复': 'bkOpen' };
+  Array.prototype.forEach.call(document.querySelectorAll('section.card'), function(sec){
+    var kids = sec.children, h3 = null, i;
+    for (i = 0; i < kids.length; i++) {
+      var c = kids[i];
+      if (c.tagName === 'H3') { h3 = c; break; }
+      if (c.className && String(c.className).indexOf('pxhead') >= 0) { var q = c.querySelector('h3'); if (q) { h3 = q; break; } }
+    }
+    if (!h3) return;
+    var key = map[(h3.textContent || '').trim()];
+    if (!key) return;
+    var head = h3.closest('.pxhead') || h3;
+    var body = document.createElement('div');
+    body.className = 'secbody';
+    Array.prototype.slice.call(sec.children).forEach(function(n){ if (n !== head) body.appendChild(n); });
+    sec.appendChild(body);
+    head.classList.add('secclick');
+    head.setAttribute('data-act', 'sec-toggle');
+    head.setAttribute('data-sec', key);
+    var chev = document.createElement('span');
+    chev.className = 'chev' + (S[key] ? ' open' : '');
+    chev.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+    head.appendChild(chev);
+    if (!S[key]) body.hidden = true;
+  });
+}
+function clockText(){
+  var tz = (S.data && S.data.settings && typeof S.data.settings.tz === 'number') ? S.data.settings.tz : 8;
+  var t = new Date(Date.now() + tz * 3600000);
+  return pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes()) + ':' + pad(t.getUTCSeconds()) +
+    '，' + t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate());
+}
+setInterval(function(){
+  var el = document.getElementById('clock');
+  if (el) { var v = clockText(); if (el.textContent !== v) el.textContent = v; }
+}, 1000);
+
+function runAllTasks(btn){
+  var n = (S.data.tasks || []).filter(function(t){ return t.enabled; }).length;
+  if (!n) { toast('没有启用的任务'); return; }
+  if (btn) btn.disabled = true;
+  api('POST', '/api/run/all', {}).then(function(res){
+    toast('已下发 ' + (res && res.count ? res.count : n) + ' 个任务，正在执行');
+    if (btn) btn.disabled = false;
+    load();
+  }).catch(function(e){ toast(e.message); if (btn) btn.disabled = false; });
+}
+
+function stopAllTasks(btn){
+  if (!confirm('结束今天这一批？未执行完的任务会标记为「已结束」，今天不再自动补跑。已经发出去的消息无法撤回。')) return;
+  if (btn) btn.disabled = true;
+  api('POST', '/api/run/cancel', {}).then(function(res){
+    if (res && res.cancelled) toast('已结束，' + res.cancelled + ' 个未完成的任务停在今天');
+    else toast('今天没有正在执行的批次，已标记为结束');
+    if (btn) btn.disabled = false;
+    load();
+  }).catch(function(e){ toast(e.message); if (btn) btn.disabled = false; });
+}
+
+function render(){
+  var app = $('#app');
+  if (S.authed === null) { app.innerHTML = ''; return; }
+  if (!S.authed) return renderLogin(app);
+  if (!S.data) { app.innerHTML = '<div class="wrap"><p class="empty">加载中…</p></div>'; return; }
+  var d = S.data;
+  var tabs = [['tasks', '任务'], ['accounts', '账号'], ['logs', '日志'], ['settings', '设置']];
+  var body = S.tab === 'tasks' ? viewTasks() : S.tab === 'accounts' ? viewAccounts() : S.tab === 'logs' ? viewLogs() : viewSettings();
+  var scrollY = window.scrollY;
+  app.innerHTML =
+    '<div class="wrap"><header class="top"><h1>签到面板</h1>' +
+    '</header>' +
+    '<div class="sub" style="margin:-6px 2px 12px">面板时间 <span id="clock" class="clock">' + clockText() + '</span></div>' +
+    body + '</div>' +
+    '<nav class="tabs" aria-label="主导航"><div class="in">' + tabs.map(function(t){ return '<button data-tab="' + t[0] + '"' + (S.tab === t[0] ? ' aria-current="page"' : '') + '>' + t[1] + '</button>'; }).join('') + '</div></nav>';
+  window.scrollTo(0, scrollY);
+  decorateSecs();
+}
+
+function renderLogin(app){
+  // 登录已跟随主反代面板：不再单独输密码，非管理员打开时只做提示
+  app.innerHTML = '<div class="wrap"><div class="card"><h3>需要从主面板进入</h3>' +
+    '<p class="hint">签到面板已与主反代面板共用登录态，不再单独输入密码。请先登录主面板，再点顶部「签到」进入。</p>' +
+    '<p class="hint"><a class="linkbtn" href="/">返回主面板</a></p></div></div>';
+}
+
+function eyeSvg(open){
+  return open
+    ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A9.6 9.6 0 0 1 12 5c7 0 10 7 10 7a17 17 0 0 1-2.2 3.1M6.6 6.6C3.6 8.6 2 12 2 12s3 7 10 7c1.9 0 3.5-.5 4.9-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m3 3 18 18"/></svg>';
+}
+
+function avatarInner(av, name){
+  if (av) return '<img' + (/^https?:/i.test(av) ? ' class="ic"' : '') + ' src="' + esc(av) + '" alt="">';
+  return esc((((name || '?')).trim().charAt(0)) || '?');
+}
+function avatarHtml(t, cls){
+  return '<span class="avatar ' + (cls || '') + '">' + avatarInner(t && t.avatar, t && t.name) + '</span>';
+}
+function taskPill(t){
+  var st = t.state;
+  if (!t.enabled) return ['', '已停用'];
+  if (!st || st.status === 'new') return ['', '待排'];
+  if (st.status === 'ok') return ['ok', '已签'];
+  if (st.status === 'queued') return ['run', '已排队'];
+  if (st.status === 'dispatched') return ['run', '执行中'];
+  if (st.status === 'failed') return ['bad', '失败'];
+  if (st.status === 'skip') return ['', '已结束'];
+  if (st.status === 'waiting') return ['', '明日'];
+  if (st.status === 'pending') return ['', '待签'];
+  return ['', '待排'];
+}
+
+function viewTasks(){
+  var d = S.data, out = '';
+  if (!d.env.ready) out += '<div class="banner"><b>配置不完整：</b>到「设置」页填好 Telegram api_id / api_hash，执行器令牌，任务才能自动执行。</div>';
+  else if (!d.ping) out += '<div class="banner">还没验证过执行器。到「设置」页点「测试连通」。</div>';
+  out += '<div class="bar2">' +
+    '<button class="btn h" data-act="task-new">新建任务</button>' +
+    '<button class="btn h go" data-act="task-run-all">手动执行</button>' +
+    '<button class="btn h stop" data-act="task-stop">结束全部</button></div>';
+  if (!d.accounts.length) out += '<div class="banner">先到「账号」页添加一个 Telegram 账号，再建任务。</div>';
+  var cnt = { ok: 0, bad: 0, run: 0, wait: 0, skip: 0 };
+  d.tasks.forEach(function(t){
+    if (!t.enabled) return;
+    var st = t.state || {};
+    if (st.status === 'ok') cnt.ok++;
+    else if (st.status === 'failed') cnt.bad++;
+    else if (st.status === 'dispatched') cnt.run++;
+    else if (st.status === 'skip') cnt.skip++;
+    else cnt.wait++;
+  });
+  var sum = '<div class="sumline"><span>今日 <b class="num">' + cnt.ok + '</b> 成功</span>' +
+    '<span class="bad">' + cnt.bad + ' 失败</span>' +
+    '<span>' + cnt.run + ' 执行中</span>' +
+    '<span>' + cnt.wait + ' 待执行</span>' +
+    (cnt.skip ? '<span>' + cnt.skip + ' 已结束</span>' : '') + '</div>';
+  if (cnt.ok || cnt.bad || cnt.run || cnt.skip) out += sum;
+  if (!d.tasks.length) return out + '<div class="empty">还没有任务。<br>一个任务 = 向某个机器人发指令，并点击回复的按钮。</div>';
+  d.tasks.forEach(function(t){
+    var acc = d.accounts.filter(function(a){ return a.id === t.accountId; })[0];
+    var pill = taskPill(t);
+    var open = !!S.openTasks[t.id];
+    var st = t.state;
+    var last = (st && st.lastRun) ? '<div class="meta">上次 <span class="num">' + fmtTs(st.lastRun) + '</span>：' + esc(st.lastMsg || (st.lastOk ? '成功' : '失败')) + '</div>' : '';
+    var todayLine = '';
+    if (t.enabled){
+      if (st && st.status === 'pending') todayLine = '<div class="meta">今天约 <b class="num">' + pad(Math.floor(st.planned/60)) + ':' + pad(st.planned%60) + '</b> 执行</div>';
+      else if (st && st.status === 'queued') todayLine = '<div class="meta">已进入持久执行队列，可以关闭页面</div>';
+      else if (st && st.status === 'dispatched') todayLine = '<div class="meta">执行中，稍后自动刷新</div>';
+      else if (st && st.status === 'waiting') todayLine = '<div class="meta">今天时间窗口已过，明天自动执行</div>';
+    }
+    out += '<article class="card tcard' + (open ? ' open' : '') + '" data-id="' + esc(t.id) + '">' +
+      '<div class="head" data-act="task-expand" role="button" tabindex="0">' +
+                '<span class="dragbtn" data-act="task-drag" role="button" aria-label="长按拖动排序"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span>' +
+        avatarHtml(t) +
+        '<span class="tname">' + esc(t.name) + '</span>' +
+        '<button class="act run" data-act="task-run" aria-label="立即执行">执行</button>' +
+        '<span class="mini-pill ' + pill[0] + '">' + pill[1] + '</span>' +
+        '<span class="chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>' +
+      '</div>' +
+      '<div class="detail">' +
+        '<div class="meta">发给 <b>' + esc(t.target) + '</b>，账号 <b>' + esc(acc ? acc.name : (t.accountId ? '（已删除）' : '未绑定，点开任务选一个')) + '</b></div>' +
+        '<div class="meta">发送「' + esc(t.command) + '」' + (t.button ? '，点按钮「' + esc(t.button) + '」' : '，不点按钮') + '</div>' +
+        '<div class="meta">窗口 <span class="num">' + (uniOn(S.data) ? '跟随全局 ' + esc(((S.data.settings || {}).unified || {}).start || '') + '–' + esc(((S.data.settings || {}).unified || {}).end || '') : esc(t.windowStart) + '–' + esc(t.windowEnd)) + '</span>，失败重试 ' + (t.maxRetries == null ? '' + ((S.data.settings || {}).retryRounds == null ? 2 : (S.data.settings || {}).retryRounds) + ' 轮（跟随设置）' : t.maxRetries + ' 轮') + '</div>' +
+        todayLine + last +
+      '</div>' +
+      '<div class="controls">' +
+        '<div class="switchrow"><button class="switch" role="switch" aria-checked="' + (t.enabled ? 'true' : 'false') + '" data-act="task-switch" aria-label="启用/停用"></button>' +
+        '<span class="lab">' + (t.enabled ? '已启用' : '已停用') + '</span>' +
+        '<span class="spacer"></span>' +
+        '<button class="act" data-act="task-edit">编辑</button>' +
+        '<button class="act danger" data-act="task-del">删除</button></div>' +
+      '</div>' +
+    '</article>';
+  });
+  return uniBar(S.data) + out;
+}
+
+function viewAccounts(){
+  var d = S.data, out = '';
+  out += '<div class="bar"><button class="btn" data-act="acc-login">网页登录</button><button class="btn ghost" data-act="acc-import">导入 session</button></div>';
+  out += '<p class="hint">账号凭据加密后保存在 Cloudflare D1 数据库，面板和接口都不会再把它显示出来。</p>';
+  if (!d.accounts.length) return out + '<div class="empty">还没有账号。</div>';
+  d.accounts.forEach(function(a){
+    var st = a.status, line = '还没检测过';
+    if (st) {
+      var okw = st.ok === true ? '正常' : st.ok === false ? '异常' : '';
+      var mm = st.msg ? esc(st.msg) : '';
+      line = (!mm || mm === okw) ? (okw || mm) : (okw ? okw + '：' + mm : mm);
+    }
+    out += '<article class="card" data-id="' + esc(a.id) + '"><div class="tname" style="font-weight:650;font-size:16px">' + esc(a.name) + '</div>' +
+      '<div class="meta" style="color:var(--muted);font-size:13px;margin-top:3px">' + (a.via === 'login' ? '网页登录' : '导入 session') + '，添加于 <span class="num">' + fmtTs(a.createdAt) + '</span></div>' +
+      '<div class="note' + (st && st.ok === false ? ' bad' : st && st.ok === true ? ' ok' : '') + '">' + line + '</div>' +
+      '<div class="actions" style="display:flex;gap:6px;margin-top:10px"><button class="btn ghost" data-act="acc-check" style="flex:1">检测</button><button class="btn ghost" data-act="acc-del" style="flex:1;color:var(--bad)">删除</button></div></article>';
+  });
+  return out;
+}
+
+function viewLogs(){
+  if (!S.logs) { loadLogs(); return '<p class="empty">加载中…</p>'; }
+  var out = '<div class="bar"><button class="btn ghost" data-act="logs-refresh">刷新</button><button class="btn ghost" data-act="logs-clear">清空日志</button></div>';
+  out += '<p class="hint">日志保存在 D1，超过 15 天自动清理。</p>';
+  if (!S.logs.length) return out + '<div class="empty">还没有执行记录。</div>';
+  out += '<div class="card">';
+  S.logs.forEach(function(l){
+    var open = S.openLog[l.key];
+    out += '<div class="log"><button class="head" data-act="log-open" data-key="' + esc(l.key) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+      '<div class="t">' + fmtTs(l.ts) + '</div><div class="m"><span class="tag ' + (l.ok ? 'ok' : 'bad') + '">' + (l.ok ? '成功' : '失败') + '</span><b>' + esc(l.name) + '</b></div>' +
+      '<div class="m" style="color:var(--muted);font-size:13px">' + esc(l.message) + '</div></button>' +
+      (open ? '<pre class="lines">' + (open === 'loading' ? '加载中…' : esc(open)) + '</pre>' : '') + '</div>';
+  });
+  return out + '</div>';
+}
+
+function libsHtml(){
+  var libs = (S.data && S.data.iconLibs) || [];
+  if (!libs.length) return '<div class="empty" style="margin:10px 0">还没有图标库。</div>';
+  return libs.map(function(l){
+    if (S.libEdit === l.id) {
+      return '<div class="librow edit" data-id="' + esc(l.id) + '">' +
+        '<label>名称<input type="text" name="libName" value="' + esc(l.name) + '" maxlength="24" placeholder="给这个图标库起个名字"></label>' +
+        '<label>图标库地址<input type="text" name="libUrl" value="' + esc(l.url) + '" placeholder="https://…/icons.json" autocomplete="off" autocapitalize="off" spellcheck="false"></label>' +
+        '<div class="libacts"><button class="btn" style="flex:1" data-act="lib-save">保存</button><button class="btn ghost" style="flex:1" data-act="lib-cancel">取消</button></div>' +
+      '</div>';
+    }
+    var n = Math.min(30, Math.max(12, (l.url || '').length));
+    return '<div class="librow" data-id="' + esc(l.id) + '">' +
+      '<span class="libmain"><span class="libname">' + esc(l.name) + '</span><span class="liburl">' + new Array(n + 1).join('•') + '</span></span>' +
+      '<button class="fbtn" data-act="lib-edit">编辑</button>' +
+      '<button class="fbtn danger" data-act="lib-del">删除</button>' +
+    '</div>';
+  }).join('');
+}
+function verifyIconLib(lib){
+  if (!lib || !lib.url) return;
+  api('GET', '/api/iconlib?url=' + encodeURIComponent(lib.url)).then(function(d){
+    S.iconCache[lib.id] = d.icons;
+    toast('「' + lib.name + '」可用，共 ' + d.icons.length + ' 个图标');
+  }).catch(function(e){ toast('图标库拉取失败：' + e.message); });
+}
+function libAddSheet(){
+  openSheet('添加图标库',
+    '<p class="hint" style="margin-top:0">支持 TFEL 那种格式（name + icons[{name,url}]），也支持直接给一个图标地址数组。</p>' +
+    '<form id="lf">' +
+      '<label>名称（可留空，自动取文件名）<input type="text" name="libName" maxlength="24" placeholder="例如 我的图标库"></label>' +
+      '<label>图标库地址<input type="text" name="libUrl" placeholder="https://example.com/icons.json" required autocomplete="off" autocapitalize="off" spellcheck="false"></label>' +
+      '<button class="btn block" type="submit">添加并验证</button>' +
+    '</form>',
+    function(body, close){
+      $('#lf', body).addEventListener('submit', function(e){
+        e.preventDefault();
+        var b = $('button[type=submit]', body);
+        busy(b, true, '添加中…');
+        api('POST', '/api/iconlibs', { name: $('input[name=libName]', body).value, url: $('input[name=libUrl]', body).value })
+          .then(function(res){ close(); toast('图标库已添加'); load(); verifyIconLib(res && res.lib); })
+          .catch(function(err){ toast(err.message); busy(b, false, '添加并验证'); });
+      });
+    });
+}
+
+function cronCard(d){
+  if (!d || !d.cron) return ''; // DO 版没有这块
+  var cr = d.cron;
+  var cl = (cr.list && cr.list.length) ? cr.list : (cr.value ? [cr.value] : []);
+  var chips = cl.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') || '<span class="muted small">点「读取」同步线上触发器</span>';
+  function pv(v, label){ return '<button class="btn ghost" type="button" data-act="cron-preset" data-cron="' + v + '">' + label + '</button>'; }
+  return '<section class="card">' +
+    '<button class="secthead" type="button" data-act="cron-toggle" aria-expanded="' + (S.cronOpen ? 'true' : 'false') + '">' +
+      '<span class="grow">触发器（cron）</span>' +
+      (S.cronOpen ? '' : '<span class="secthint">' + (cr.value ? esc(cr.value) : '点开设置') + '</span>') +
+      '<span class="chev' + (S.cronOpen ? ' open' : '') + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>' +
+    '<div class="secbody"' + (S.cronOpen ? '' : ' hidden') + '>' +
+      '<p class="hint">这里改的就是这个 Worker 的 cron 触发时间，保存后立刻生效（走 Cloudflare API，令牌需要 Workers Scripts:Edit 权限）。只会替换签到用的那一条，反代自己的触发器不动。免费版每个账号最多 5 条触发器。</p>' +
+      (cr.canEdit ? '' : '<div class="note err">缺少 Worker 变量：' + esc((cr.missing || []).join(' / ')) + ' → 面板里改不了，可到 Cloudflare 控制台 → 该 Worker → 设置 → 触发器 手动添加。</div>') +
+      '<div class="row" style="align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0"><span class="muted small">当前触发器</span>' + chips +
+        '<button class="btn ghost" type="button" data-act="cron-refresh">读取</button></div>' +
+      '<div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0">' +
+        pv('*/5 * * * *', '每 5 分钟') + pv('*/10 * * * *', '每 10 分钟') + pv('*/15 * * * *', '每 15 分钟') + pv('0 * * * *', '每小时') + pv('5 0 * * *', '每天 00:05') +
+      '</div>' +
+      '<form id="cronForm"><label>cron 表达式<input id="cronInput" name="cron" value="' + esc(cr.value || '') + '" placeholder="*/5 * * * *" autocomplete="off"></label>' +
+        '<div class="note">5 段：分 时 日 月 周。签到精度 = 触发间隔，推荐 */5 或 */10；分钟位写死（如 5 0 * * *）时签到就在那一分钟开始。</div>' +
+        '<button class="btn block" type="submit">保存触发器</button></form>' +
+      '<div class="row" style="gap:8px;margin-top:8px"><button class="btn ghost" type="button" data-act="cron-clear">移除签到触发器</button></div>' +
+    '</div></section>';
+}
+function viewSettings(){
+  var d = S.data, e = d.env;
+  var libs = (d && d.iconLibs) || [];
+  function field(label, name, val, ph, type, small){
+    var lock = !!e[name + '_lock'];
+    var shown = (S.cfgDraft && Object.prototype.hasOwnProperty.call(S.cfgDraft, name)) ? S.cfgDraft[name] : (val || '');
+    var rev = !!S.reveal[name];
+    var editing = !lock && !!S.editing[name];
+    var open = rev || editing;
+    return '<label>' + label +
+      '<span class="cfgfield">' +
+        '<input type="' + (open ? 'text' : 'password') + '" name="' + name + '" value="' + esc(shown) + '" placeholder="' + esc(ph || '') + '" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"' +
+          (editing ? ' class="editing"' : '') + (editing ? ' aria-readonly="false"' : ' readonly aria-readonly="true"') + (lock ? ' disabled' : '') + '>' +
+        '<button type="button" class="fbtn" data-act="cfg-eye" data-name="' + name + '" aria-pressed="' + (rev ? 'true' : 'false') + '" aria-label="显示或隐藏内容">' + eyeSvg(open) + '</button>' +
+        (lock ? '' : '<button type="button" class="fbtn" data-act="cfg-edit" data-name="' + name + '" aria-pressed="' + (editing ? 'true' : 'false') + '" aria-label="编辑">' + (editing ? '完成' : '编辑') + '</button>') +
+      '</span>' +
+      (lock ? '<small>已在 Worker 变量中设置，面板不可改；如需修改请改变量。</small>' : small ? '<small>' + small + '</small>' : '') +
+    '</label>';
+  }
+  var core = !!S.coreOpen;
+  return '<section class="card">' +
+    '<button class="secthead" type="button" data-act="core-toggle" aria-expanded="' + (core ? 'true' : 'false') + '"><span class="grow">核心配置</span>' +
+      (core ? '' : '<span class="secthint">点开填写</span>') +
+      '<span class="chev' + (core ? ' open' : '') + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>' +
+    '<div class="secbody"' + (core ? '' : ' hidden') + '>' +
+      '<p class="hint">在这里填好后点「保存」即可，无需再去 Worker 变量里设置（除了登录用的 ADMIN_PASSWORD）。已经在 Worker 变量里设置的项会优先生效并锁定。</p>' +
+      '<form id="cfgForm">' +
+        field('Telegram api_id', 'TG_API_ID', e.TG_API_ID_value, '内置默认 2040，想用自己的就改这里；清空 = 回默认', 'text') +
+        field('Telegram api_hash', 'TG_API_HASH', e.TG_API_HASH_value, '内置默认 b18441a1ff607e10a989891a5462e627；清空 = 回默认', 'text') +
+        '<div class="note">执行器：Worker 内置，无需配置仓库 / 令牌。api_id / api_hash 已内置默认值，改这里即可自定义。</div>' +
+        '<button class="btn block" type="submit">保存配置</button></form>' +
+      '<div style="height:10px"></div>' +
+      '<div class="note">加密密钥：' + (e.ENC_KEY_AUTO ? '由「管理员密码 ADMIN_TOKEN」自动派生，<b>不需要</b>在 Worker 变量里另设 ENC_KEY。注意：以后改 ADMIN_TOKEN 会让已保存的 TG 账号会话解不开（想固定就加一个变量 TG_ENC_KEY）。' : (e.ENC_KEY_lock ? '已在 Worker 变量里单独设置。' : '系统已自动生成并保存在数据库，无需手动设置。')) + '</div>' +
+      '<div style="height:10px"></div>' +
+      '<button class="btn ghost block" data-act="ping">测试连通</button>' +
+      '<div class="note">' + (d.ping ? '执行器上次回报：<span class="num">' + fmtTs(d.ping) + '</span>' + (d.pingNote ? ' · ' + esc(d.pingNote) : '') + (d.pingOk === false ? ' <b class="err">（上次失败）</b>' : '') : '还没收到过执行器回报') + '</div>' +
+      '<div style="height:10px"></div>' +
+      '<div class="pxhead"><span class="grow" style="font-size:14px">诊断接口 /api/diag</span>' +
+        '<button type="button" class="switch" data-act="diag-on" role="switch" aria-checked="' + (d.settings && d.settings.diag ? 'true' : 'false') + '" aria-label="启用诊断接口"></button></div>' +
+      '<div class="note">默认关闭。打开后可用 <span class="num">/api/diag</span> 测 TCP/TLS，加 <span class="num">?socks=1</span> 测代理链路；只返回连通性和耗时，排查完记得关掉。</div>' +
+    '</div>' +
+    '</section>' +
+    cronCard(d) +
+    '<section class="card"><div class="pxhead"><h3 style="margin:0">网络代理</h3>' +
+      '<button type="button" class="switch" data-act="px-on" aria-checked="' + ((e.PROXY_ON_value || (e.PROXY_URL_lock && e.PROXY_URL_value)) ? 'true' : 'false') + '"' +
+        (e.PROXY_URL_lock ? ' disabled aria-disabled="true"' : '') + ' aria-label="启用代理"></button></div>' +
+      '<p class="hint">' + (e.PROXY_INVALID
+        ? '<b class="err">当前保存的代理地址不是 SOCKS5，Worker 用不了，已被忽略（签到会直连）。请改成 socks5:// 后重新保存。</b>'
+        : '只支持 SOCKS5（Workers 侧只实现了 SOCKS5 客户端，socks4 / http 不支持），只有 Telegram 流量走代理；直连不稳时建议开启。') + '</p>' +
+      '<form id="pxForm">' + field('代理地址（PROXY_URL）', 'PROXY_URL', e.PROXY_URL_value, 'socks5://user:pass@1.2.3.4:1080', 'text', '格式 socks5://user:pass@1.2.3.4:1080；不写协议按 socks5 处理；带密码就写 user:pass@。socks4 / http 不支持。') +
+      '<button class="btn block" type="submit">保存代理</button></form>' +
+      '<div style="height:10px"></div>' +
+      '<button class="btn ghost block" data-act="px-test">测试代理</button>' +
+      '<div class="note" id="pxNote">' + pxText(d.proxyTest) + '</div></section>' +
+    '<section class="card"><h3>备份与恢复</h3>' +
+      '<p class="hint">导出成一段 JSON，含任务、账号（含 session）、设置、图标库。换到另一个版本的面板后点「导入备份」，任务不用重新添加。</p>' +
+      '<div style="display:flex;gap:8px">' +
+        '<button class="btn" style="flex:1" data-act="bk-export">导出备份</button>' +
+        '<button class="btn h" style="flex:1" data-act="bk-import">导入备份</button>' +
+      '</div></section>' +
+    '<section class="card"><h3>通知</h3>' +
+      '<p class="hint">签到结果通知已跟随主面板：直接用「保号通知（Bark / Telegram）」里的配置，这里不再单独设置。</p>' +
+      '<p class="hint">要改通知方式，回主面板 → 保号通知，填 Bark Key 或 Telegram Bot 后保存；签到结束会按那边的方式推送汇总。</p>' +
+      '<p class="hint"><a class="linkbtn" data-act="notify-jump">打开主面板通知设置</a></p>' +
+      '<div class="note" id="ntfNote"></div>' +
+    '</section>' +
+    '<section class="card"><h3>调度</h3><form id="sf">' +
+      '<label>时区偏移（小时）<input type="number" step="0.5" name="tz" value="' + esc(d.settings.tz) + '"><small>北京时间填 8。</small></label>' +
+      '<label>失败重试轮次<input type="number" min="0" max="5" name="retryRounds" value="' + esc(d.settings.retryRounds == null ? 2 : d.settings.retryRounds) + '"><small>全部节点按顺序跑完算一轮；填 2 表示失败节点再跑 2 轮，仍失败就放弃并推送通知。节点里单独填过重试次数的按节点走。</small></label>' +
+      '<button class="btn block" type="submit">保存调度</button></form></section>';
+}
+
+/* ---------- 弹窗：任务 ---------- */
+/* ---------- 头像：压缩上传图 / 从图标库挑选 ---------- */
+function shrinkImage(file, max, cb){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var w0 = img.width || max, h0 = img.height || max;
+      var s = Math.min(1, max / Math.max(w0, h0));
+      var w = Math.max(1, Math.round(w0 * s)), h = Math.max(1, Math.round(h0 * s));
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      var out = c.toDataURL('image/jpeg', 0.85);
+      if (out.length > 100000) out = c.toDataURL('image/jpeg', 0.6);
+      if (out.length > 110000) { cb(new Error('图片太大了，换一张小一点的吧')); return; }
+      cb(null, out);
+    };
+    img.onerror = function(){ cb(new Error('图片读取失败')); };
+    img.src = reader.result;
+  };
+  reader.onerror = function(){ cb(new Error('图片读取失败')); };
+  reader.readAsDataURL(file);
+}
+
+function openAvatarPicker(current, onDone, fallbackName){
+  var libs = (S.data && S.data.iconLibs) || [];
+  var st = { lib: libs[0] ? libs[0].id : '', q: '', picked: current || '', icons: null, loading: false, err: '', limit: 120 };
+  function libOf(id){ for (var i = 0; i < libs.length; i++) if (libs[i].id === id) return libs[i]; return null; }
+  function listNow(){
+    var q = (st.q || '').toLowerCase();
+    return (st.icons || []).filter(function(i){ return !q || String(i.name).toLowerCase().indexOf(q) >= 0; });
+  }
+  function cellHtml(i){
+    return '<button type="button" class="iconcell' + (st.picked === i.url ? ' on' : '') + '" data-url="' + esc(i.url) + '" title="' + esc(i.name) + '"><img src="' + esc(i.url) + '" alt="" loading="lazy"></button>';
+  }
+  function gridHtml(){
+    if (st.loading) return '<div class="empty" style="grid-column:1/-1">加载中…</div>';
+    if (st.err) return '<div class="empty" style="grid-column:1/-1">' + esc(st.err) + '</div>';
+    var list = listNow();
+    if (!list.length) return '<div class="empty" style="grid-column:1/-1">' + (st.q ? '没找到匹配的图标' : '这个图标库里没有图标') + '</div>';
+    return list.slice(0, st.limit).map(cellHtml).join('');
+  }
+  function countText(){
+    var all = listNow().length, shown = Math.min(all, st.limit);
+    return '共 ' + all + ' 个图标' + (shown < all ? '，已显示 ' + shown + ' 个' : '');
+  }
+  var sh = openSheet('选择头像', '<div id="apBody"></div>', function(body){
+    function paint(){
+      var h = '<div class="avrow"><span class="avatar lg">' + avatarInner(st.picked, fallbackName || '') + '</span>' +
+        '<div><div id="apLead" style="font-size:14px;font-weight:600">' + (st.picked ? '已选择' : '还没选') + '</div>' +
+        '<div class="hint" style="margin:3px 0 0">点头像图标，或上传一张照片</div></div></div>';
+      if (!libs.length) {
+        h += '<div class="empty" style="margin:10px 0">还没有图标库，先去「设置 → 图标库」添加一个。</div>';
+      } else {
+        h += '<div class="libtabs">' + libs.map(function(l){
+          return '<button type="button" class="libtab' + (l.id === st.lib ? ' on' : '') + '" data-lib="' + esc(l.id) + '">' + esc(l.name) + '</button>';
+        }).join('') + '</div>' +
+        '<input type="search" id="apQ" placeholder="搜索图标名…" value="' + esc(st.q) + '">' +
+        '<div class="hint" id="apCount" style="margin:6px 0 2px">' + (st.icons ? esc(countText()) : '') + '</div>' +
+        '<div class="icongrid">' + gridHtml() + '</div>';
+      }
+      h += '<div class="pickerfoot">' +
+        '<button type="button" class="btn ghost" data-av="up">上传照片</button>' +
+        '<button type="button" class="btn ghost" data-av="rm">移除</button>' +
+        '<button type="button" class="btn" data-av="ok">完成</button></div>' +
+        '<input type="file" accept="image/*" id="apFile" style="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0.01;z-index:1;pointer-events:none">';
+      body.innerHTML = h;
+    }
+    function load(id){
+      var l = libOf(id); if (!l) return;
+      if (S.iconCache[l.id]) { st.icons = S.iconCache[l.id]; st.err = ''; st.loading = false; paint(); return; }
+      st.icons = null; st.loading = true; st.err = ''; paint();
+      api('GET', '/api/iconlib?url=' + encodeURIComponent(l.url)).then(function(d){
+        S.iconCache[l.id] = d.icons; st.icons = d.icons; st.loading = false; paint();
+      }).catch(function(e){ st.loading = false; st.err = '拉取失败：' + e.message; paint(); });
+    }
+    /* 弹窗滚到底自动加载更多图标 */
+    var scroller = body.parentNode;
+    scroller.addEventListener('scroll', function(){
+      var g = body.querySelector('.icongrid'); if (!g) return;
+      if (scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 240) return;
+      var all = listNow();
+      if (st.limit >= all.length) return;
+      var from = st.limit;
+      st.limit = Math.min(all.length, st.limit + 120);
+      g.insertAdjacentHTML('beforeend', all.slice(from, st.limit).map(cellHtml).join(''));
+      var cnt = body.querySelector('#apCount'); if (cnt) cnt.textContent = countText();
+    });
+    body.addEventListener('click', function(ev){
+      var cell = ev.target.closest && ev.target.closest('.iconcell');
+      if (cell) {
+        st.picked = cell.getAttribute('data-url');
+        var on = body.querySelector('.iconcell.on'); if (on) on.classList.remove('on');
+        cell.classList.add('on');
+        var av0 = body.querySelector('.avrow .avatar');
+        if (av0) av0.innerHTML = avatarInner(st.picked, fallbackName || '');
+        var lead = body.querySelector('#apLead'); if (lead) lead.textContent = '已选择';
+        return;
+      }
+      var tab = ev.target.closest && ev.target.closest('.libtab');
+      if (tab) { st.lib = tab.getAttribute('data-lib'); st.q = ''; st.limit = 120; load(st.lib); return; }
+      var btn = ev.target.closest && ev.target.closest('[data-av]');
+      if (!btn) return;
+      var kind = btn.getAttribute('data-av');
+      if (kind === 'ok') { onDone(st.picked); sh.close(); }
+      else if (kind === 'rm') { st.picked = ''; paint(); }
+      else if (kind === 'up') { var f = $('#apFile', body); if (f) f.click(); }
+    });
+    body.addEventListener('input', function(ev){
+      if (ev.target && ev.target.id === 'apQ') {
+        st.q = ev.target.value;
+        st.limit = 120;
+        var g = body.querySelector('.icongrid');
+        if (g) { g.innerHTML = gridHtml(); g.scrollTop = 0; }
+        var cnt = body.querySelector('#apCount'); if (cnt) cnt.textContent = st.icons ? countText() : '';
+      }
+    });
+    body.addEventListener('change', function(ev){
+      if (!(ev.target && ev.target.id === 'apFile')) return;
+      var file = ev.target.files && ev.target.files[0]; if (!file) return;
+      shrinkImage(file, 240, function(err, data){
+        if (err) { toast(err.message); return; }
+        st.picked = data; paint();
+      });
+      ev.target.value = '';
+    });
+    if (libs.length) load(st.lib); else paint();
+  });
+}
+
+function taskForm(t){
+  var d = S.data, v = t || { name: '', accountId: d.accounts[0] ? d.accounts[0].id : '', target: '', command: '/start', button: '签到', successText: '', windowStart: '08:00', windowEnd: '09:00', maxRetries: null, enabled: true, avatar: '' };
+  var opts = d.accounts.map(function(a){ return '<option value="' + esc(a.id) + '"' + (a.id === v.accountId ? ' selected' : '') + '>' + esc(a.name) + '</option>'; }).join('');
+  openSheet(t ? '编辑任务' : '新建任务',
+    '<form id="tf"><p class="err" id="terr" hidden></p>' +
+      '<div class="avrow"><span class="avatar lg" id="fAv">' + avatarInner(v.avatar, v.name) + '</span>' +
+        '<div class="avacts">' +
+          '<button type="button" class="fbtn" data-act="av-pick">选择图标</button>' +
+          '<button type="button" class="fbtn" data-act="av-up">上传照片</button>' +
+          '<button type="button" class="fbtn" data-act="av-clear">移除</button>' +
+        '</div>' +
+        '<input type="hidden" name="avatar" value="' + esc(v.avatar || '') + '">' +
+        '<input type="file" accept="image/*" id="avFile" style="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0.01;z-index:1;pointer-events:none">' +
+      '</div>' +
+      '<label>任务名称<input type="text" name="name" value="' + esc(v.name) + '" maxlength="40" required></label>' +
+      '<label>用哪个账号<select name="accountId">' + opts + '</select></label>' +
+      '<label>发给谁<input type="text" name="target" value="' + esc(v.target) + '" placeholder="@some_bot" required></label>' +
+      '<label>发送内容<input type="text" name="command" value="' + esc(v.command) + '"></label>' +
+      '<label>要点的按钮文字<input type="text" name="button" value="' + esc(v.button) + '"></label>' +
+      '<label>成功关键词（可选）<input type="text" name="successText" value="' + esc(v.successText) + '"><small>多个用 | 分隔。</small></label>' +
+      (uniOn(d) ? '<div class="note">已开启统一时间：节点时间不能改，实际按全局时间段执行。</div>' : '') +
+      '<div class="two"><label>窗口开始<input type="time" name="windowStart" value="' + esc(v.windowStart) + '"' + (uniOn(d) ? ' disabled' : '') + ' required></label><label>窗口结束<input type="time" name="windowEnd" value="' + esc(v.windowEnd) + '"' + (uniOn(d) ? ' disabled' : '') + ' required></label></div>' +
+      '<label>失败最多重试几轮<input type="number" min="0" max="5" name="maxRetries" value="' + (v.maxRetries == null ? '' : esc(v.maxRetries)) + '" placeholder="跟随设置（' + ((S.data.settings || {}).retryRounds == null ? 2 : (S.data.settings || {}).retryRounds) + '）"><small>留空就用设置里的轮次；填 0 表示不重试。</small></label>' +
+      '<label><input type="checkbox" name="enabled"' + (v.enabled ? ' checked' : '') + '>启用这个任务</label>' +
+      '<div class="foot"><button type="button" class="btn ghost" data-close>取消</button><button type="submit" class="btn">保存任务</button></div></form>',
+    function(body, close){
+      $('[data-close]', body).onclick = close;
+      var avInput = $('input[name=avatar]', body), avPrev = $('#fAv', body), avFile = $('#avFile', body);
+      function nameNow(){ return $('input[name=name]', body).value; }
+      function setAv(url){ avInput.value = url || ''; avPrev.innerHTML = avatarInner(url, nameNow()); }
+      $('[data-act=av-pick]', body).onclick = function(){ openAvatarPicker(avInput.value, setAv, nameNow()); };
+      $('input[name=name]', body).addEventListener('input', function(){ if (!avInput.value) avPrev.innerHTML = avatarInner('', this.value); });
+      $('[data-act=av-clear]', body).onclick = function(){ setAv(''); };
+      $('[data-act=av-up]', body).onclick = function(){ if (avFile) avFile.click(); };
+      if (avFile) avFile.onchange = function(){
+        var file = avFile.files && avFile.files[0]; if (!file) return;
+        toast('正在压缩图片…');
+        shrinkImage(file, 240, function(err, data){
+          if (err) { toast(err.message); return; }
+          setAv(data); toast('照片已加入');
+        });
+        avFile.value = '';
+      };
+      $('#tf', body).addEventListener('submit', function(e){
+        e.preventDefault();
+        var f = e.target, btn = $('[type=submit]', f);
+        var data = {
+          name: f.name.value, accountId: f.accountId.value, target: f.target.value, command: f.command.value, button: f.button.value,
+          successText: f.successText.value, windowStart: f.windowStart.value, windowEnd: f.windowEnd.value, maxRetries: f.maxRetries.value === '' ? null : f.maxRetries.value, enabled: f.enabled.checked
+        };
+        busy(btn, true);
+        api(t ? 'PUT' : 'POST', t ? '/api/tasks/' + eid(t.id) : '/api/tasks', data).then(function(res){
+          var id = t ? t.id : (res && res.id);
+          var av = avInput ? avInput.value : '', before = (t && t.avatar) || '';
+          if (id && av !== before) return api('PUT', '/api/tasks/' + eid(id) + '/avatar', { avatar: av });
+        }).then(function(){ close(); toast(t ? '已保存' : '已创建'); load(); })
+          .catch(function(err){ var el = $('#terr', body); el.hidden = false; el.textContent = err.message; busy(btn, false); });
+      });
+    });
+}
+
+/* ---------- 弹窗：账号（导入 session） ---------- */
+function importForm(){
+  openSheet('导入 session',
+    '<form id="af"><p class="hint">在电脑上用 Telethon 生成 StringSession，再粘贴到这里。</p><p class="err" id="aerr" hidden></p>' +
+      '<label>备注名<input type="text" name="name" maxlength="30" placeholder="我的主号"></label>' +
+      (hasApi() ? '<p class="hint">api_id / api_hash 已配置，无需再填。</p>' :
+        '<label>api_id<input type="text" name="api_id" required></label><label>api_hash<input type="text" name="api_hash" required></label>') +
+      '<label>session 字符串<textarea name="session" rows="4" required></textarea></label>' +
+      '<div class="foot"><button type="button" class="btn ghost" data-close>取消</button><button type="submit" class="btn">保存账号</button></div></form>',
+    function(body, close){
+      $('[data-close]', body).onclick = close;
+      $('#af', body).addEventListener('submit', function(e){
+        e.preventDefault();
+        var f = e.target, btn = $('[type=submit]', f); busy(btn, true);
+        api('POST', '/api/accounts', { name: f.name.value, api_id: f.api_id ? f.api_id.value : '', api_hash: f.api_hash ? f.api_hash.value : '', session: f.session.value })
+          .then(function(){ close(); toast('账号已保存'); load(); })
+          .catch(function(err){ var el = $('#aerr', body); el.hidden = false; el.textContent = err.message; busy(btn, false); });
+      });
+    });
+}
+
+/* ---------- 网页登录流程（与原逻辑一致） ---------- */
+function loginFlow(){
+  var id = null, timer = null, tries = 0, limit = 100, sheet, qrShown = '';
+  var draft = { name: '', api_id: '', api_hash: '', phone: '' };
+  var QR_RE = /^tg:\\/\\/login\\?token=[A-Za-z0-9_-]{16,160}$/;
+  function stop(){ clearInterval(timer); timer = null; }
+  function cancel(){ stop(); if (id) api('DELETE', '/api/login-flow/' + eid(id)).catch(function(){}); sheet.close(); }
+  function saveDraft(f){ ['name', 'api_id', 'api_hash', 'phone'].forEach(function(k){ if (f.elements[k]) draft[k] = f.elements[k].value; }); }
+  function wait(msg){
+    qrShown = '';
+    sheet.body.innerHTML = '<p class="hint">' + esc(msg) + '</p><p class="hint">这一步由 Cloudflare 直接完成，通常 5–15 秒。</p><div class="foot"><button class="btn ghost" data-cancel>取消</button></div>';
+    $('[data-cancel]', sheet.body).onclick = cancel;
+  }
+  function form(errMsg, mode){
+    mode = (mode === 'qr') ? 'qr' : 'code';
+    var qr = mode === 'qr'; qrShown = '';
+    sheet.body.innerHTML = '<form id="lf2"><div class="bar">' +
+      '<button type="button" class="btn' + (qr ? ' ghost' : '') + '" data-mode="code">验证码登录</button>' +
+      '<button type="button" class="btn' + (qr ? '' : ' ghost') + '" data-mode="qr">扫码登录</button>' +
+      '</div>' +
+      '<p class="err" id="e2"' + (errMsg ? '' : ' hidden') + '>' + esc(errMsg || '') + '</p>' +
+      '<label>备注名<input type="text" name="name" maxlength="30" placeholder="我的主号" value="' + esc(draft.name) + '"></label>' +
+      (hasApi() ? '<p class="hint">api_id / api_hash 已配置，无需再填。</p>' :
+        '<label>api_id<input type="text" name="api_id" required value="' + esc(draft.api_id) + '"></label>' +
+        '<label>api_hash<input type="text" name="api_hash" required value="' + esc(draft.api_hash) + '"></label>') +
+      (qr ? '' : '<label>手机号<input type="text" name="phone" placeholder="+8613800000000" required value="' + esc(draft.phone) + '"></label>') +
+      '<div class="foot"><button type="button" class="btn ghost" data-close>取消</button><button type="submit" class="btn">' + (qr ? '生成二维码' : '发送验证码') + '</button></div></form>';
+    $('[data-close]', sheet.body).onclick = sheet.close;
+    var f0 = $('#lf2', sheet.body);
+    Array.prototype.forEach.call(sheet.body.querySelectorAll('[data-mode]'), function(b){
+      b.onclick = function(){ saveDraft(f0); form('', b.getAttribute('data-mode')); };
+    });
+    f0.addEventListener('submit', function(e){
+      e.preventDefault();
+      var f = e.target, btn = $('[type=submit]', f); busy(btn, true); saveDraft(f);
+      var req = qr
+        ? api('POST', '/api/login-flow/start-qr', { name: draft.name, api_id: draft.api_id, api_hash: draft.api_hash })
+        : api('POST', '/api/login-flow/start', { name: draft.name, api_id: draft.api_id, api_hash: draft.api_hash, phone: draft.phone });
+      req.then(function(r){ id = r.id; tries = 0; limit = qr ? 160 : 100; wait(qr ? '正在生成登录二维码…' : '正在发送验证码…'); poll(); })
+        .catch(function(err){ var el = $('#e2', sheet.body); el.hidden = false; el.textContent = err.message; busy(btn, false); });
+    });
+  }
+  function showQr(url){
+    if (!QR_RE.test(url || '')) return;
+    if (url === qrShown && $('#qrbox', sheet.body)) return;
+    qrShown = url;
+    if (!$('#qrbox', sheet.body)) {
+      sheet.body.innerHTML = '<p class="hint">用另一台设备扫码：设置 → 设备 → 连接桌面设备。</p>' +
+        '<div class="qrbox" id="qrbox"></div>' +
+        '<div class="stack"><a class="btn block" id="qrgo" href="#">在本机 Telegram 中授权</a></div>' +
+        '<p class="hint">只有一部手机就点上面的按钮跳到 Telegram 确认。二维码约 30 秒自动换新。</p>' +
+        '<div class="foot"><button class="btn ghost" data-cancel>取消</button></div>';
+      $('[data-cancel]', sheet.body).onclick = cancel;
+    }
+    $('#qrbox', sheet.body).innerHTML = makeQrSvg(url);
+    $('#qrgo', sheet.body).setAttribute('href', url);
+  }
+  function codeStep(needPw, errMsg){
+    qrShown = '';
+    sheet.body.innerHTML = '<form id="cf"><p class="hint">' + (needPw ? '账号开了两步验证，请输入密码。' : '验证码已发到你的 Telegram 应用。') + '</p>' +
+      '<p class="err"' + (errMsg ? '' : ' hidden') + '>' + esc(errMsg || '') + '</p>' +
+      (needPw ? '<label>两步验证密码<input type="password" name="password" required></label>' :
+        '<label>验证码<input type="text" name="code" required></label><label>两步验证密码（没开留空）<input type="password" name="password"></label>') +
+      '<div class="foot"><button type="button" class="btn ghost" data-cancel>取消</button><button type="submit" class="btn">登录</button></div></form>';
+    $('[data-cancel]', sheet.body).onclick = cancel;
+    $('#cf').addEventListener('submit', function(e){
+      e.preventDefault();
+      var f = e.target, btn = $('[type=submit]', f); busy(btn, true);
+      api('POST', '/api/login-flow/' + eid(id) + '/verify', { code: f.code ? f.code.value : '', password: f.password ? f.password.value : '' })
+        .then(function(){ tries = 0; wait('正在验证…'); poll(); })
+        .catch(function(err){ busy(btn, false); toast(err.message); });
+    });
+    var first = $('input', sheet.body); if (first) first.focus();
+  }
+  function poll(){
+    stop();
+    timer = setInterval(function(){
+      tries++;
+      if (tries > limit) { stop(); form('等待超时，请检查连通测试后重试。'); return; }
+      api('GET', '/api/login-flow/' + eid(id)).then(function(r){
+        if (!timer) return;
+        if (r.status === 'qr_ready') showQr(r.qrUrl);
+        else if (r.status === 'code_sent') { stop(); codeStep(false, r.error); }
+        else if (r.status === 'need_password') { stop(); codeStep(true, r.error); }
+        else if (r.status === 'ok') { stop(); sheet.body.innerHTML = '<p>登录成功，账号已保存。</p><div class="foot"><button class="btn" data-close>完成</button></div>'; $('[data-close]', sheet.body).onclick = sheet.close; load(); }
+        else if (r.status === 'error') { stop(); form(r.error || '登录失败，请重试。', limit === 160 ? 'qr' : 'code'); }
+      }).catch(function(err){ stop(); form(err.message); });
+    }, 3000);
+  }
+  sheet = openSheet('网页登录 Telegram', '', function(){});
+  form('');
+}
+
+/* ---------- 事件 ---------- */
+/* 图标地址失效时不要显示破图 */
+document.addEventListener('error', function(e){
+  var im = e.target;
+  if (!im || !im.tagName || im.tagName !== 'IMG') return;
+  var av = im.closest ? im.closest('.avatar') : null;
+  if (av) { av.innerHTML = '?'; return; }
+  var cell = im.closest ? im.closest('.iconcell') : null;
+  if (cell) cell.style.visibility = 'hidden';
+}, true);
+document.addEventListener('click', function(e){
+  var tabBtn = e.target.closest('[data-tab]');
+  if (tabBtn) { S.tab = tabBtn.getAttribute('data-tab'); render(); window.scrollTo(0, 0); return; }
+  var b = e.target.closest('[data-act]'); if (!b) return;
+  var act = b.getAttribute('data-act');
+  var box = b.closest('[data-id]'), id = box ? box.getAttribute('data-id') : null;
+  var task = id && S.data ? S.data.tasks.filter(function(t){ return t.id === id; })[0] : null;
+
+  if (act === 'logout') { /* 登录态跟随主面板，已移除 */ }
+  else if (act === 'lib-jump') {
+    try {
+      if (window.parent && window.parent !== window && typeof window.parent.openTgIconLibs === 'function') { window.parent.openTgIconLibs(); return; }
+    } catch(e){}
+  }
+  else if (act === 'notify-jump') {
+    try {
+      if (window.parent && window.parent !== window && typeof window.parent.openTgNotify === 'function') { window.parent.openTgNotify(); return; }
+      if (window.parent && window.parent !== window) { window.parent.closeTgPanel && window.parent.closeTgPanel(); return; }
+    } catch(e){}
+    location.href = '/';
+  }
+  else if (act === 'core-toggle') { S.coreOpen = !S.coreOpen; render(); }
+  else if (act === 'uni-toggle') { S.uniOpen = !S.uniOpen; render(); }
+  else if (act === 'uni-on') { S.uniOpen = true; var _u = S.data.settings.unified || {}; S.uniDraft = S.uniDraft || {}; S.uniDraft.on = !uniOn(S.data); S.uniDraft.start = S.uniDraft.start || _u.start || '09:00'; S.uniDraft.end = S.uniDraft.end || _u.end || '10:00'; render(); }
+  else if (act === 'uni-save') { saveUni(); }
+  else if (act === 'cron-toggle') { S.cronOpen = !S.cronOpen; render(); }
+  else if (act === 'sec-toggle') { var sk = b.getAttribute('data-sec'); S[sk] = !S[sk]; render(); }
+  else if (act === 'cron-preset') { setCron(b.getAttribute('data-cron')); }
+  else if (act === 'cron-clear') { setCron(''); }
+  else if (act === 'cron-refresh') { loadCron(); }
+  else if (act === 'ntf-on') { var nk = b.getAttribute('data-key'), nv = !ntfOn(S.data, nk); S.ntfDraft[nk] = nv; b.setAttribute('aria-checked', nv ? 'true' : 'false'); }
+  else if (act === 'notify-on') { var nv2 = !ntfOn(S.data, 'notifyOn'); S.ntfDraft.notifyOn = nv2; b.setAttribute('aria-checked', nv2 ? 'true' : 'false'); }
+  else if (act === 'notify-save') { saveNotify(); }
+  else if (act === 'notify-test') { testNotify(); }
+  else if (act === 'cfg-eye') {
+    var en = b.getAttribute('data-name'), box2 = b.closest('label'), inp = box2 ? $('input', box2) : null;
+    S.reveal[en] = !S.reveal[en];
+    if (inp) { inp.type = (S.reveal[en] || S.editing[en]) ? 'text' : 'password'; }
+    b.setAttribute('aria-pressed', S.reveal[en] ? 'true' : 'false');
+    b.innerHTML = eyeSvg(S.reveal[en] || S.editing[en]);
+  }
+  else if (act === 'cfg-edit') {
+    var fn = b.getAttribute('data-name'), fb = b.closest('label'), fi = fb ? $('input', fb) : null;
+    if (!fi) return;
+    var on = !S.editing[fn];
+    S.editing[fn] = on;
+    fi.readOnly = !on;
+    fi.classList.toggle('editing', on);
+    fi.type = (on || S.reveal[fn]) ? 'text' : 'password';
+    b.textContent = on ? '完成' : '编辑';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) { fi.focus(); var L = fi.value.length; try { fi.setSelectionRange(L, L); } catch(err){} }
+    else { S.cfgDraft[fn] = fi.value; fi.type = S.reveal[fn] ? 'text' : 'password'; var eb = $('[data-act=cfg-eye]', fb); if (eb) eb.innerHTML = eyeSvg(!!S.reveal[fn]); }
+  }
+  else if (act === 'task-expand') { if (id) { S.openTasks[id] = !S.openTasks[id]; render(); } }
+  else if (act === 'task-run-all') { runAllTasks(b); }
+  else if (act === 'task-stop') { stopAllTasks(b); }
+  else if (act === 'task-new') { if (!S.data.accounts.length) { toast('请先添加账号'); S.tab = 'accounts'; render(); } else taskForm(null); }
+  else if (act === 'task-edit' && task) { e.stopPropagation(); taskForm(task); }
+  else if (act === 'task-switch') {
+    e.stopPropagation();
+    var nowOn = !task.enabled;
+    api('POST', '/api/tasks/' + eid(id) + '/toggle').then(function(){ load(); }).catch(function(err){ toast(err.message); });
+  }
+  else if (act === 'task-run') {
+    e.stopPropagation();
+    busy(b, true);
+    api('POST', '/api/tasks/' + eid(id) + '/run').then(function(){ toast('已开始执行，稍后在日志里看结果'); load(); pollSoon(); }).catch(function(err){ toast(err.message); busy(b, false); });
+  }
+  else if (act === 'task-del' && task) { e.stopPropagation(); if (confirm('删除任务「' + task.name + '」？')) api('DELETE', '/api/tasks/' + eid(id)).then(function(){ toast('已删除'); load(); }).catch(function(err){ toast(err.message); }); }
+  else if (act === 'acc-import') importForm();
+  else if (act === 'acc-login') loginFlow();
+  else if (act === 'acc-check') { if (!id) { toast('没有取到账号 ID，请刷新页面重试'); return; } toast('检测中，最多 45 秒…'); api('POST', '/api/accounts/' + eid(id) + '/check').then(function(r){ var st = r && r.status; toast(st ? (st.ok ? '检测通过 · ' + String(st.msg || '').replace(/^正常·?/, '') : st.msg) : '检测完成'); load(); }).catch(function(err){ toast(err.message); load(); }); }
+  else if (act === 'acc-del') { if (!id) { toast('没有取到账号 ID，请刷新页面重试'); return; } if (confirm('删除这个账号？')) api('DELETE', '/api/accounts/' + eid(id)).then(function(){ toast('已删除'); load(); }).catch(function(err){ toast(err.message); }); }
+  else if (act === 'logs-refresh') loadLogs();
+  else if (act === 'logs-clear') { if (confirm('清空所有日志？')) api('DELETE', '/api/logs').then(function(){ toast('已清空'); S.openLog = {}; loadLogs(); }).catch(function(err){ toast(err.message); }); }
+  else if (act === 'log-open') {
+    var key = b.getAttribute('data-key');
+    if (S.openLog[key]) { delete S.openLog[key]; render(); return; }
+    S.openLog[key] = 'loading'; render();
+    api('GET', '/api/log?key=' + encodeURIComponent(key)).then(function(r){ S.openLog[key] = (r.lines && r.lines.length ? r.lines.join('\\n') : '（没有更多细节）'); render(); }).catch(function(err){ S.openLog[key] = err.message; render(); });
+  }
+  else if (act === 'px-on') {
+    var on = b.getAttribute('aria-checked') !== 'true';
+    var body = { PROXY_ON: on };
+    if (on) {
+      var pin = document.querySelector('#pxForm input[name=PROXY_URL]');
+      if (pin && !pin.disabled) body.PROXY_URL = (pin.value || '').trim();
+      if (!body.PROXY_URL && !(S.data && S.data.env && S.data.env.PROXY_URL_value)) { toast('先在下面填代理地址'); return; }
+    }
+    b.setAttribute('aria-checked', on ? 'true' : 'false');
+    api('POST', '/api/config', body).then(function(){ delete S.cfgDraft.PROXY_URL; toast(on ? '已开启代理' : '已关闭代理'); load(); })
+      .catch(function(err){ b.setAttribute('aria-checked', on ? 'false' : 'true'); toast(err.message); });
+  }
+  else if (act === 'diag-on') {
+    var don = b.getAttribute('aria-checked') !== 'true';
+    b.setAttribute('aria-checked', don ? 'true' : 'false');
+    api('POST', '/api/config', { diag: don }).then(function(){ toast(don ? '诊断接口已打开' : '诊断接口已关闭'); load(); })
+      .catch(function(err){ b.setAttribute('aria-checked', don ? 'false' : 'true'); toast(err.message); });
+  }
+  else if (act === 'px-test') {
+    busy(b, true);
+    var n0 = $('#pxNote'); if (n0) n0.textContent = '正在用这个代理真连一次 Telegram（最多 30 秒）…';
+    api('POST', '/api/proxy/test', {}).then(function(r){
+      toast('代理可用 · ' + (r && r.ms ? r.ms + 'ms' : '正常'));
+    }).catch(function(err){
+      toast(err.message);
+    }).then(function(){ busy(b, false); load(true).then(function(){ var n1 = $('#pxNote'); if (n1) n1.textContent = pxText((S.data && S.data.proxyTest) || null); }); });
+  }
+  else if (act === 'ping') { busy(b, true); api('POST', '/api/ping').then(function(r){ toast('执行器正常' + (r && r.ms ? ' · ' + r.ms + 'ms' : '')); load(); }).catch(function(err){ toast(err.message); load(); }).then(function(){ busy(b, false); }); }
+  else if (act === 'bk-export') { bkExport(); }
+  else if (act === 'bk-import') { bkImportSheet(); }
+  else if (act === 'lib-add') { libAddSheet(); }
+  else if (act === 'lib-edit') { S.libEdit = id; render(); }
+  else if (act === 'lib-cancel') { S.libEdit = null; render(); }
+  else if (act === 'lib-save') {
+    var lrow = b.closest('.librow');
+    var nIn = $('input[name=libName]', lrow), uIn = $('input[name=libUrl]', lrow);
+    busy(b, true, '保存中…');
+    api('PUT', '/api/iconlibs/' + eid(id), { name: nIn.value, url: uIn.value }).then(function(res){
+      S.libEdit = null; S.iconCache = {}; toast('已保存'); load(); verifyIconLib(res && res.lib);
+    }).catch(function(err){ toast(err.message); busy(b, false, '保存'); });
+  }
+  else if (act === 'lib-del') {
+    var ldel = ((S.data && S.data.iconLibs) || []).filter(function(x){ return x.id === id; })[0];
+    if (!confirm('删除图标库「' + (ldel ? ldel.name : '') + '」？已经用它的图标做头像的任务不受影响。')) return;
+    api('DELETE', '/api/iconlibs/' + eid(id)).then(function(){ S.libEdit = null; S.iconCache = {}; toast('已删除'); load(); }).catch(function(err){ toast(err.message); });
+  }
+});
+document.addEventListener('input', function(e){
+  var t = e.target;
+  if (t && t.name && t.form && (t.form.id === 'cfgForm' || t.form.id === 'pxForm')) { S.cfgDraft[t.name] = t.value; }
+});
+document.addEventListener('submit', function(e){
+  if (e.target.id === 'sf') {
+    e.preventDefault();
+    var f = e.target;
+    api('PUT', '/api/settings', { tz: f.tz.value, retryRounds: f.retryRounds.value }).then(function(){ toast('已保存'); load(); }).catch(function(err){ toast(err.message); });
+  } else if (e.target.id === 'pxForm') {
+    e.preventDefault();
+    var pf = e.target, pb = $('[type=submit]', pf), t0 = pb.textContent; busy(pb, true, '保存中…');
+    var pi = $('input[name=PROXY_URL]', pf);
+    var pbody = {};
+    if (pi && !pi.disabled) pbody.PROXY_URL = (pi.value || '').trim();
+    api('POST', '/api/config', pbody)
+      .then(function(){ toast('代理地址已保存'); delete S.cfgDraft.PROXY_URL; load(); })
+      .catch(function(err){ toast(err.message); }).then(function(){ busy(pb, false); pb.textContent = t0; });
+  } else if (e.target.id === 'cronForm') {
+    e.preventDefault();
+    var cfi = $('input[name=cron]', e.target);
+    setCron(cfi ? (cfi.value || '').trim() : '');
+  } else if (e.target.id === 'cfgForm') {
+    e.preventDefault();
+    var cf = e.target, cb = $('[type=submit]', cf);
+    // 只发送表单里真实存在的字段：历史上这里固定读 GH_REPO/GH_TOKEN 等已被移除的控件，
+    // 结果一保存就 TypeError，请求根本发不出去。
+    var body = {};
+    ['TG_API_ID', 'TG_API_HASH'].forEach(function(n){
+      var el = cf.elements[n];
+      if (el && !el.disabled) body[n] = el.value;
+    });
+    if (!Object.keys(body).length) { toast('没有可保存的配置项'); return; }
+    busy(cb, true);
+    api('PUT', '/api/config', body).then(function(){ toast('配置已保存'); S.cfgDraft = {}; S.editing = {}; S.reveal = {}; load(); }).catch(function(err){ toast(err.message); }).then(function(){ busy(cb, false); });
+  }
+});
+
+/* ── 统一时间 ─────────────────────────────────────────── */
+document.addEventListener('input', function(e){
+  var t = e.target;
+  if (!t || !t.getAttribute) return;
+  var k = t.getAttribute('data-ukey');
+  if (!k) return;
+  S.uniDraft = S.uniDraft || {};
+  S.uniDraft[k] = t.value;
+  var tag = document.querySelector('.unitag');
+  if (tag) {
+    var u = (S.data && S.data.settings && S.data.settings.unified) || {};
+    var st = S.uniDraft.start || u.start || '09:00', en = S.uniDraft.end || u.end || '10:00';
+    tag.textContent = uniOn(S.data) ? st + ' – ' + en + ' · 段内随机开始' : '已关闭 · 每个节点各用自己的时间';
+  }
+}, true);
+
+function uniOn(d){
+  if (S.uniDraft && S.uniDraft.on != null) return !!S.uniDraft.on;
+  return !!(d && d.settings && d.settings.unified && d.settings.unified.on);
+}
+function uniBar(d){
+  var u = (d && d.settings && d.settings.unified) || {};
+  var on = uniOn(d);
+  var st = (S.uniDraft && S.uniDraft.start) || u.start || '09:00';
+  var en = (S.uniDraft && S.uniDraft.end) || u.end || '10:00';
+  var sum = on ? st + ' – ' + en + ' · 段内随机开始' : '已关闭 · 每个节点各用自己的时间';
+  var chev = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+  return '<div class="card"><div class="pxhead">' +
+    '<div class="grow unihead" data-act="uni-toggle">' +
+      '<div class="unirow"><span class="unititle">统一时间</span>' +
+      '<span class="unitag' + (on ? ' on' : '') + '">' + esc(sum) + '</span>' +
+      '<span class="chev' + (S.uniOpen ? ' open' : '') + '">' + chev + '</span></div>' +
+    '</div>' +
+    '<button class="switch" role="switch" data-act="uni-on" aria-checked="' + (on ? 'true' : 'false') + '"><i></i></button></div>' +
+    '<div class="secbody"' + (S.uniOpen ? '' : ' hidden') + '>' +
+    '<p class="hint">所有节点共用一个时间段，段内随机挑一个时刻开始，再按下面顺序依次执行。每天只排一次班，改完时间段会自动重新排。</p>' +
+    '<div class="two">' +
+    '<label>开始<input type="time" data-ukey="start" value="' + esc(st) + '"></label>' +
+    '<label>结束<input type="time" data-ukey="end" value="' + esc(en) + '"></label></div>' +
+    '<button class="btn ghost block" data-act="uni-save">保存统一时间</button></div></div>';
+}
+function saveUni(){
+  var a = document.querySelector('[data-ukey="start"]'), z = document.querySelector('[data-ukey="end"]');
+  var dd = S.uniDraft || {};
+  var sv = (a && a.value) || dd.start || '09:00';
+  var ev = (z && z.value) || dd.end || '10:00';
+  var p = { unified: { on: uniOn(S.data), start: sv, end: ev } };
+  api('POST', '/api/config', p).then(function(){ S.uniDraft = null; toast('统一时间已保存'); load(true); }).catch(function(e){ toast(e.message); });
+}
+
+/* ── 长按拖动排序 + 禁长按菜单 ────────────────────────── */
+var dragState = null;
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, { passive: false });
+document.addEventListener('pointerdown', function(e){
+  var h = e.target.closest && e.target.closest('.dragbtn');
+  if (!h) return;
+  var card = h.closest('.tcard'); if (!card) return;
+  e.preventDefault(); e.stopPropagation();
+  try { h.setPointerCapture(e.pointerId); } catch (_) {}
+  dragState = { card: card, timer: setTimeout(function(){ if (!dragState) return; dragState.on = true; card.classList.add('dragging'); if (navigator.vibrate) navigator.vibrate(12); }, 200) };
+}, { passive: false });
+document.addEventListener('pointermove', function(e){
+  if (!dragState || !dragState.on) return;
+  e.preventDefault();
+  var el = document.elementFromPoint(e.clientX, e.clientY);
+  var over = el && el.closest ? el.closest('.tcard') : null;
+  if (over && over !== dragState.card) {
+    var r = over.getBoundingClientRect();
+    over.parentNode.insertBefore(dragState.card, e.clientY > r.top + r.height / 2 ? over.nextSibling : over);
+  }
+}, { passive: false });
+function endDrag(){
+  if (!dragState) return;
+  clearTimeout(dragState.timer);
+  var st = dragState; dragState = null;
+  if (!st.on) return;
+  st.card.classList.remove('dragging');
+  var ids = Array.prototype.map.call(document.querySelectorAll('.tcard'), function(c){ return c.getAttribute('data-id'); });
+  api('POST', '/api/tasks/order', { ids: ids }).then(function(){ toast('顺序已保存'); load(true); }).catch(function(e){ toast(e.message); load(true); });
+}
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
+
+/* ---------- 启动 ---------- */
+api('GET', '/api/me').then(function(r){ S.authed = !!r.authed; render(); if (S.authed) { load(); scheduleRefresh(); } })
+  .catch(function(){ S.authed = false; render(); });
+})();
+</script>
+</body>
+</html>
+`;
+
+  // src/tg/mtp.js
+  init_cf_global();
+  var TEXT_ENC = new TextEncoder();
+  var TEXT_DEC = new TextDecoder();
+  var TG_DCS = {
+    1: { ip: "149.154.175.53", port: 443 },
+    2: { ip: "149.154.167.50", port: 443 },
+    3: { ip: "149.154.175.100", port: 443 },
+    4: { ip: "149.154.167.91", port: 443 },
+    5: { ip: "91.108.56.130", port: 443 }
+  };
+  var TG_RSA_KEYS = [
+    {
+      fpBytes: new Uint8Array([133, 253, 100, 222, 133, 29, 157, 208]),
+      fpHex: "85fd64de851d9dd0",
+      e: 65537n,
+      n: BigInt("0xe8bb3305c0b52c6cf2afdf7637313489e63e05268e5badb601af417786472e5f93b85438968e20e6729a301c0afc121bf7151f834436f7fda680847a66bf64accec78ee21c0b316f0edafe2f41908da7bd1f4a5107638eeb67040ace472a14f90d9f7c2b7def99688ba3073adb5750bb02964902a359fe745d8170e36876d4fd8a5d41b2a76cbff9a13267eb9580b2d06d10357448d20d9da2191cb5d8c93982961cdfdeda629e37f1fb09a0722027696032fe61ed663db7a37f6f263d370f69db53a0dc0a1748bdaaff6209d5645485e6e001d1953255757e4b8e42813347b11da6ab500fd0ace7e6dfa3736199ccaf9397ed0745a427dcfa6cd67bcb1acff3")
+    }
+  ];
+  var MTPROTO_LAYER = 158;
+  function concatBytes(...arrays) {
+    let total = 0;
+    for (const a of arrays) total += a.length;
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const a of arrays) {
+      out.set(a, off);
+      off += a.length;
+    }
+    return out;
+  }
+  function bytesToHex(bytes) {
+    let s = "";
+    for (let i = 0; i < bytes.length; i++) {
+      s += bytes[i].toString(16).padStart(2, "0");
+    }
+    return s;
+  }
+  function hexToBytes(hex) {
+    const clean = hex.replace(/[^0-9a-fA-F]/g, "");
+    const out = new Uint8Array(clean.length >>> 1);
+    for (let i = 0; i < out.length; i++) {
+      out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+    }
+    return out;
+  }
+  function bytesToBase64Url(bytes) {
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function base64UrlToBytes(b64url) {
+    let b642 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+    while (b642.length % 4) b642 += "=";
+    const bin = atob(b642);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function randomBytes(n) {
+    const b = new Uint8Array(n);
+    crypto.getRandomValues(b);
+    return b;
+  }
+  function xorBytes(a, b) {
+    const out = new Uint8Array(a.length);
+    for (let i = 0; i < a.length; i++) out[i] = a[i] ^ b[i];
+    return out;
+  }
+  function bytesToBigIntBE(bytes) {
+    const hex = bytesToHex(bytes);
+    return hex ? BigInt("0x" + hex) : 0n;
+  }
+  function bigIntToBytesBE(num, length) {
+    let hex = num.toString(16);
+    if (hex.length % 2 !== 0) hex = "0" + hex;
+    const raw = hexToBytes(hex);
+    if (!length) return raw;
+    if (raw.length === length) return raw;
+    if (raw.length > length) return raw.subarray(raw.length - length);
+    const out = new Uint8Array(length);
+    out.set(raw, length - raw.length);
+    return out;
+  }
+  function modPow(base, exp, mod) {
+    let result = 1n;
+    let b = (base % mod + mod) % mod;
+    let e = exp;
+    while (e > 0n) {
+      if (e & 1n) result = result * b % mod;
+      e >>= 1n;
+      b = b * b % mod;
+    }
+    return result;
+  }
+  function gcdBigInt(a, b) {
+    while (b !== 0n) {
+      const t = a % b;
+      a = b;
+      b = t;
+    }
+    return a < 0n ? -a : a;
+  }
+  function factorizePQ(pqBytes) {
+    const n = bytesToBigIntBE(pqBytes);
+    if (n % 2n === 0n) {
+      const p2 = 2n, q2 = n / 2n;
+      return p2 < q2 ? [bigIntToBytesBE(p2), bigIntToBytesBE(q2)] : [bigIntToBytesBE(q2), bigIntToBytesBE(p2)];
+    }
+    let g = 1n;
+    for (let c = 1n; c < 64n && g === 1n; c++) {
+      let x = 2n, y = 2n, d = 1n;
+      const f = (v) => (v * v + c) % n;
+      while (d === 1n) {
+        x = f(x);
+        y = f(f(y));
+        const diff = x > y ? x - y : y - x;
+        d = gcdBigInt(diff, n);
+      }
+      if (d !== n) {
+        g = d;
+        break;
+      }
+    }
+    const other = n / g;
+    const p = g < other ? g : other;
+    const q = g < other ? other : g;
+    return [bigIntToBytesBE(p), bigIntToBytesBE(q)];
+  }
+  async function sha1(data) {
+    const buf = await crypto.subtle.digest("SHA-1", data);
+    return new Uint8Array(buf);
+  }
+  async function sha256(data) {
+    const buf = await crypto.subtle.digest("SHA-256", data);
+    return new Uint8Array(buf);
+  }
+  var CRC32_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+      t[i] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(bytes) {
+    let crc = 4294967295;
+    for (let i = 0; i < bytes.length; i++) {
+      crc = CRC32_TABLE[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
+    }
+    return (crc ^ 4294967295) >>> 0;
+  }
+  var [AES_SBOX, AES_INV_SBOX] = (() => {
+    const sbox = new Uint8Array(256);
+    const inv = new Uint8Array(256);
+    const rotl8 = (x, sh) => (x << sh | x >>> 8 - sh) & 255;
+    let p = 1, q = 1;
+    for (let i = 0; i < 255; i++) {
+      p = p ^ p << 1 ^ (p & 128 ? 283 : 0);
+      p &= 255;
+      q ^= q << 1;
+      q ^= q << 2;
+      q ^= q << 4;
+      q ^= q & 128 ? 9 : 0;
+      q &= 255;
+      const xformed = (q ^ rotl8(q, 1) ^ rotl8(q, 2) ^ rotl8(q, 3) ^ rotl8(q, 4) ^ 99) & 255;
+      sbox[p] = xformed;
+      inv[xformed] = p;
+    }
+    sbox[0] = 99;
+    inv[99] = 0;
+    return [sbox, inv];
+  })();
+  function xtime(a) {
+    return (a & 128 ? a << 1 ^ 283 : a << 1) & 255;
+  }
+  function gmul(a, b) {
+    let res = 0;
+    for (let i = 0; i < 8; i++) {
+      if (b & 1) res ^= a;
+      a = xtime(a);
+      b >>>= 1;
+    }
+    return res;
+  }
+  function expandKey256(key) {
+    const w = new Uint8Array(240);
+    w.set(key.subarray(0, 32), 0);
+    let rcon = 1;
+    for (let i = 8; i < 60; i++) {
+      const prev = (i - 1) * 4;
+      let t0 = w[prev], t1 = w[prev + 1], t2 = w[prev + 2], t3 = w[prev + 3];
+      if (i % 8 === 0) {
+        const tmp = t0;
+        t0 = AES_SBOX[t1] ^ rcon;
+        t1 = AES_SBOX[t2];
+        t2 = AES_SBOX[t3];
+        t3 = AES_SBOX[tmp];
+        rcon = xtime(rcon);
+      } else if (i % 8 === 4) {
+        t0 = AES_SBOX[t0];
+        t1 = AES_SBOX[t1];
+        t2 = AES_SBOX[t2];
+        t3 = AES_SBOX[t3];
+      }
+      const base = (i - 8) * 4;
+      const dst = i * 4;
+      w[dst] = w[base] ^ t0;
+      w[dst + 1] = w[base + 1] ^ t1;
+      w[dst + 2] = w[base + 2] ^ t2;
+      w[dst + 3] = w[base + 3] ^ t3;
+    }
+    return w;
+  }
+  function aes256EncryptBlock(block, w) {
+    const s = new Uint8Array(16);
+    for (let i = 0; i < 16; i++) s[i] = block[i] ^ w[i];
+    const t = new Uint8Array(16);
+    for (let r = 1; r <= 14; r++) {
+      t[0] = AES_SBOX[s[0]];
+      t[1] = AES_SBOX[s[5]];
+      t[2] = AES_SBOX[s[10]];
+      t[3] = AES_SBOX[s[15]];
+      t[4] = AES_SBOX[s[4]];
+      t[5] = AES_SBOX[s[9]];
+      t[6] = AES_SBOX[s[14]];
+      t[7] = AES_SBOX[s[3]];
+      t[8] = AES_SBOX[s[8]];
+      t[9] = AES_SBOX[s[13]];
+      t[10] = AES_SBOX[s[2]];
+      t[11] = AES_SBOX[s[7]];
+      t[12] = AES_SBOX[s[12]];
+      t[13] = AES_SBOX[s[1]];
+      t[14] = AES_SBOX[s[6]];
+      t[15] = AES_SBOX[s[11]];
+      if (r < 14) {
+        for (let c = 0; c < 4; c++) {
+          const i = c * 4;
+          const a0 = t[i], a1 = t[i + 1], a2 = t[i + 2], a3 = t[i + 3];
+          const h = a0 ^ a1 ^ a2 ^ a3;
+          t[i] ^= h ^ xtime(a0 ^ a1);
+          t[i + 1] ^= h ^ xtime(a1 ^ a2);
+          t[i + 2] ^= h ^ xtime(a2 ^ a3);
+          t[i + 3] ^= h ^ xtime(a3 ^ a0);
+        }
+      }
+      const roff = r * 16;
+      for (let j = 0; j < 16; j++) s[j] = t[j] ^ w[roff + j];
+    }
+    return s;
+  }
+  function aes256DecryptBlock(block, w) {
+    const s = new Uint8Array(16);
+    for (let i = 0; i < 16; i++) s[i] = block[i] ^ w[224 + i];
+    const t = new Uint8Array(16);
+    for (let r = 13; r >= 0; r--) {
+      t[0] = AES_INV_SBOX[s[0]];
+      t[1] = AES_INV_SBOX[s[13]];
+      t[2] = AES_INV_SBOX[s[10]];
+      t[3] = AES_INV_SBOX[s[7]];
+      t[4] = AES_INV_SBOX[s[4]];
+      t[5] = AES_INV_SBOX[s[1]];
+      t[6] = AES_INV_SBOX[s[14]];
+      t[7] = AES_INV_SBOX[s[11]];
+      t[8] = AES_INV_SBOX[s[8]];
+      t[9] = AES_INV_SBOX[s[5]];
+      t[10] = AES_INV_SBOX[s[2]];
+      t[11] = AES_INV_SBOX[s[15]];
+      t[12] = AES_INV_SBOX[s[12]];
+      t[13] = AES_INV_SBOX[s[9]];
+      t[14] = AES_INV_SBOX[s[6]];
+      t[15] = AES_INV_SBOX[s[3]];
+      const roff = r * 16;
+      for (let j = 0; j < 16; j++) s[j] = t[j] ^ w[roff + j];
+      if (r > 0) {
+        for (let c = 0; c < 4; c++) {
+          const i = c * 4;
+          const a0 = s[i], a1 = s[i + 1], a2 = s[i + 2], a3 = s[i + 3];
+          s[i] = gmul(a0, 14) ^ gmul(a1, 11) ^ gmul(a2, 13) ^ gmul(a3, 9);
+          s[i + 1] = gmul(a0, 9) ^ gmul(a1, 14) ^ gmul(a2, 11) ^ gmul(a3, 13);
+          s[i + 2] = gmul(a0, 13) ^ gmul(a1, 9) ^ gmul(a2, 14) ^ gmul(a3, 11);
+          s[i + 3] = gmul(a0, 11) ^ gmul(a1, 13) ^ gmul(a2, 9) ^ gmul(a3, 14);
+        }
+      }
+    }
+    return s;
+  }
+  function aes256IgeEncrypt(data, key, iv) {
+    const w = expandKey256(key);
+    const out = new Uint8Array(data.length);
+    let iv1 = iv.subarray(0, 16);
+    let iv2 = iv.subarray(16, 32);
+    const x = new Uint8Array(16);
+    for (let off = 0; off < data.length; off += 16) {
+      const p = data.subarray(off, off + 16);
+      for (let i = 0; i < 16; i++) x[i] = p[i] ^ iv1[i];
+      const enc2 = aes256EncryptBlock(x, w);
+      const c = new Uint8Array(16);
+      for (let i = 0; i < 16; i++) c[i] = enc2[i] ^ iv2[i];
+      out.set(c, off);
+      iv1 = c;
+      iv2 = p;
+    }
+    return out;
+  }
+  function aes256IgeDecrypt(data, key, iv) {
+    const w = expandKey256(key);
+    const out = new Uint8Array(data.length);
+    let iv1 = iv.subarray(0, 16);
+    let iv2 = iv.subarray(16, 32);
+    const x = new Uint8Array(16);
+    for (let off = 0; off < data.length; off += 16) {
+      const c = data.subarray(off, off + 16);
+      for (let i = 0; i < 16; i++) x[i] = c[i] ^ iv2[i];
+      const dec = aes256DecryptBlock(x, w);
+      const p = new Uint8Array(16);
+      for (let i = 0; i < 16; i++) p[i] = dec[i] ^ iv1[i];
+      out.set(p, off);
+      iv1 = c;
+      iv2 = p;
+    }
+    return out;
+  }
+  var TLWriter = class {
+    constructor() {
+      this.parts = [];
+    }
+    writeInt32(v) {
+      const b = new Uint8Array(4);
+      new DataView(b.buffer).setInt32(0, v, true);
+      this.parts.push(b);
+      return this;
+    }
+    writeUInt32(v) {
+      const b = new Uint8Array(4);
+      new DataView(b.buffer).setUint32(0, v >>> 0, true);
+      this.parts.push(b);
+      return this;
+    }
+    writeInt64(bigVal) {
+      const b = new Uint8Array(8);
+      new DataView(b.buffer).setBigInt64(0, BigInt(bigVal), true);
+      this.parts.push(b);
+      return this;
+    }
+    writeRaw(bytes) {
+      this.parts.push(bytes);
+      return this;
+    }
+    writeBytes(bytes) {
+      const len = bytes.length;
+      if (len < 254) {
+        const pad = (4 - (len + 1) % 4) % 4;
+        const out = new Uint8Array(1 + len + pad);
+        out[0] = len;
+        out.set(bytes, 1);
+        this.parts.push(out);
+      } else {
+        const pad = (4 - len % 4) % 4;
+        const out = new Uint8Array(4 + len + pad);
+        out[0] = 254;
+        out[1] = len & 255;
+        out[2] = len >>> 8 & 255;
+        out[3] = len >>> 16 & 255;
+        out.set(bytes, 4);
+        this.parts.push(out);
+      }
+      return this;
+    }
+    writeString(str2) {
+      return this.writeBytes(TEXT_ENC.encode(String(str2)));
+    }
+    toBytes() {
+      return concatBytes(...this.parts);
+    }
+  };
+  var TLReader = class {
+    constructor(bytes, offset = 0) {
+      this.bytes = bytes;
+      this.offset = offset;
+      this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    }
+    readInt32() {
+      const v = this.view.getInt32(this.offset, true);
+      this.offset += 4;
+      return v;
+    }
+    readUInt32() {
+      const v = this.view.getUint32(this.offset, true);
+      this.offset += 4;
+      return v >>> 0;
+    }
+    readInt64() {
+      const v = this.view.getBigInt64(this.offset, true);
+      this.offset += 8;
+      return v;
+    }
+    readRaw(n) {
+      const s = this.bytes.subarray(this.offset, this.offset + n);
+      this.offset += n;
+      return s;
+    }
+    readBytes() {
+      const first = this.bytes[this.offset++];
+      let len = 0;
+      let pad = 0;
+      if (first < 254) {
+        len = first;
+        pad = (4 - (len + 1) % 4) % 4;
+      } else {
+        len = this.bytes[this.offset] | this.bytes[this.offset + 1] << 8 | this.bytes[this.offset + 2] << 16;
+        this.offset += 3;
+        pad = (4 - len % 4) % 4;
+      }
+      const out = this.bytes.subarray(this.offset, this.offset + len);
+      this.offset += len + pad;
+      return out;
+    }
+    readString() {
+      return TEXT_DEC.decode(this.readBytes());
+    }
+  };
+  var CloudflareTcpTransport = class {
+    constructor(proxy) {
+      this.proxy = proxy || null;
+      this.socket = null;
+      this.reader = null;
+      this.writer = null;
+      this.chunks = [];
+      this.totalLen = 0;
+      this.sendSeq = 0;
+    }
+    async connect(targetIp, targetPort) {
+      this.chunks = [];
+      this.totalLen = 0;
+      this.sendSeq = 0;
+      const useSocks = Boolean(this.proxy && this.proxy.host && this.proxy.port);
+      this.socket = connect({
+        hostname: useSocks ? this.proxy.host : targetIp,
+        port: useSocks ? Number(this.proxy.port) : Number(targetPort)
+      });
+      this.writer = this.socket.writable.getWriter();
+      this.reader = this.socket.readable.getReader();
+      if (useSocks) {
+        const hasAuth = Boolean(this.proxy.username && this.proxy.password);
+        await this.writer.write(hasAuth ? new Uint8Array([5, 2, 0, 2]) : new Uint8Array([5, 1, 0]));
+        const hRes = await this.readExactly(2);
+        if (hRes[0] !== 5 || hRes[1] === 255) {
+          throw new Error("SOCKS5 代理握手协商失败");
+        }
+        if (hRes[1] === 2) {
+          const u = TEXT_ENC.encode(this.proxy.username);
+          const p = TEXT_ENC.encode(this.proxy.password);
+          const authPkt = new Uint8Array(3 + u.length + p.length);
+          authPkt[0] = 1;
+          authPkt[1] = u.length;
+          authPkt.set(u, 2);
+          authPkt[2 + u.length] = p.length;
+          authPkt.set(p, 3 + u.length);
+          await this.writer.write(authPkt);
+          const aRes = await this.readExactly(2);
+          if (aRes[1] !== 0) throw new Error("SOCKS5 账号或密码认证失败");
+        }
+        const ipParts = targetIp.split(".").map(Number);
+        const connReq = new Uint8Array([
+          5,
+          1,
+          0,
+          1,
+          ipParts[0],
+          ipParts[1],
+          ipParts[2],
+          ipParts[3],
+          targetPort >>> 8 & 255,
+          targetPort & 255
+        ]);
+        await this.writer.write(connReq);
+        const rHead = await this.readExactly(4);
+        if (rHead[1] !== 0) {
+          throw new Error(`SOCKS5 无法连接 Telegram DC (${targetIp}:${targetPort})，错误码: ${rHead[1]}`);
+        }
+        if (rHead[3] === 1) await this.readExactly(6);
+        else if (rHead[3] === 3) {
+          const dLen = await this.readExactly(1);
+          await this.readExactly(dLen[0] + 2);
+        } else if (rHead[3] === 4) await this.readExactly(18);
+      }
+    }
+    async readExactly(size) {
+      while (this.totalLen < size) {
+        const { value, done } = await this.reader.read();
+        if (done || !value) throw new Error("远程 Socket 连接已断开 (EOF)");
+        this.chunks.push(value);
+        this.totalLen += value.length;
+      }
+      const combined = this.chunks.length === 1 ? this.chunks[0] : concatBytes(...this.chunks);
+      const out = combined.slice(0, size);
+      const rest = combined.slice(size);
+      this.chunks = rest.length > 0 ? [rest] : [];
+      this.totalLen = rest.length;
+      return out;
+    }
+    // MTProto TCP Full 协议封包发送
+    async sendPacket(payload) {
+      const totalLen = payload.length + 12;
+      const pkt = new Uint8Array(totalLen);
+      const dv = new DataView(pkt.buffer);
+      dv.setInt32(0, totalLen, true);
+      dv.setInt32(4, this.sendSeq++, true);
+      pkt.set(payload, 8);
+      const crc = crc32(pkt.subarray(0, totalLen - 4));
+      dv.setUint32(totalLen - 4, crc, true);
+      await this.writer.write(pkt);
+    }
+    // MTProto TCP Full 协议拆包接收
+    async recvPacket() {
+      const lenBuf = await this.readExactly(4);
+      const totalLen = new DataView(lenBuf.buffer, lenBuf.byteOffset, 4).getInt32(0, true);
+      if (totalLen < 0) {
+        throw new Error(`Telegram 传输层返回错误码: ${totalLen}`);
+      }
+      const rest = await this.readExactly(totalLen - 4);
+      const payload = rest.subarray(4, totalLen - 8);
+      if (payload.length === 4) {
+        const code = new DataView(payload.buffer, payload.byteOffset, 4).getInt32(0, true);
+        if (code < 0) throw new Error(`MTProto 传输层拒绝请求: ${code}`);
+      }
+      return payload;
+    }
+    async close() {
+      try {
+        if (this.reader) {
+          await this.reader.cancel().catch(() => {
+          });
+          this.reader.releaseLock();
+        }
+      } catch (e) {
+      }
+      try {
+        if (this.writer) {
+          await this.writer.close().catch(() => {
+          });
+          this.writer.releaseLock();
+        }
+      } catch (e) {
+      }
+      try {
+        if (this.socket) this.socket.close();
+      } catch (e) {
+      }
+    }
+  };
+  async function decompressGzip(bytes) {
+    const ds = new DecompressionStream("gzip");
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const out = [];
+    const reader = ds.readable.getReader();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      out.push(value);
+    }
+    return concatBytes(...out);
+  }
+  var MTProtoClient = class {
+    constructor(sessionStr, env) {
+      this.env = env || {};
+      this.apiId = Number(this.env.TG_API_ID || 2040);
+      this.apiHash = String(this.env.TG_API_HASH || "b18441a1ff607e10a989891a5462e627");
+      this.proxy = this.env.S5_HOST && this.env.S5_PORT ? {
+        host: String(this.env.S5_HOST).trim(),
+        port: Number(this.env.S5_PORT),
+        username: this.env.S5_USER ? String(this.env.S5_USER).trim() : "",
+        password: this.env.S5_PASS ? String(this.env.S5_PASS).trim() : ""
+      } : null;
+      this.dcId = 2;
+      this.authKey = null;
+      this.authKeyId = null;
+      this.salt = randomBytes(8);
+      this.sessionId = randomBytes(8);
+      this.seqNo = 0;
+      this.lastMsgId = 0n;
+      this.inited = false;
+      this.transport = null;
+      if (sessionStr) this._loadSession(sessionStr);
+    }
+    _loadSession(str2) {
+      try {
+        const parsed = JSON.parse(str2);
+        if (parsed && parsed.authKey) {
+          this.dcId = Number(parsed.dcId || 2);
+          this.authKey = hexToBytes(parsed.authKey);
+          this.authKeyId = hexToBytes(parsed.authKeyId);
+          if (parsed.salt) this.salt = hexToBytes(parsed.salt);
+          return;
+        }
+      } catch (e) {
+      }
+      if (str2.startsWith("1") && str2.length > 300) {
+        const raw = base64UrlToBytes(str2.slice(1));
+        if (raw.length >= 263) {
+          this.dcId = raw[0];
+          this.authKey = raw.slice(raw.length - 256);
+        }
+      }
+    }
+    saveSession() {
+      if (!this.authKey || !this.authKeyId) return "";
+      return JSON.stringify({
+        dcId: this.dcId,
+        authKey: bytesToHex(this.authKey),
+        authKeyId: bytesToHex(this.authKeyId),
+        salt: bytesToHex(this.salt)
+      });
+    }
+    _nextMsgId() {
+      const nowSec = BigInt(Math.floor(Date.now() / 1e3));
+      let id = nowSec << 32n | BigInt(Math.floor(Math.random() * 268435455) & ~3);
+      if (id <= this.lastMsgId) id = this.lastMsgId + 4n;
+      this.lastMsgId = id;
+      return id;
+    }
+    _nextSeqNo(contentRelated = true) {
+      const s = this.seqNo * 2 + (contentRelated ? 1 : 0);
+      if (contentRelated) this.seqNo++;
+      return s;
+    }
+    async connect() {
+      const dc = TG_DCS[this.dcId] || TG_DCS[2];
+      this.transport = new CloudflareTcpTransport(this.proxy);
+      await this.transport.connect(dc.ip, dc.port);
+      if (this.authKey && !this.authKeyId) {
+        this.authKeyId = (await sha1(this.authKey)).subarray(12, 20);
+      }
+      if (!this.authKey) {
+        await this._performDHHandshake();
+      }
+    }
+    async switchDC(newDcId) {
+      await this.disconnect();
+      this.dcId = Number(newDcId);
+      this.authKey = null;
+      this.authKeyId = null;
+      this.salt = randomBytes(8);
+      this.sessionId = randomBytes(8);
+      this.seqNo = 0;
+      this.inited = false;
+      await this.connect();
+    }
+    async disconnect() {
+      if (this.transport) {
+        await this.transport.close();
+        this.transport = null;
+      }
+    }
+    async _sendUnencrypted(tlBytes) {
+      const w = new TLWriter().writeInt64(0n).writeInt64(this._nextMsgId()).writeInt32(tlBytes.length).writeRaw(tlBytes);
+      await this.transport.sendPacket(w.toBytes());
+      const resp = await this.transport.recvPacket();
+      const r = new TLReader(resp);
+      r.readInt64();
+      r.readInt64();
+      const len = r.readInt32();
+      return new TLReader(r.readRaw(len));
+    }
+    // MTProto 2.0 RSA_PAD 混合加密实现 + 完整 DH-2048 握手
+    async _performDHHandshake() {
+      const nonce = randomBytes(16);
+      const reqPq = new TLWriter().writeUInt32(3195965169).writeRaw(nonce).toBytes();
+      const resPqReader = await this._sendUnencrypted(reqPq);
+      const ctor1 = resPqReader.readUInt32();
+      if (ctor1 !== 85337187) throw new Error(`握手阶段1失败: 未知构造器 0x${ctor1.toString(16)}`);
+      resPqReader.readRaw(16);
+      const serverNonce = resPqReader.readRaw(16);
+      const pqBytes = resPqReader.readBytes();
+      resPqReader.readUInt32();
+      const fpCount = resPqReader.readInt32();
+      let matchedKey = TG_RSA_KEYS[0];
+      for (let i = 0; i < fpCount; i++) {
+        const fpRaw = resPqReader.readRaw(8);
+        const fpHex = bytesToHex(fpRaw);
+        const found = TG_RSA_KEYS.find((k) => k.fpHex === fpHex);
+        if (found) matchedKey = found;
+      }
+      const [pBytes, qBytes] = factorizePQ(pqBytes);
+      const newNonce = randomBytes(32);
+      const innerData = new TLWriter().writeUInt32(2851430293).writeBytes(pqBytes).writeBytes(pBytes).writeBytes(qBytes).writeRaw(nonce).writeRaw(serverNonce).writeRaw(newNonce).writeInt32(this.dcId).toBytes();
+      const padLen = 192 - innerData.length;
+      const dataWithPad = concatBytes(innerData, randomBytes(padLen));
+      const dataRev = new Uint8Array(192);
+      for (let i = 0; i < 192; i++) dataRev[i] = dataWithPad[191 - i];
+      let rsaEncrypted = null;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        const tempKey = randomBytes(32);
+        const dataWithHash = concatBytes(dataRev, await sha256(concatBytes(tempKey, dataWithPad)));
+        const aesEncrypted = aes256IgeEncrypt(dataWithHash, tempKey, new Uint8Array(32));
+        const tempKeyXor = xorBytes(tempKey, await sha256(aesEncrypted));
+        const keyAesEnc = concatBytes(tempKeyXor, aesEncrypted);
+        const keyAesInt = bytesToBigIntBE(keyAesEnc);
+        if (keyAesInt < matchedKey.n) {
+          const resInt = modPow(keyAesInt, matchedKey.e, matchedKey.n);
+          rsaEncrypted = bigIntToBytesBE(resInt, 256);
+          break;
+        }
+      }
+      const reqDh = new TLWriter().writeUInt32(3608339646).writeRaw(nonce).writeRaw(serverNonce).writeBytes(pBytes).writeBytes(qBytes).writeRaw(matchedKey.fpBytes).writeBytes(rsaEncrypted).toBytes();
+      const dhResReader = await this._sendUnencrypted(reqDh);
+      const ctor2 = dhResReader.readUInt32();
+      if (ctor2 !== 3504867164) throw new Error(`握手阶段2失败 (Server_DH_Params): 0x${ctor2.toString(16)}`);
+      dhResReader.readRaw(16);
+      dhResReader.readRaw(16);
+      const encAnswer = dhResReader.readBytes();
+      const h1 = await sha1(concatBytes(newNonce, serverNonce));
+      const h2 = await sha1(concatBytes(serverNonce, newNonce));
+      const h3 = await sha1(concatBytes(newNonce, newNonce));
+      const tmpAesKey = concatBytes(h1, h2.subarray(0, 12));
+      const tmpAesIv = concatBytes(h2.subarray(12, 20), h3, newNonce.subarray(0, 4));
+      const decAnswer = aes256IgeDecrypt(encAnswer, tmpAesKey, tmpAesIv);
+      const innerReader = new TLReader(decAnswer, 20);
+      const ctor3 = innerReader.readUInt32();
+      if (ctor3 !== 3045658042) throw new Error(`server_DH_inner_data 校验失败: 0x${ctor3.toString(16)}`);
+      innerReader.readRaw(16);
+      innerReader.readRaw(16);
+      const g = BigInt(innerReader.readInt32());
+      const dhPrimeBytes = innerReader.readBytes();
+      const gABytes = innerReader.readBytes();
+      innerReader.readInt32();
+      const dhPrime = bytesToBigIntBE(dhPrimeBytes);
+      const gA = bytesToBigIntBE(gABytes);
+      const b = bytesToBigIntBE(randomBytes(256));
+      const gBBytes = bigIntToBytesBE(modPow(g, b, dhPrime), 256);
+      const authKeyBytes = bigIntToBytesBE(modPow(gA, b, dhPrime), 256);
+      const clientInner = new TLWriter().writeUInt32(1715713620).writeRaw(nonce).writeRaw(serverNonce).writeInt64(0n).writeBytes(gBBytes).toBytes();
+      const clientHash = await sha1(clientInner);
+      const clientPadLen = (16 - (20 + clientInner.length) % 16) % 16;
+      const encClientInner = aes256IgeEncrypt(
+        concatBytes(clientHash, clientInner, randomBytes(clientPadLen)),
+        tmpAesKey,
+        tmpAesIv
+      );
+      const setDhReq = new TLWriter().writeUInt32(4110704415).writeRaw(nonce).writeRaw(serverNonce).writeBytes(encClientInner).toBytes();
+      const dhGenReader = await this._sendUnencrypted(setDhReq);
+      const ctor4 = dhGenReader.readUInt32();
+      if (ctor4 !== 1003222836) throw new Error(`DH 密钥协商最终确认失败: 0x${ctor4.toString(16)}`);
+      this.authKey = authKeyBytes;
+      this.authKeyId = (await sha1(authKeyBytes)).subarray(12, 20);
+      this.salt = xorBytes(newNonce.subarray(0, 8), serverNonce.subarray(0, 8));
+    }
+    async _deriveMtproto2Keys(msgKey, x) {
+      const sha256a = await sha256(concatBytes(msgKey, this.authKey.subarray(x, x + 36)));
+      const sha256b = await sha256(concatBytes(this.authKey.subarray(40 + x, 40 + x + 36), msgKey));
+      const aesKey2 = concatBytes(sha256a.subarray(0, 8), sha256b.subarray(8, 24), sha256a.subarray(24, 32));
+      const aesIv = concatBytes(sha256b.subarray(0, 8), sha256a.subarray(8, 24), sha256b.subarray(24, 32));
+      return { aesKey: aesKey2, aesIv };
+    }
+    async _encryptMessage(tlBody, contentRelated = true) {
+      const msgId = this._nextMsgId();
+      const seqNo = this._nextSeqNo(contentRelated);
+      const header = new TLWriter().writeRaw(this.salt).writeRaw(this.sessionId).writeInt64(msgId).writeInt32(seqNo).writeInt32(tlBody.length).writeRaw(tlBody).toBytes();
+      let padLen = (16 - header.length % 16) % 16;
+      if (padLen < 12) padLen += 16;
+      const plain = concatBytes(header, randomBytes(padLen));
+      const msgKeyLarge = await sha256(concatBytes(this.authKey.subarray(88, 120), plain));
+      const msgKey = msgKeyLarge.subarray(8, 24);
+      const { aesKey: aesKey2, aesIv } = await this._deriveMtproto2Keys(msgKey, 0);
+      const encrypted = aes256IgeEncrypt(plain, aesKey2, aesIv);
+      return {
+        msgId,
+        packet: concatBytes(this.authKeyId, msgKey, encrypted)
+      };
+    }
+    async _decryptPacket(packet) {
+      const msgKey = packet.subarray(8, 24);
+      const encrypted = packet.subarray(24);
+      const { aesKey: aesKey2, aesIv } = await this._deriveMtproto2Keys(msgKey, 8);
+      const plain = aes256IgeDecrypt(encrypted, aesKey2, aesIv);
+      const dv = new DataView(plain.buffer, plain.byteOffset, plain.byteLength);
+      const msgLen = dv.getInt32(28, true);
+      return plain.subarray(32, 32 + msgLen);
+    }
+    async _parseIncomingBody(body, targetMsgId, state) {
+      const r = new TLReader(body);
+      const ctor = r.readUInt32();
+      if (ctor === 1945237724) {
+        const count = r.readInt32();
+        for (let i = 0; i < count; i++) {
+          r.readInt64();
+          r.readInt32();
+          const len = r.readInt32();
+          const inner = r.readRaw(len);
+          await this._parseIncomingBody(inner, targetMsgId, state);
+        }
+        return;
+      }
+      if (ctor === 812830625) {
+        const unzipped = await decompressGzip(r.readBytes());
+        await this._parseIncomingBody(unzipped, targetMsgId, state);
+        return;
+      }
+      if (ctor === 2663516424) {
+        r.readInt64();
+        r.readInt64();
+        this.salt = r.readRaw(8);
+        return;
+      }
+      if (ctor === 3987424379) {
+        r.readInt64();
+        r.readInt32();
+        r.readInt32();
+        this.salt = r.readRaw(8);
+        state.retrySalt = true;
+        return;
+      }
+      if (ctor === 4082920705) {
+        const reqMsgId = r.readInt64();
+        let resBytes = r.readRaw(body.length - r.offset);
+        const innerCtor = new DataView(resBytes.buffer, resBytes.byteOffset, 4).getUint32(0, true);
+        if (innerCtor === 812830625) {
+          const gr = new TLReader(resBytes, 4);
+          resBytes = await decompressGzip(gr.readBytes());
+        }
+        const checkCtor = new DataView(resBytes.buffer, resBytes.byteOffset, 4).getUint32(0, true);
+        if (checkCtor === 558156313) {
+          const er = new TLReader(resBytes, 4);
+          const code = er.readInt32();
+          const msg = er.readString();
+          const err = new Error(msg);
+          err.errorCode = code;
+          err.errorMessage = msg;
+          state.error = err;
+          return;
+        }
+        if (reqMsgId === targetMsgId) {
+          state.result = resBytes;
+        }
+      }
+    }
+    async invoke(innerPayload) {
+      let payloadToSend = innerPayload;
+      if (!this.inited) {
+        payloadToSend = new TLWriter().writeUInt32(3667594509).writeInt32(MTPROTO_LAYER).writeUInt32(3251461801).writeInt32(0).writeInt32(this.apiId).writeString("Cloudflare Worker").writeString("Linux 6.1").writeString("4.16.8").writeString("zh").writeString("").writeString("zh").writeRaw(innerPayload).toBytes();
+        this.inited = true;
+      }
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { msgId, packet } = await this._encryptMessage(payloadToSend, true);
+        await this.transport.sendPacket(packet);
+        const state = { result: null, error: null, retrySalt: false };
+        for (let step = 0; step < 8; step++) {
+          const rawPkt = await this.transport.recvPacket();
+          const body = await this._decryptPacket(rawPkt);
+          await this._parseIncomingBody(body, msgId, state);
+          if (state.error) throw state.error;
+          if (state.result) return new TLReader(state.result);
+          if (state.retrySalt) break;
+        }
+      }
+      throw new Error("MTProto 请求等待响应超时");
+    }
+    // 解析 Layer 158 User#8f97c628 真实昵称、@用户名、手机号
+    _parseUserFromReader(r) {
+      const ctor = r.readUInt32();
+      if (ctor !== 2409088552) {
+        return { id: 0n, accessHash: 0n, firstName: "Telegram 用户", lastName: "", username: "", phone: "" };
+      }
+      const flags = r.readInt32();
+      r.readInt32();
+      const id = r.readInt64();
+      const accessHash = flags & 1 ? r.readInt64() : 0n;
+      const firstName = flags & 2 ? r.readString() : "";
+      const lastName = flags & 4 ? r.readString() : "";
+      const username = flags & 8 ? r.readString() : "";
+      const phone = flags & 16 ? r.readString() : "";
+      return { id, accessHash, firstName, lastName, username, phone };
+    }
+    // 调用 users.getUsers#0d91a548([inputUserSelf#f7c1b13f]) 获取当前登录真人信息
+    async getMe() {
+      const req = new TLWriter().writeUInt32(227648840).writeUInt32(481674261).writeInt32(1).writeUInt32(4156666175).toBytes();
+      const r = await this.invoke(req);
+      r.readUInt32();
+      const count = r.readInt32();
+      if (count < 1) throw new Error("未能获取到当前登录账号信息");
+      return this._parseUserFromReader(r);
+    }
+    // 解析 @bot_username 并发送真实签到消息
+    async sendMessageToUsername(username, messageText) {
+      const cleanName = String(username).replace(/^@/, "").trim();
+      const resolveReq = new TLWriter().writeUInt32(4181511075).writeString(cleanName).toBytes();
+      const r = await this.invoke(resolveReq);
+      const ctor = r.readUInt32();
+      if (ctor !== 2131196633) throw new Error(`找不到目标机器人 @${cleanName}`);
+      const peerCtor = r.readUInt32();
+      r.readInt64();
+      r.readUInt32();
+      const chatCount = r.readInt32();
+      let inputPeerBytes = null;
+      if (peerCtor === 1498486562 && chatCount === 0) {
+        r.readUInt32();
+        r.readInt32();
+        const u = this._parseUserFromReader(r);
+        inputPeerBytes = new TLWriter().writeUInt32(3723011404).writeInt64(u.id).writeInt64(u.accessHash).toBytes();
+      } else {
+        r.readUInt32();
+        const cFlags = r.readInt32();
+        r.readInt32();
+        const channelId = r.readInt64();
+        const accessHash = cFlags & 8192 ? r.readInt64() : 0n;
+        inputPeerBytes = new TLWriter().writeUInt32(666680316).writeInt64(channelId).writeInt64(accessHash).toBytes();
+      }
+      const randomId = BigInt(Math.floor(Math.random() * 2147483647)) << 32n | BigInt(Math.floor(Math.random() * 4294967295));
+      const sendReq = new TLWriter().writeUInt32(228423076).writeInt32(0).writeRaw(inputPeerBytes).writeString(messageText).writeInt64(randomId).toBytes();
+      await this.invoke(sendReq);
+      return { id: (randomId & 0xffffffffn).toString() };
+    }
+    // ==================== 执行层：目标解析 / 发送 / 历史 / 按钮 ====================
+    async resolvePeer(target) {
+      const raw = String(target == null ? "" : target).trim();
+      if (!raw) throw new Error("任务没有填目标（机器人 @用户名）");
+      if (/^-?\d+$/.test(raw)) throw new Error("目标写成了纯数字 ID：本版本请改成机器人 @用户名");
+      const name = raw.replace(/^@/, "");
+      const r = await this.invoke(new TLWriter().writeUInt32(4181511075).writeString(name).toBytes());
+      if (r.readUInt32() !== 2131196633) throw new Error("找不到目标 @" + name);
+      const peerCtor = r.readUInt32();
+      if (peerCtor === 1498486562) {
+        const userId = r.readInt64();
+        r.readUInt32();
+        const chatCount = r.readInt32();
+        if (chatCount > 0) throw new Error("目标解析异常：用户目标却返回了群组");
+        r.readUInt32();
+        const userCount = r.readInt32();
+        if (userCount < 1) throw new Error("找不到目标 @" + name);
+        const u = this._parseUserFromReader(r);
+        const id = u.id || userId;
+        if (!u.accessHash) throw new Error("无法获取 @" + name + " 的 access_hash");
+        return {
+          kind: "user",
+          id,
+          title: u.username ? "@" + u.username : name,
+          inputPeer: new TLWriter().writeUInt32(3723011404).writeInt64(id).writeInt64(u.accessHash).toBytes()
+        };
+      }
+      if (peerCtor === 918946202) {
+        const chatId = r.readInt64();
+        return {
+          kind: "chat",
+          id: chatId,
+          title: name,
+          inputPeer: new TLWriter().writeUInt32(900291769).writeInt64(chatId).toBytes()
+        };
+      }
+      if (peerCtor === 2728736542 || peerCtor === 2728863067) {
+        const channelId = r.readInt64();
+        r.readUInt32();
+        const chatCount = r.readInt32();
+        let accessHash = 0n;
+        for (let i = 0; i < chatCount; i++) {
+          const ctor = r.readUInt32();
+          if (ctor !== 4265900221 && ctor !== 2200278116) throw new Error("目标群组解析失败");
+          const flags = r.readUInt32();
+          if (ctor === 4265900221) r.readUInt32();
+          const id = r.readInt64();
+          const ah = flags & 8192 ? r.readInt64() : 0n;
+          if (id === channelId) accessHash = ah;
+          break;
+        }
+        if (!accessHash) throw new Error("无法获取目标群组的 access_hash");
+        return {
+          kind: "channel",
+          id: channelId,
+          title: name,
+          inputPeer: new TLWriter().writeUInt32(666680316).writeInt64(channelId).writeInt64(accessHash).toBytes()
+        };
+      }
+      throw new Error("目标类型暂不支持");
+    }
+    _skipFwdHeader(r) {
+      const ctor = r.readUInt32();
+      if (ctor !== 1313731771) throw new Error("fwd header " + ctor.toString(16));
+      const f = r.readUInt32();
+      if (f & 1) this._skipPeer(r);
+      if (f & 32) r.readString();
+      r.readInt32();
+      if (f & 4) r.readInt32();
+      if (f & 8) r.readString();
+      if (f & 16) {
+        this._skipPeer(r);
+        r.readInt32();
+      }
+      if (f & 256) this._skipPeer(r);
+      if (f & 512) r.readString();
+      if (f & 1024) r.readInt32();
+      if (f & 64) r.readString();
+    }
+    _skipReplyHeader(r) {
+      const ctor = r.readUInt32();
+      if (ctor === 2799007587) {
+        const f0 = r.readUInt32();
+        r.readInt32();
+        if (f0 & 1) this._skipPeer(r);
+        if (f0 & 2) r.readInt32();
+        return;
+      }
+      if (ctor !== 2948336091) throw new Error("reply header " + ctor.toString(16));
+      const f = r.readUInt32();
+      if (f & 16) r.readInt32();
+      if (f & 1) this._skipPeer(r);
+      if (f & 32) this._skipFwdHeader(r);
+      if (f & 256) throw new Error("reply media");
+      if (f & 2) r.readInt32();
+      if (f & 64) r.readString();
+      if (f & 128) throw new Error("reply quote entities");
+      if (f & 1024) r.readInt32();
+    }
+    _skipPeer(r) {
+      const c = r.readUInt32();
+      if (c === 1498486562 || c === 2728736542 || c === 2728863067 || c === 918946202) {
+        r.readInt64();
+        return;
+      }
+      throw new Error("peer?");
+    }
+    async sendText(inputPeer, text) {
+      const randomId = BigInt(Math.floor(Math.random() * 2147483647)) << 32n | BigInt(Math.floor(Math.random() * 4294967295));
+      const req = new TLWriter().writeUInt32(228423076).writeInt32(0).writeRaw(inputPeer).writeString(text).writeInt64(randomId).toBytes();
+      const r = await this.invoke(req);
+      return { randomId, msgId: this._sentIdFromUpdates(r, randomId) };
+    }
+    _sentIdFromUpdates(r, randomId) {
+      try {
+        const ctor = r.readUInt32();
+        if (ctor === 1957577280) {
+          r.readUInt32();
+          if (r.readUInt32() !== 481674261) return 0;
+          const n = r.readInt32();
+          for (let i = 0; i < n; i++) {
+            const c = r.readUInt32();
+            if (c === 1318109142) {
+              const id = r.readInt32();
+              const rid = r.readInt64();
+              if (rid === randomId) return id;
+            } else {
+              return 0;
+            }
+          }
+        } else if (ctor === 2417357404) {
+          r.readUInt32();
+          return r.readInt32();
+        } else if (ctor === 2027216577) {
+          if (r.readUInt32() === 1318109142) {
+            const id = r.readInt32();
+            r.readInt64();
+            return id;
+          }
+        }
+      } catch (e) {
+      }
+      return 0;
+    }
+    async historyPage(inputPeer, opts) {
+      const o = opts || {};
+      const req = new TLWriter().writeUInt32(1143203525).writeRaw(inputPeer).writeInt32(o.offsetId || 0).writeInt32(0).writeInt32(0).writeInt32(o.limit || 1).writeInt32(0).writeInt32(o.minId || 0).writeInt64(0n).toBytes();
+      const r = await this.invoke(req);
+      const ctor = r.readUInt32();
+      if (ctor === 978610270) {
+        const flags = r.readUInt32();
+        r.readInt32();
+        if (flags & 1) r.readInt32();
+        if (flags & 4) r.readInt32();
+      } else if (ctor === 3346446926) {
+        const flags = r.readUInt32();
+        r.readInt32();
+        r.readInt32();
+        if (flags & 4) r.readInt32();
+      } else if (ctor !== 2356252295) {
+        throw new Error("历史消息响应异常: 0x" + ctor.toString(16));
+      }
+      if (r.readUInt32() !== 481674261) throw new Error("历史消息格式异常");
+      const n = r.readInt32();
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        const m = this._readMessage(r);
+        if (!m) break;
+        out.push(m);
+      }
+      return out;
+    }
+    _readMessage(r) {
+      const start = r.offset;
+      const orders = this._msgOrder ? [this._msgOrder] : ["peer-first", "from-first"];
+      for (let i = 0; i < orders.length; i++) {
+        r.offset = start;
+        const m = this._readMessageAs(r, orders[i]);
+        if (m) {
+          this._msgOrder = orders[i];
+          return m;
+        }
+      }
+      r.offset = start;
+      return null;
+    }
+    _readMessageAs(r, order) {
+      try {
+        const mctor = r.readUInt32();
+        if (mctor !== 940666592) return null;
+        const flags = r.readUInt32();
+        const id = r.readInt32();
+        if (order === "from-first") {
+          if (flags & 256) this._skipPeer(r);
+          this._skipPeer(r);
+        } else {
+          this._skipPeer(r);
+          if (flags & 256) this._skipPeer(r);
+        }
+        if (flags & 4) this._skipFwdHeader(r);
+        if (flags & 8) this._skipReplyHeader(r);
+        const date = r.readInt32();
+        const text = r.readString();
+        if (text.length > 4096 || text.indexOf("�") >= 0) return null;
+        const msg = { id, date, text, out: !!(flags & 2), buttons: null };
+        if (flags & 512) {
+          if (!this._skipMedia(r)) return msg;
+        }
+        if (flags & 64) {
+          const at = r.offset;
+          const mc = (r.bytes[r.offset] | r.bytes[r.offset + 1] << 8 | r.bytes[r.offset + 2] << 16 | r.bytes[r.offset + 3] << 24) >>> 0;
+          if (mc !== 1218642516 && mc !== 2245892561 && mc !== 2688441221) return msg;
+          r.offset = at;
+          msg.buttons = this._readMarkup(r);
+        }
+        return msg;
+      } catch (e) {
+        return null;
+      }
+    }
+    _skipVector(r, fn) {
+      if (r.readUInt32() !== 481674261) throw new Error("vector?");
+      const n = r.readInt32();
+      for (let i = 0; i < n; i++) fn(r);
+    }
+    _skipPhotoSize(r) {
+      const c = r.readUInt32();
+      if (c === 1976012384) {
+        r.readString();
+        r.readInt32();
+        r.readInt32();
+        r.readInt32();
+      } else if (c === 35527382) {
+        r.readString();
+        r.readInt32();
+        r.readInt32();
+        r.readBytes();
+      } else if (c === 3769678894) {
+        r.readString();
+        r.readBytes();
+      } else if (c === 4198431637) {
+        r.readString();
+        r.readInt32();
+        r.readInt32();
+        this._skipVector(r, function(rr) {
+          rr.readInt32();
+        });
+      } else if (c === 3626061121) {
+        r.readString();
+        r.readBytes();
+      } else {
+        throw new Error("photoSize?");
+      }
+    }
+    _skipDocument(r) {
+      const f = r.readUInt32();
+      r.readInt64();
+      r.readInt64();
+      r.readBytes();
+      r.readInt32();
+      r.readString();
+      r.readRaw(8);
+      const self = this;
+      if (f & 1) self._skipVector(r, function(rr) {
+        self._skipPhotoSize(rr);
+      });
+      if (f & 2) self._skipVector(r, function(rr) {
+        rr.readString();
+        rr.readInt32();
+        rr.readInt32();
+        rr.readInt32();
+      });
+      r.readInt32();
+      self._skipVector(r, function(rr) {
+        self._skipDocAttr(rr);
+      });
+    }
+    _skipDocAttr(r) {
+      const c = r.readUInt32();
+      if (c === 358154344) {
+        r.readString();
+        return;
+      }
+      if (c === 1815593308) {
+        r.readInt32();
+        r.readInt32();
+        return;
+      }
+      if (c === 297109817 || c === 3246071453) return;
+      if (c === 2555574726) {
+        const f = r.readUInt32();
+        r.readInt32();
+        if (f & 1) r.readString();
+        if (f & 2) r.readString();
+        if (f & 4) r.readBytes();
+        return;
+      }
+      if (c === 1137015880) {
+        const f = r.readUInt32();
+        r.readInt32();
+        r.readInt32();
+        r.readInt32();
+        if (f & 1) r.readRaw(8);
+        return;
+      }
+      if (c === 4245985433) {
+        r.readInt64();
+        return;
+      }
+      if (c === 1662637586) {
+        const f = r.readUInt32();
+        r.readString();
+        r.readInt64();
+        r.readInt64();
+        if (f & 1) {
+          const fl = r.readUInt32();
+          if (fl & 1) r.readRaw(8);
+          if (fl & 2) r.readRaw(8);
+        }
+        r.readInt32();
+        return;
+      }
+      if (c === 3727929492) {
+        rrSkip();
+        return;
+      }
+      throw new Error("docAttr?");
+      function rrSkip() {
+      }
+    }
+    _skipPhoto(r) {
+      const f = r.readUInt32();
+      r.readInt64();
+      r.readInt64();
+      r.readBytes();
+      r.readInt32();
+      const self = this;
+      self._skipVector(r, function(rr) {
+        self._skipPhotoSize(rr);
+      });
+      r.readInt32();
+      if (f & 1) self._skipVector(r, function(rr) {
+        rr.readString();
+        rr.readInt32();
+        rr.readInt32();
+        rr.readInt32();
+      });
+      if (f & 2) self._skipVector(r, function(rr) {
+        rr.readString();
+        rr.readInt32();
+        rr.readInt32();
+        rr.readInt32();
+      });
+    }
+    _skipMedia(r) {
+      try {
+        const ctor = r.readUInt32();
+        if (ctor === 1038967584 || ctor === 2676290718) return true;
+        if (ctor === 1766936791) {
+          const f = r.readUInt32();
+          if (f & 1) {
+            r.readUInt32();
+            this._skipPhoto(r);
+          }
+          if (f & 4) r.readInt32();
+          return true;
+        }
+        if (ctor === 80693892 || ctor === 2628808919) {
+          const f = r.readUInt32();
+          if (f & 1) {
+            r.readUInt32();
+            this._skipDocument(r);
+          }
+          if (f & 4) r.readInt32();
+          return true;
+        }
+        if (ctor === 3723562043 || ctor === 802824708) {
+          const f = r.readUInt32();
+          r.readUInt32();
+          this._skipWebPage(r);
+          return true;
+        }
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
+    _readMarkup(r) {
+      const ctor = r.readUInt32();
+      if (ctor === 2688441221) return [];
+      if (ctor === 1218642516) {
+      } else if (ctor === 2245892561) {
+        r.readUInt32();
+      } else {
+        return null;
+      }
+      if (r.readUInt32() !== 481674261) return null;
+      const rows = r.readInt32();
+      const out = [];
+      for (let i = 0; i < rows; i++) {
+        if (r.readUInt32() !== 2002815875) return out;
+        r.readUInt32();
+        const n = r.readInt32();
+        const row = [];
+        for (let j = 0; j < n; j++) {
+          const c = r.readUInt32();
+          const b = { text: "", data: null, url: "" };
+          if (c === 2734311552) {
+            b.text = r.readString();
+          } else if (c === 629866245) {
+            b.text = r.readString();
+            b.url = r.readString();
+          } else if (c === 901503851) {
+            r.readUInt32();
+            b.text = r.readString();
+            b.data = r.readBytes();
+          } else if (c === 280464681) {
+            const f = r.readUInt32();
+            b.text = r.readString();
+            if (f & 1) r.readString();
+            b.url = r.readString();
+            r.readInt32();
+          } else if (c === 2976541737 || c === 4235815743) {
+            b.text = r.readString();
+          } else if (c === 3150401885) {
+            const f = r.readUInt32();
+            if (f & 1) r.readUInt32();
+            b.text = r.readString();
+          } else {
+            return out;
+          }
+          row.push(b);
+        }
+        out.push(row);
+      }
+      return out;
+    }
+    async clickButton(inputPeer, msgId, data) {
+      const req = new TLWriter().writeUInt32(2470627847).writeInt32(data && data.length ? 1 : 0).writeRaw(inputPeer).writeInt32(msgId);
+      if (data && data.length) req.writeBytes(data);
+      const r = await this.invoke(req.toBytes());
+      if (r.readUInt32() !== 911761060) throw new Error("按钮点击响应异常");
+      const flags = r.readUInt32();
+      const message = flags & 1 ? r.readString() : "";
+      const url = flags & 4 ? r.readString() : "";
+      r.readInt32();
+      return { message, url, alert: !!(flags & 2) };
+    }
+    /** 从最新往回逐条取消息（每次只取 1 条，避免跳过复杂媒体对象） */
+    async recentMessages(inputPeer, count, minId) {
+      const out = [];
+      let offsetId = 0;
+      for (let i = 0; i < (count || 5); i++) {
+        const page = await this.historyPage(inputPeer, { limit: 1, minId: minId || 0, offsetId });
+        if (!page.length) break;
+        out.push(page[0]);
+        offsetId = page[0].id;
+        if (minId && page[0].id <= minId) break;
+      }
+      return out;
+    }
+    // 导出二维码登录 Token (auth.exportLoginToken#b7e085fe)
+    async exportLoginToken() {
+      const req = new TLWriter().writeUInt32(3084944894).writeInt32(this.apiId).writeString(this.apiHash).writeUInt32(481674261).writeInt32(0).toBytes();
+      let r = await this.invoke(req);
+      let ctor = r.readUInt32();
+      if (ctor === 110008598) {
+        const targetDc = r.readInt32();
+        const migToken = r.readBytes();
+        await this.switchDC(targetDc);
+        const impReq = new TLWriter().writeUInt32(2511101156).writeBytes(migToken).toBytes();
+        r = await this.invoke(impReq);
+        ctor = r.readUInt32();
+      }
+      if (ctor === 957176926) {
+        return { status: "success" };
+      }
+      if (ctor === 1654593920) {
+        const expires = r.readInt32();
+        const tokenBytes = r.readBytes();
+        return { status: "pending", expires, token: bytesToBase64Url(tokenBytes) };
+      }
+      throw new Error(`未知扫码状态响应: 0x${ctor.toString(16)}`);
+    }
+    // 手机号发送验证码 (auth.sendCode#a677244f)
+    async sendPhoneCode(phone) {
+      const buildReq = () => new TLWriter().writeUInt32(2792825935).writeString(phone).writeInt32(this.apiId).writeString(this.apiHash).writeUInt32(2904898936).writeInt32(0).toBytes();
+      let r;
+      try {
+        r = await this.invoke(buildReq());
+      } catch (err) {
+        const m = (err.errorMessage || "").match(/PHONE_MIGRATE_(\d+)/);
+        if (m) {
+          await this.switchDC(Number(m[1]));
+          r = await this.invoke(buildReq());
+        } else {
+          throw err;
+        }
+      }
+      const ctor = r.readUInt32();
+      if (ctor !== 1577067778) throw new Error("发送验证码返回未知响应");
+      r.readInt32();
+      const typeCtor = r.readUInt32();
+      if (typeCtor === 3646315577) r.readString();
+      r.readInt32();
+      const phoneCodeHash = r.readString();
+      return phoneCodeHash;
+    }
+    // 手机号核验验证码 (auth.signIn#8d52a951)
+    async signInWithCode(phone, phoneCodeHash, code) {
+      const req = new TLWriter().writeUInt32(2371004753).writeInt32(1).writeString(phone).writeString(phoneCodeHash).writeString(code).toBytes();
+      await this.invoke(req);
+    }
+    // 两步验证 (2FA 云端密码) SRP 协议核验 (account.getPassword#548a30f5 + auth.checkPassword#d18b4d16)
+    async check2FAPassword(password) {
+      const r = await this.invoke(new TLWriter().writeUInt32(1418342645).toBytes());
+      const ctor = r.readUInt32();
+      if (ctor !== 2507886843) throw new Error("无法读取 2FA 参数");
+      const flags = r.readInt32();
+      if (!(flags & 4)) throw new Error("当前账号未开启两步验证密码");
+      const algoCtor = r.readUInt32();
+      if (algoCtor !== 982592842) throw new Error("不支持的 KDF 算法");
+      const salt1 = r.readBytes();
+      const salt2 = r.readBytes();
+      const g = BigInt(r.readInt32());
+      const pBytes = r.readBytes();
+      const srpBBytes = r.readBytes();
+      const srpId = r.readInt64();
+      const p = bytesToBigIntBE(pBytes);
+      const B2 = bytesToBigIntBE(srpBBytes);
+      const sh = async (data, s) => sha256(concatBytes(s, data, s));
+      const passBytes = TEXT_ENC.encode(password);
+      const ph1 = await sh(await sh(passBytes, salt1), salt2);
+      const baseKey = await crypto.subtle.importKey("raw", ph1, "PBKDF2", false, ["deriveBits"]);
+      const derived = new Uint8Array(await crypto.subtle.deriveBits(
+        { name: "PBKDF2", hash: "SHA-512", salt: salt1, iterations: 1e5 },
+        baseKey,
+        512
+      ));
+      const ph2 = await sh(derived, salt2);
+      const x = bytesToBigIntBE(ph2);
+      const v = modPow(g, x, p);
+      const pPad = bigIntToBytesBE(p, 256);
+      const gPad = bigIntToBytesBE(g, 256);
+      const k = bytesToBigIntBE(await sha256(concatBytes(pPad, gPad)));
+      const kv = k * v % p;
+      const a = bytesToBigIntBE(randomBytes(256));
+      const ABytes = bigIntToBytesBE(modPow(g, a, p), 256);
+      const bPad = bigIntToBytesBE(B2, 256);
+      const u = bytesToBigIntBE(await sha256(concatBytes(ABytes, bPad)));
+      let t = (B2 - kv) % p;
+      if (t < 0n) t += p;
+      const SBytes = bigIntToBytesBE(modPow(t, a + u * x, p), 256);
+      const KBytes = await sha256(SBytes);
+      const m1 = await sha256(concatBytes(
+        xorBytes(await sha256(pPad), await sha256(gPad)),
+        await sha256(salt1),
+        await sha256(salt2),
+        ABytes,
+        bPad,
+        KBytes
+      ));
+      const checkReq = new TLWriter().writeUInt32(3515567382).writeUInt32(3531600002).writeInt64(srpId).writeBytes(ABytes).writeBytes(m1).toBytes();
+      await this.invoke(checkReq);
+    }
+  };
+
+  // src/tg/engine.js
+  var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  var brief = (s, n = 200) => {
+    const t = String(s || "").replace(/\s+/g, " ").trim();
+    return t.length <= n ? t : t.slice(0, n - 1) + "…";
+  };
+  var DEAD_SESSION = /AUTH_KEY_UNREGISTERED|USER_DEACTIVATED|SESSION_REVOKED|AUTH_KEY_DUPLICATED|USER_DEACTIVATED_BAN|SESSION_EXPIRED/i;
+  function errText(e) {
+    const msg = String(e && (e.errorMessage || e.message) || e || "");
+    const code = /^([A-Z][A-Z0-9_]{3,})$/.exec(msg);
+    if (/FLOOD_WAIT/.test(msg) || /FLOOD/.test(String(e && e.code || ""))) {
+      const m = /FLOOD_WAIT_(\d+)/.exec(msg);
+      const sec = m && m[1] || "?";
+      return "触发限流（FLOOD_WAIT_" + sec + "），Telegram 要求等待 " + sec + " 秒";
+    }
+    if (DEAD_SESSION.test(msg)) return "登录已失效，请到面板重新登录账号（" + msg + "）";
+    if (msg === "TIMEOUT") return "请求超时（Telegram 没有回包）";
+    return brief(code ? msg : e && e.message || msg || "未知错误");
+  }
+  function makeClient({ session, apiId, apiHash, proxy }) {
+    const env = { TG_API_ID: apiId, TG_API_HASH: apiHash };
+    if (proxy && proxy.host && proxy.port) {
+      env.S5_HOST = proxy.host;
+      env.S5_PORT = proxy.port;
+      env.S5_USER = proxy.user || "";
+      env.S5_PASS = proxy.pass || "";
+    }
+    return new MTProtoClient(session || "", env);
+  }
+  function taskContext(ms, name, onAbort, waiter) {
+    const wait = waiter || sleep;
+    const ctx = {
+      ms,
+      name,
+      aborted: false,
+      reason: "",
+      cancelled: false,
+      sendAttempted: false,
+      abort(reason, cancelled = false) {
+        if (this.aborted) return;
+        this.aborted = true;
+        this.reason = reason;
+        this.cancelled = cancelled;
+        try {
+          if (onAbort) onAbort(reason);
+        } catch (e) {
+        }
+      },
+      throwIfAborted() {
+        if (this.aborted) {
+          const e = new Error(this.reason || "ABORTED");
+          e.code = this.cancelled ? "CANCELLED" : "ABORTED";
+          throw e;
+        }
+      },
+      async sleep(ms2) {
+        const end = Date.now() + ms2;
+        while (Date.now() < end) {
+          this.throwIfAborted();
+          await wait(Math.min(250, end - Date.now()));
+        }
+        this.throwIfAborted();
+      },
+      async checkStop(shouldStop) {
+        if (shouldStop && await shouldStop()) this.abort("已手动结束该批次", true);
+        this.throwIfAborted();
+      }
+    };
+    return ctx;
+  }
+  async function withDeadline(p, ctx) {
+    let timer;
+    const timed = new Promise(function(_, reject) {
+      timer = setTimeout(function() {
+        ctx.abort(ctx.name + " 执行超时（" + Math.round(ctx.ms / 1e3) + " 秒无结果）");
+        const e = new Error(ctx.reason);
+        e.code = "ABORTED";
+        reject(e);
+      }, ctx.ms);
+    });
+    try {
+      const value = await Promise.race([Promise.resolve(p), timed]);
+      ctx.throwIfAborted();
+      return value;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  async function withFlood(fn, ctx, tries = 3) {
+    for (let i = 0; ; i++) {
+      try {
+        return await fn();
+      } catch (e) {
+        const msg = String(e && e.message || e);
+        const m = /FLOOD_WAIT_(\d+)/.exec(msg);
+        if (m && i < tries) {
+          const wait = Number(m[1]) || 3;
+          if (wait > 45) {
+            const err = new Error(msg);
+            err.code = "NO_RETRY";
+            throw err;
+          }
+          await ctx.sleep(wait * 1e3 + 1e3);
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
+  async function checkin(client, t, log, ctx) {
+    if (ctx.checkStop) await ctx.checkStop(ctx.shouldStop);
+    else ctx.throwIfAborted();
+    const peer = await withFlood(() => client.resolvePeer(t.target), ctx);
+    ctx.throwIfAborted();
+    const cmd = String(t.command || "/start").trim();
+    const t0 = Math.floor(Date.now() / 1e3);
+    const SKEW = 10;
+    const since = (m, t2) => (Number(m && m.date) || 0) >= t2 - SKEW;
+    ctx.sendAttempted = true;
+    const sent = await withFlood(() => client.sendText(peer.inputPeer, cmd), ctx);
+    log("已发送：" + cmd);
+    let sentId = sent.msgId || 0;
+    if (!sentId) {
+      await ctx.sleep(900);
+      const last2 = await withFlood(() => client.historyPage(peer.inputPeer, { limit: 1 }), ctx);
+      if (last2.length && last2[0].out) sentId = last2[0].id;
+    }
+    const keyword = String(t.button || "").trim();
+    const success = String(t.successText || "").split("|").map((x) => x.trim()).filter(Boolean);
+    let popup = "";
+    let clicked = false;
+    let clickedAt = 0;
+    if (keyword) {
+      const end = Date.now() + 25e3;
+      let hit = null;
+      while (Date.now() < end) {
+        await ctx.sleep(0);
+        const msgs = await withFlood(() => client.recentMessages(peer.inputPeer, 6, sentId), ctx);
+        for (let i = 0; i < msgs.length; i++) {
+          const m = msgs[i];
+          if (m.out || !m.buttons) continue;
+          if (!since(m, t0)) continue;
+          for (let r = 0; r < m.buttons.length; r++) {
+            const row = m.buttons[r];
+            for (let b = 0; b < row.length; b++) {
+              const btn = row[b];
+              if (btn.url) continue;
+              if (String(btn.text || "").indexOf(keyword) >= 0) {
+                hit = { msg: m, btn };
+                break;
+              }
+            }
+            if (hit) break;
+          }
+          if (hit) break;
+        }
+        if (hit) break;
+        await ctx.sleep(1500);
+      }
+      if (!hit) return { ok: false, message: "25 秒内没等到包含「" + keyword + "」的按钮" };
+      log("找到按钮：" + hit.btn.text);
+      if (hit.btn.data && hit.btn.data.length) {
+        if (ctx.checkStop) await ctx.checkStop(ctx.shouldStop);
+        else ctx.throwIfAborted();
+        clickedAt = Math.floor(Date.now() / 1e3);
+        const res = await withFlood(() => client.clickButton(peer.inputPeer, hit.msg.id, hit.btn.data), ctx);
+        clicked = true;
+        popup = res.message || "";
+        log("已点击" + (popup ? "，弹窗：" + popup : ""));
+      } else {
+        clicked = true;
+        log("按钮是 URL 类型，无需点击");
+      }
+    }
+    const t1 = clickedAt || t0;
+    const ALREADY = /已经签|已签到|今日已签|已签|签过|重复签|已领取|领取过|已打卡|打卡过/;
+    const deadline = Date.now() + (success.length ? 15e3 : 1e4);
+    await ctx.sleep(2500);
+    let texts = [];
+    for (; ; ) {
+      const msgs = await withFlood(() => client.recentMessages(peer.inputPeer, 6, sentId), ctx);
+      texts = msgs.filter((m) => !m.out && m.text && since(m, t1)).map((m) => m.text);
+      const pool = [popup].concat(texts);
+      if (popup && ALREADY.test(popup)) {
+        log("弹窗：" + brief(popup));
+        return { ok: true, message: brief(popup) };
+      }
+      const already = texts.find((x) => ALREADY.test(x));
+      if (already) {
+        log("机器人回复：" + brief(already));
+        return { ok: true, message: brief(already) };
+      }
+      if (success.length) {
+        const hitText = pool.filter(Boolean).find((x) => success.some((s) => String(x).indexOf(s) >= 0));
+        if (hitText) {
+          log("机器人回复：" + brief(hitText));
+          return { ok: true, message: brief(hitText) };
+        }
+      }
+      if (!success.length && texts.length) break;
+      if (Date.now() >= deadline) break;
+      await ctx.sleep(1500);
+    }
+    const last = texts[0] || popup;
+    if (last) log("机器人回复：" + brief(last));
+    if (last && ALREADY.test(last)) return { ok: true, message: brief(last) };
+    if (clicked && !texts.length) {
+      return { ok: false, noRetry: true, message: "已点击「" + keyword + "」，但机器人没有任何新回复" + (popup ? "（弹窗：" + brief(popup) + "）" : "") + "，无法确认是否成功" };
+    }
+    if (success.length) return { ok: false, message: "没看到成功关键词。机器人最新回复：" + brief(last || "（无）") };
+    if (keyword && !clicked) return { ok: false, message: "没能点击按钮" };
+    if (!popup && !last) return { ok: false, noRetry: true, message: "命令已发送，但机器人一直没有回复，无法确认是否成功" };
+    return { ok: true, message: brief(popup || last) };
+  }
+  async function runTasks(opts) {
+    const tasks = (opts.tasks || []).slice();
+    const log = opts.log || (() => {
+    });
+    const out = [];
+    const stamp = () => (/* @__PURE__ */ new Date()).toISOString().slice(11, 19);
+    if (!tasks.length) return { results: [], error: "" };
+    if (!opts.session) {
+      return {
+        results: tasks.map((t) => ({ id: t.id, name: t.name || t.id, ok: false, message: "账号没有 session，请先在面板登录", lines: [] })),
+        error: "没有 session"
+      };
+    }
+    const mk = opts.makeClient || makeClient;
+    async function connect2() {
+      const c = mk(opts);
+      await c.connect();
+      return c;
+    }
+    let head = null;
+    try {
+      head = await connect2();
+      await head.getMe();
+    } catch (e) {
+      const m = errText(e);
+      try {
+        if (head) await head.disconnect();
+      } catch (err) {
+      }
+      return {
+        results: tasks.map((t) => ({ id: t.id, name: t.name || t.id, ok: false, message: "连接 Telegram 失败：" + m, lines: [] })),
+        error: "连接 Telegram 失败：" + m
+      };
+    }
+    const queue = tasks.slice();
+    const conc = Math.max(1, Math.min(Number(opts.concurrency) || 3, 4, queue.length));
+    async function worker(seed) {
+      let client = seed;
+      try {
+        while (queue.length) {
+          const t = queue.shift();
+          const lines = [];
+          if (opts.shouldStop && await opts.shouldStop()) {
+            const stopRec = { id: t.id, name: t.name || t.id, target: t.target || "", ok: false, message: "已手动结束该批次", cancelled: true, noRetry: true, lines: [] };
+            out.push(stopRec);
+            if (opts.onResult) {
+              try {
+                await opts.onResult(stopRec);
+              } catch (e) {
+              }
+            }
+            continue;
+          }
+          if (!client) {
+            try {
+              client = await connect2();
+            } catch (e) {
+              const rec2 = { id: t.id, name: t.name || t.id, target: t.target || "", ok: false, message: "连接中断：" + errText(e), lines };
+              out.push(rec2);
+              if (opts.onResult) {
+                try {
+                  await opts.onResult(rec2);
+                } catch (err) {
+                }
+              }
+              break;
+            }
+          }
+          let rec = null;
+          for (let attempt = 0; attempt < 2 && !rec; attempt++) {
+            if (!client) {
+              try {
+                client = await connect2();
+              } catch (e) {
+                rec = {
+                  id: t.id,
+                  name: t.name || t.id,
+                  target: t.target || "",
+                  ok: false,
+                  noRetry: true,
+                  message: "重连 Telegram 失败：" + errText(e),
+                  lines
+                };
+                break;
+              }
+            }
+            const ctx = taskContext(Number(opts.taskTimeoutMs) || 9e4, t.name || t.id, function() {
+              try {
+                if (client) client.disconnect();
+              } catch (e) {
+              }
+            }, opts.sleep);
+            ctx.shouldStop = opts.shouldStop;
+            try {
+              const r = await withDeadline(checkin(client, t, (s) => lines.push(stamp() + " " + s), ctx), ctx);
+              rec = { id: t.id, name: t.name || t.id, target: t.target || "", ok: !!r.ok, message: r.message, lines };
+            } catch (e) {
+              const em = errText(e);
+              try {
+                await client.disconnect();
+              } catch (err) {
+              }
+              client = null;
+              if (ctx.cancelled) {
+                rec = { id: t.id, name: t.name || t.id, target: t.target || "", ok: false, cancelled: true, noRetry: true, message: "已手动结束该批次", lines };
+              } else if (ctx.aborted) {
+                rec = {
+                  id: t.id,
+                  name: t.name || t.id,
+                  target: t.target || "",
+                  ok: false,
+                  noRetry: ctx.sendAttempted,
+                  lines,
+                  message: ctx.reason + (ctx.sendAttempted ? "；消息已发出，结果未知，未自动重试" : "")
+                };
+              } else if (attempt === 0 && !ctx.sendAttempted && e.code !== "NO_RETRY" && /Socket|EOF|closed|ECONN|timeout|Not connected|FLOOD|限流/i.test(em)) {
+                lines.push(stamp() + " 连接异常（" + em + "），重连重试一次");
+                continue;
+              } else {
+                rec = {
+                  id: t.id,
+                  name: t.name || t.id,
+                  target: t.target || "",
+                  ok: false,
+                  noRetry: ctx.sendAttempted || e.code === "NO_RETRY",
+                  message: "执行异常：" + em,
+                  lines
+                };
+              }
+            }
+          }
+          lines.push((rec.ok ? "成功：" : "失败：") + rec.message);
+          out.push(rec);
+          if (opts.onResult) {
+            try {
+              await opts.onResult(rec);
+            } catch (e) {
+            }
+          }
+          log((t.name || t.id) + " → " + (rec.ok ? "ok" : "fail"));
+          if (queue.length) await sleep(600 + Math.floor(Math.random() * 1200));
+        }
+      } finally {
+        try {
+          if (client) await client.disconnect();
+        } catch (e) {
+        }
+      }
+      while (queue.length) {
+        const t = queue.shift();
+        const rec = {
+          id: t.id,
+          name: t.name || t.id,
+          target: t.target || "",
+          ok: false,
+          noRetry: true,
+          message: "连接中断，未收到执行结果；为避免重复签到未自动重发",
+          lines: []
+        };
+        out.push(rec);
+        if (opts.onResult) {
+          try {
+            await opts.onResult(rec);
+          } catch (e) {
+          }
+        }
+      }
+    }
+    const pool = [];
+    for (let i = 0; i < conc; i++) pool.push(worker(i === 0 ? head : null));
+    await Promise.all(pool);
+    return { results: out, error: "" };
+  }
+  function parseProxyUrl(url) {
+    const s = String(url || "").trim();
+    if (!s) return null;
+    const m = /^(?:socks5h?):\/\/(?:([^:@/]*)(?::([^@/]*))?@)?([^:/]+):(\d+)\/?$/i.exec(s);
+    if (!m) {
+      if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) return null;
+      const m2 = /^(?:([^:@/]*)(?::([^@/]*))?@)?([^:/]+):(\d+)$/.exec(s);
+      if (!m2) return null;
+      return { user: decodeURIComponent(m2[1] || ""), pass: decodeURIComponent(m2[2] || ""), host: m2[3], port: Number(m2[4]) };
+    }
+    return { user: decodeURIComponent(m[1] || ""), pass: decodeURIComponent(m[2] || ""), host: m[3], port: Number(m[4]) };
+  }
+  async function checkAccount(opts) {
+    const t0 = Date.now();
+    let client = null;
+    try {
+      client = makeClient(opts);
+      await client.connect();
+      const me = await client.getMe();
+      return {
+        ok: true,
+        ms: Date.now() - t0,
+        display: [me.firstName, me.lastName].filter(Boolean).join(" ") || String(me.username || ""),
+        user: { id: String(me.id), username: me.username || "", firstName: me.firstName || "", lastName: me.lastName || "", phone: me.phone || "" }
+      };
+    } catch (e) {
+      return { ok: false, ms: Date.now() - t0, error: errText(e) };
+    } finally {
+      try {
+        if (client) await client.disconnect();
+      } catch (e) {
+      }
+    }
+  }
+
+  // src/tg/cfsock.js
+  init_cf_global();
+
+  // src/tg/shims/buffer-global.js
+  var Native = globalThis.Buffer;
+
+  // src/tg/socket.js
+  init_socks5();
+  var EMPTY = new Uint8Array(0);
+  var DEFAULT_CONNECT = null;
+  function setConnect(fn) {
+    DEFAULT_CONNECT = fn;
+  }
+
+  // src/tg/cfsock.js
+  setConnect(connect);
+
+  // src/tg/index.js
+  init_cf_global();
+  var te = new TextEncoder();
+  var td = new TextDecoder();
+  var DEFAULT_TG_API_ID = "2040";
+  var DEFAULT_TG_API_HASH = "b18441a1ff607e10a989891a5462e627";
+  var SESSION_DAYS = 7;
+  var STALE_MS = 20 * 60 * 1e3;
+  var LOG_KEEP_DAYS = 15;
+  var MAX_TASKS = 25;
+  var MAX_ACCOUNTS = 10;
+  var HttpError = class extends Error {
+    constructor(status, msg) {
+      super(msg);
+      this.status = status;
+    }
+  };
+  var json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers }
+  });
+  var SAFE_ID = /^[A-Za-z0-9_-]{1,40}$/;
+  function randomString(n) {
+    const arr = new Uint8Array(n);
+    crypto.getRandomValues(arr);
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let s = "";
+    for (let i = 0; i < n; i++) s += chars[arr[i] % chars.length];
+    return s;
+  }
+  var b64 = (buf) => {
+    const u = new Uint8Array(buf);
+    let s = "";
+    for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]);
+    return btoa(s);
+  };
+  var unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  var b64u = (buf) => b64(buf).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  async function hmac(secret, data) {
+    const k = await crypto.subtle.importKey("raw", te.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    return new Uint8Array(await crypto.subtle.sign("HMAC", k, te.encode(data)));
+  }
+  async function safeEq(a, b) {
+    const [x, y] = await Promise.all([hmac("cmp", String(a)), hmac("cmp", String(b))]);
+    let d = 0;
+    for (let i = 0; i < x.length; i++) d |= x[i] ^ y[i];
+    return d === 0;
+  }
+  async function ensureSchema(env) {
+    if (ensureSchema._done) return;
+    const stmts = [
+      "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT)",
+      "CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, task_id TEXT, name TEXT, ok INTEGER, message TEXT, lines TEXT)",
+      "CREATE INDEX IF NOT EXISTS idx_logs_ts ON logs(ts)"
+    ];
+    for (const s of stmts) await env.DB.prepare(s).run();
+    ensureSchema._done = true;
+  }
+  async function dbGet(env, key, def = null) {
+    const row = await env.DB.prepare("SELECT value FROM kv WHERE key = ?").bind(key).first();
+    if (!row) return def;
+    try {
+      return JSON.parse(row.value);
+    } catch {
+      return def;
+    }
+  }
+  async function dbSet(env, key, val) {
+    await env.DB.prepare(
+      "INSERT INTO kv(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    ).bind(key, JSON.stringify(val)).run();
+  }
+  async function dbDel(env, key) {
+    await env.DB.prepare("DELETE FROM kv WHERE key = ?").bind(key).run();
+  }
+  async function dbMutate(env, key, change) {
+    for (let attempt = 0; attempt < 64; attempt++) {
+      const row = await env.DB.prepare("SELECT value FROM kv WHERE key = ?").bind(key).first();
+      const value = row ? JSON.parse(row.value) : null;
+      const next = change(value);
+      if (next === void 0) return { value, changed: false };
+      const text = JSON.stringify(next);
+      if (row && text === row.value) return { value: next, changed: false };
+      const result = row ? await env.DB.prepare("UPDATE kv SET value = ? WHERE key = ? AND value = ?").bind(text, key, row.value).run() : await env.DB.prepare("INSERT INTO kv(key,value) VALUES(?,?) ON CONFLICT(key) DO NOTHING").bind(key, text).run();
+      if (Number(result.meta && result.meta.changes) === 1) return { value: next, changed: true };
+    }
+    throw new HttpError(409, "状态并发更新繁忙，请稍后重试");
+  }
+  async function resolveConfig(env) {
+    const stored = await dbGet(env, "config") || {};
+    let changed = false;
+    let encKey, encLock;
+    const encKeyAlts = [];
+    if (env.ENC_KEY) {
+      encKey = env.ENC_KEY;
+      encLock = true;
+      if (stored.encKey && stored.encKey !== encKey) encKeyAlts.push(stored.encKey);
+    } else if (stored.encKey) {
+      encKey = stored.encKey;
+      encLock = false;
+    } else {
+      encKey = randomString(32);
+      stored.encKey = encKey;
+      encLock = false;
+      changed = true;
+    }
+    let runnerToken, rtLock;
+    if (env.RUNNER_TOKEN) {
+      runnerToken = env.RUNNER_TOKEN;
+      rtLock = true;
+    } else if (stored.runnerToken) {
+      runnerToken = stored.runnerToken;
+      rtLock = false;
+    } else {
+      runnerToken = randomString(32);
+      stored.runnerToken = runnerToken;
+      rtLock = false;
+      changed = true;
+    }
+    if (changed) await dbSet(env, "config", stored);
+    (env.ENC_KEY_ALTS || []).forEach(function(k) {
+      if (k && k !== encKey && encKeyAlts.indexOf(k) < 0) encKeyAlts.push(k);
+    });
+    return {
+      encKey,
+      encLock,
+      encKeyAlts,
+      encKeyAlt: encKeyAlts[0] || null,
+      encKeyAuto: !!env.ENC_KEY_AUTO,
+      runnerToken,
+      rtLock,
+      ghToken: env.GH_TOKEN || stored.ghToken || "",
+      ghLock: !!env.GH_TOKEN,
+      ghRepo: env.GH_REPO || stored.ghRepo || "",
+      ghRepoLock: !!env.GH_REPO,
+      ghRef: env.GH_REF || stored.ghRef || "main",
+      ghRefLock: !!env.GH_REF,
+      ghWorkflow: env.GH_WORKFLOW || stored.ghWorkflow || "run.yml",
+      ghWfLock: !!env.GH_WORKFLOW,
+      tgApiId: String(env.TG_API_ID || stored.tgApiId || DEFAULT_TG_API_ID),
+      tgApiIdLock: !!env.TG_API_ID,
+      tgApiHash: String(env.TG_API_HASH || stored.tgApiHash || DEFAULT_TG_API_HASH),
+      tgApiHashLock: !!env.TG_API_HASH,
+      proxyOn: !!env.PROXY_URL || stored.proxyOn === true,
+      proxyUrl: env.PROXY_URL || stored.proxyUrl || "",
+      proxyLock: !!env.PROXY_URL
+    };
+  }
+  async function saveConfig(env, b) {
+    const stored = await dbGet(env, "config") || {};
+    const out = { ...stored };
+    const set = (key, raw, max) => {
+      const v = String(raw ?? "").trim();
+      if (v) out[key] = v.slice(0, max);
+    };
+    set("ghRepo", b.GH_REPO, 100);
+    set("ghToken", b.GH_TOKEN, 200);
+    set("runnerToken", b.RUNNER_TOKEN, 200);
+    if (b.TG_API_ID !== void 0) {
+      const v = String(b.TG_API_ID ?? "").trim();
+      if (v) out.tgApiId = v.slice(0, 20);
+      else delete out.tgApiId;
+    }
+    if (b.TG_API_HASH !== void 0) {
+      const v = String(b.TG_API_HASH ?? "").trim();
+      if (v) out.tgApiHash = v.slice(0, 64);
+      else delete out.tgApiHash;
+    }
+    set("ghRef", b.GH_REF, 40);
+    set("ghWorkflow", b.GH_WORKFLOW, 40);
+    if (b.PROXY_URL !== void 0) out.proxyUrl = String(b.PROXY_URL || "").trim().slice(0, 300);
+    if (b.PROXY_ON !== void 0) out.proxyOn = !!b.PROXY_ON;
+    if (out.proxyOn && !out.proxyUrl) throw new HttpError(400, "请先填写代理地址，再开启代理");
+    if (out.proxyOn && out.proxyUrl && !parseProxy(out.proxyUrl)) {
+      throw new HttpError(400, proxyError(out.proxyUrl));
+    }
+    await dbSet(env, "config", out);
+  }
+  var PROXY_TYPES = ["socks5"];
+  function proxyError(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "代理地址是空的";
+    const scheme = (s.match(/^([a-z][a-z0-9+.-]*):\/\//i) || [])[1];
+    if (scheme && !/^socks5h?$/i.test(scheme)) {
+      return "只支持 SOCKS5 代理（socks5:// 或 socks5h://），不支持 " + scheme.toLowerCase() + "：Worker 里没有对应的客户端实现，填进来只会握手失败";
+    }
+    return "代理地址格式不对，例 socks5://user:pass@1.2.3.4:1080";
+  }
+  function parseProxy(raw) {
+    let s = String(raw || "").trim();
+    if (!s) return null;
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s = "socks5://" + s;
+    const m = s.match(/^(socks5h?):\/\/(?:([^:@\/]+)(?::([^@\/]*))?@)?(\[[0-9a-f:]+\]|[^:\/?#]+):(\d{1,5})\/?$/i);
+    if (!m) return null;
+    const type = m[1].toLowerCase() === "socks5h" ? "socks5" : m[1].toLowerCase();
+    if (PROXY_TYPES.indexOf(type) < 0) return null;
+    const port = parseInt(m[5], 10);
+    if (!(port > 0 && port < 65536)) return null;
+    const dec = (v) => {
+      try {
+        return decodeURIComponent(v);
+      } catch (e) {
+        return v;
+      }
+    };
+    return {
+      type,
+      host: m[4].replace(/^\[|\]$/g, ""),
+      port,
+      user: m[2] ? dec(m[2]) : "",
+      pass: m[3] ? dec(m[3]) : ""
+    };
+  }
+  function proxyOf(C) {
+    if (!C || !C.proxyOn || !C.proxyUrl) return null;
+    return parseProxy(C.proxyUrl);
+  }
+  function proxyFor(C) {
+    if (!C || !C.proxyOn || !C.proxyUrl) return null;
+    const p = parseProxy(C.proxyUrl);
+    if (!p) throw new HttpError(400, "代理已开启，但地址 Worker 用不了：" + proxyError(C.proxyUrl));
+    return p;
+  }
+  async function aesKeyOf(k) {
+    const h = await crypto.subtle.digest("SHA-256", te.encode("enc:" + k));
+    return crypto.subtle.importKey("raw", h, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+  }
+  async function aesKey(C) {
+    return aesKeyOf(C.encKey);
+  }
+  function encKeyCandidates(C) {
+    var out = [];
+    var all = [C.encKey].concat(C.encKeyAlts || [], C.encKeyAlt ? [C.encKeyAlt] : []);
+    all.forEach(function(k) {
+      if (k && out.indexOf(k) < 0) out.push(k);
+    });
+    return out;
+  }
+  async function seal(C, obj) {
+    const key = await aesKey(C);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, te.encode(JSON.stringify(obj)));
+    return b64(iv) + "." + b64(ct);
+  }
+  async function unseal(C, s) {
+    const [a, b] = String(s).split(".");
+    const keys = encKeyCandidates(C);
+    let lastErr = null;
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        const key = await aesKeyOf(keys[i]);
+        const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(a) }, key, unb64(b));
+        if (i > 0) C._usedAltKey = true;
+        return JSON.parse(td.decode(pt));
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw new HttpError(500, "解密失败：加密密钥与保存数据时不一致（" + (lastErr && lastErr.message ? lastErr.message : "unknown") + "）");
+  }
+  var getTasks = (env) => dbGet(env, "tasks", []);
+  var getAccounts = (env) => dbGet(env, "accounts", []);
+  var NOTIFY_STR = {
+    notifyBarkUrl: 200,
+    notifyBarkKey: 400,
+    notifyDingWebhook: 400,
+    notifyDingSecret: 200,
+    notifyScKey: 200,
+    notifyTgToken: 200,
+    notifyTgChat: 60
+  };
+  var NOTIFY_ON = ["notifyOn", "notifyBarkOn", "notifyDingOn", "notifyScOn", "notifyTgOn"];
+  async function getSettings(env) {
+    const s = await dbGet(env, "settings") || {};
+    const u = s.unified || {};
+    const ok = (v, d) => normHHMM(v, d);
+    const out = {
+      tz: Number.isFinite(s.tz) ? s.tz : 8,
+      retryRounds: Number.isFinite(s.retryRounds) ? clampInt(s.retryRounds, 0, 5, 2) : 2,
+      cron: validCron(s.cron),
+      diag: s.diag === true,
+      // 诊断接口默认关闭：它会真的往外连 socket，生产上不需要
+      unified: { on: !!u.on, start: ok(u.start, "09:00"), end: ok(u.end, "10:00") }
+    };
+    for (const k of NOTIFY_ON) out[k] = !!s[k];
+    for (const k of Object.keys(NOTIFY_STR)) out[k] = String(s[k] || "").slice(0, NOTIFY_STR[k]);
+    if (!out.notifyBarkUrl) out.notifyBarkUrl = "https://api.day.app";
+    return out;
+  }
+  async function saveSettings(env, patch) {
+    const cur = await getSettings(env);
+    const out = { ...cur };
+    for (const k of NOTIFY_ON) if (patch[k] !== void 0) out[k] = !!patch[k];
+    for (const k of Object.keys(NOTIFY_STR)) {
+      if (patch[k] !== void 0) out[k] = String(patch[k] || "").trim().slice(0, NOTIFY_STR[k]);
+    }
+    if (patch.tz !== void 0) out.tz = Number(patch.tz);
+    if (patch.retryRounds !== void 0) out.retryRounds = clampInt(patch.retryRounds, 0, 5, 2);
+    if (patch.diag !== void 0) out.diag = patch.diag === true;
+    if (patch.cron !== void 0) out.cron = validCron(patch.cron);
+    if (patch.unified !== void 0) {
+      const u = patch.unified || {};
+      const start = normHHMM(u.start, null);
+      const end = normHHMM(u.end, null);
+      if (u.start !== void 0 && start === null) throw new HttpError(400, "统一开始时间格式不对，应为 0-23:00-59");
+      if (u.end !== void 0 && end === null) throw new HttpError(400, "统一结束时间格式不对，应为 0-23:00-59");
+      out.unified = {
+        on: !!u.on,
+        start: start === null ? cur.unified.start : start,
+        end: end === null ? cur.unified.end : end
+      };
+    }
+    await dbSet(env, "settings", out);
+    return out;
+  }
+  var postJson = (url, body) => fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  var PRIVATE_HOST = /^(localhost|127\.|0\.0\.0\.0|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[?::1?\]?$|.*\.local$|metadata\.)/i;
+  function checkWebhook(u, hosts) {
+    let x;
+    try {
+      x = new URL(String(u));
+    } catch (e) {
+      throw new Error("通知地址不是合法 URL");
+    }
+    if (!/^https?:$/.test(x.protocol)) throw new Error("通知地址必须是 http(s)");
+    if (PRIVATE_HOST.test(x.hostname)) throw new Error("通知地址不能指向内网或本机：" + x.hostname);
+    if (hosts && !hosts.some(function(h) {
+      return x.hostname === h || x.hostname.endsWith("." + h);
+    })) {
+      throw new Error("通知地址只允许 " + hosts.join(" / ") + "，收到：" + x.hostname);
+    }
+    return x;
+  }
+  async function notifyOk(res, name) {
+    const text = await res.text().catch(function() {
+      return "";
+    });
+    if (!res.ok) throw new Error(name + " 返回 HTTP " + res.status + (text ? "：" + text.slice(0, 60) : ""));
+    let j = null;
+    try {
+      j = JSON.parse(text);
+    } catch (e) {
+    }
+    if (j && typeof j === "object") {
+      if (j.ok === false) throw new Error(name + " 拒绝了请求：" + (j.description || j.error || "unknown"));
+      if (j.errcode !== void 0 && Number(j.errcode) !== 0) throw new Error(name + " 返回 errcode " + j.errcode + "：" + (j.errmsg || ""));
+      if (j.code !== void 0 && Number(j.code) !== 200 && Number(j.code) !== 0) throw new Error(name + " 返回 code " + j.code + "：" + (j.message || j.msg || ""));
+    }
+    return true;
+  }
+  async function sendBark(s, title, body) {
+    const base = String(s.notifyBarkUrl || "https://api.day.app").trim().replace(/\/+$/, "");
+    const key = String(s.notifyBarkKey || "").trim().replace(/\/+$/, "");
+    if (/^https?:\/\//i.test(key)) {
+      checkWebhook(key, null);
+      return notifyOk(await fetch(key + "/" + encodeURIComponent(title) + "/" + encodeURIComponent(body)), "Bark");
+    }
+    if (!key) throw new Error("没填 Bark Key");
+    checkWebhook(base, null);
+    const tail = "/" + encodeURIComponent(title) + "/" + encodeURIComponent(body);
+    const hasKey = /^https?:\/\/[^/]+\/.+/.test(base);
+    return notifyOk(await fetch(base + (hasKey ? "" : "/" + encodeURIComponent(key)) + tail), "Bark");
+  }
+  async function sendDing(s, title, body) {
+    let url = String(s.notifyDingWebhook || "").trim();
+    if (!url) throw new Error("没填钉钉 Webhook");
+    checkWebhook(url, ["oapi.dingtalk.com"]);
+    const sec = String(s.notifyDingSecret || "").trim();
+    if (sec) {
+      const ts = Date.now();
+      const enc2 = new TextEncoder();
+      const k = await crypto.subtle.importKey("raw", enc2.encode(sec), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const sig = await crypto.subtle.sign("HMAC", k, enc2.encode(ts + "\n" + sec));
+      url += (url.indexOf("?") >= 0 ? "&" : "?") + "timestamp=" + ts + "&sign=" + encodeURIComponent(b64(sig));
+    }
+    return notifyOk(await postJson(url, { msgtype: "text", text: { content: title + "\n" + body } }), "钉钉");
+  }
+  async function sendSc(s, title, body) {
+    const key = String(s.notifyScKey || "").trim();
+    if (!key) throw new Error("没填 Server酱 SendKey");
+    const host = /^sctp/i.test(key) ? "https://sc3.ft07.com" : "https://sctapi.ftqq.com";
+    return notifyOk(await postJson(host + "/send/" + encodeURIComponent(key) + ".send", { title, desp: body }), "Server酱");
+  }
+  async function sendTg(s, title, body) {
+    const tk = String(s.notifyTgToken || "").trim();
+    const chat = String(s.notifyTgChat || "").trim();
+    if (!tk || !chat) throw new Error("TG Bot Token 或 Chat ID 没填");
+    if (!/^\d+:[A-Za-z0-9_-]+$/.test(tk)) throw new Error("TG Bot Token 格式不对");
+    return notifyOk(await postJson("https://api.telegram.org/bot" + tk + "/sendMessage", {
+      chat_id: chat,
+      text: title + "\n" + body,
+      disable_web_page_preview: true
+    }), "TG Bot");
+  }
+  async function pushNotify(env, s, msg) {
+    const bridge = globalThis.__embyNotify;
+    if (typeof bridge === "function") {
+      try {
+        const r = await bridge(env, msg.title, msg.body);
+        return r || "主面板未配置通知";
+      } catch (e) {
+        return "✗ " + String(e && e.message || e).slice(0, 80);
+      }
+    }
+    const jobs = [];
+    if (s.notifyBarkOn) jobs.push(["Bark", () => sendBark(s, msg.title, msg.body)]);
+    if (s.notifyDingOn) jobs.push(["钉钉", () => sendDing(s, msg.title, msg.body)]);
+    if (s.notifyScOn) jobs.push(["Server酱", () => sendSc(s, msg.title, msg.body)]);
+    if (s.notifyTgOn) jobs.push(["TG", () => sendTg(s, msg.title, msg.body)]);
+    if (!jobs.length) return "没有启用任何通知平台";
+    const out = [];
+    for (const [name, fn] of jobs) {
+      try {
+        await fn();
+        out.push(name + " ✓");
+      } catch (e) {
+        out.push(name + " ✗ " + String(e && e.message || e).slice(0, 80));
+      }
+    }
+    return out.join(" · ");
+  }
+  function summaryOf(tasks, run) {
+    const ids = Object.keys(run.results || {});
+    const okN = ids.filter((id) => run.results[id].ok).length;
+    const bad = ids.filter((id) => !run.results[id].ok);
+    const names = bad.map((id) => {
+      const t = tasks.find((x) => x.id === id);
+      const nm = t ? t.name : String(id).slice(0, 10);
+      const r = run.results[id] || {};
+      return r.rounds ? nm + "（" + r.rounds + " 轮重试后仍失败）" : nm;
+    });
+    return {
+      title: "TG 签到：" + ids.length + " 个任务完成",
+      body: ids.length + " 个签到任务完成，成功 " + okN + " 个，失败 " + bad.length + " 个" + (bad.length ? "。失败的节点有：" + names.join("、") : "。")
+    };
+  }
+  async function writeLog(env, { taskId, name, ok, message, lines }) {
+    const ts = Date.now();
+    await env.DB.prepare(
+      "INSERT INTO logs(ts,task_id,name,ok,message,lines) VALUES(?,?,?,?,?,?)"
+    ).bind(
+      ts,
+      taskId || "",
+      String(name || "").slice(0, 30),
+      ok ? 1 : 0,
+      String(message || "").slice(0, 300),
+      JSON.stringify(lines || [])
+    ).run();
+  }
+  async function listLogs(env, limit = 60) {
+    const { results } = await env.DB.prepare(
+      "SELECT id,ts,task_id,name,ok,message FROM logs ORDER BY ts DESC LIMIT ?"
+    ).bind(limit).all();
+    return (results || []).map((r) => ({
+      key: String(r.id),
+      ts: r.ts,
+      taskId: r.task_id,
+      name: r.name,
+      ok: !!r.ok,
+      message: r.message
+    }));
+  }
+  async function getLog(env, id) {
+    const row = await env.DB.prepare("SELECT lines FROM logs WHERE id = ?").bind(id).first();
+    if (!row) return null;
+    try {
+      return { lines: JSON.parse(row.lines) };
+    } catch {
+      return { lines: [] };
+    }
+  }
+  async function purgeOldLogs(env) {
+    const cutoff = Date.now() - LOG_KEEP_DAYS * 864e5;
+    await env.DB.prepare("DELETE FROM logs WHERE ts < ?").bind(cutoff).run();
+  }
+  function localNow(tz) {
+    const d = new Date(Date.now() + tz * 36e5);
+    return { date: d.toISOString().slice(0, 10), min: d.getUTCHours() * 60 + d.getUTCMinutes() };
+  }
+  function parseHHMM(v) {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(v == null ? "" : v).trim());
+    if (!m) return null;
+    const h = +m[1], mi = +m[2];
+    if (h > 23 || mi > 59) return null;
+    return h * 60 + mi;
+  }
+  function normHHMM(v, d) {
+    const n = parseHHMM(v);
+    if (n === null) return d;
+    return String(Math.floor(n / 60)).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0");
+  }
+  function toMin(hhmm) {
+    const n = parseHHMM(hhmm);
+    return n === null ? NaN : n;
+  }
+  function addDays(date, n) {
+    const t = Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10)) + n * 864e5;
+    return new Date(t).toISOString().slice(0, 10);
+  }
+  function localTs(date, minute, sec, tz) {
+    const base = Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10));
+    return base + minute * 6e4 + Math.max(0, sec | 0) * 1e3 - tz * 36e5;
+  }
+  function uniRange(s) {
+    const a = toMin(s.unified.start), b = toMin(s.unified.end);
+    const lo = Number.isNaN(a) ? 0 : a;
+    const hi = Number.isNaN(b) || b < lo ? lo : b;
+    return { lo, hi };
+  }
+  function uniSlot(s, date) {
+    const { lo, hi } = uniRange(s);
+    const minute = lo + Math.floor(Math.random() * (hi - lo + 1));
+    const sec = Math.floor(Math.random() * 60);
+    return { date, minute, sec, ts: localTs(date, minute, sec, s.tz) };
+  }
+  function checkAdminConfig(env) {
+    if (!env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < 8)
+      throw new HttpError(500, "未设置 ADMIN_PASSWORD（至少 8 位）");
+  }
+  async function makeSession(C) {
+    const exp = Date.now() + SESSION_DAYS * 864e5;
+    const sig = b64u(await hmac(C.encKey + "|" + C.env.ADMIN_PASSWORD, "sess:" + exp));
+    return `${exp}.${sig}`;
+  }
+  function getCookie(req, name) {
+    const c = req.headers.get("cookie") || "";
+    for (const part of c.split(";")) {
+      const i = part.indexOf("=");
+      if (i > 0 && part.slice(0, i).trim() === name) return part.slice(i + 1).trim();
+    }
+    return "";
+  }
+  async function isAdmin(C, req) {
+    const env = C.env;
+    if (!env.ADMIN_PASSWORD || !C.encKey) return false;
+    const v = getCookie(req, "sid");
+    const [exp, sig] = v.split(".");
+    if (!exp || !sig || !(+exp > Date.now())) return false;
+    const want = b64u(await hmac(C.encKey + "|" + env.ADMIN_PASSWORD, "sess:" + exp));
+    return safeEq(sig, want);
+  }
+  var LOGIN_MAX_FAILS = 8;
+  var LOGIN_WINDOW_MS = 15 * 6e4;
+  async function doLogin(C, req) {
+    const env = C.env;
+    checkAdminConfig(env);
+    const ip = req.headers.get("cf-connecting-ip") || "x";
+    const rlKey = "rl:" + ip;
+    const now = Date.now();
+    let rl = await dbGet(env, rlKey);
+    if (typeof rl === "number") {
+      rl = { n: rl, ts: now };
+      await dbSet(env, rlKey, rl);
+    }
+    if (!rl || typeof rl !== "object" || !(now - (rl.ts || 0) < LOGIN_WINDOW_MS)) rl = { n: 0, ts: now };
+    if (rl.n >= LOGIN_MAX_FAILS) {
+      const mins = Math.max(1, Math.ceil((LOGIN_WINDOW_MS - (now - rl.ts)) / 6e4));
+      throw new HttpError(429, `密码错误次数过多，请 ${mins} 分钟后再试`);
+    }
+    const body = await readBody(req);
+    if (!await safeEq(body.password || "", env.ADMIN_PASSWORD)) {
+      await dbSet(env, rlKey, { n: (rl.n || 0) + 1, ts: rl.ts });
+      throw new HttpError(401, "密码错误");
+    }
+    await dbDel(env, rlKey);
+    const sid = await makeSession(C);
+    return json({ ok: true }, 200, {
+      "set-cookie": `sid=${sid}; Path=/; Max-Age=${SESSION_DAYS * 86400}; HttpOnly; Secure; SameSite=Strict`
+    });
+  }
+  async function requireRunner(C, req) {
+    const env = C.env;
+    if (!C.runnerToken) throw new HttpError(500, "未配置 RUNNER_TOKEN");
+    const h = req.headers.get("authorization") || "";
+    if (!h.startsWith("Bearer ") || !await safeEq(h.slice(7), C.runnerToken))
+      throw new HttpError(401, "runner 令牌无效");
+  }
+  async function readBody(req) {
+    const len = +(req.headers.get("content-length") || 0);
+    if (len > 2e5) throw new HttpError(413, "请求过大");
+    try {
+      const b = await req.json();
+      return b && typeof b === "object" ? b : {};
+    } catch {
+      return {};
+    }
+  }
+  var NO_DO_CHUNK = 3;
+  var hasDO = (env) => !!(env && env.TG && typeof env.TG.idFromName === "function");
+  async function dispatchNextChunk(env, tasks, s, date, min, run) {
+    const take = (run.queue || []).slice(0, NO_DO_CHUNK);
+    if (!take.length) return;
+    run.queue = run.queue.slice(take.length);
+    run.pending = take.slice();
+    run.status = "running";
+    run.dispatchAt = Date.now();
+    await dbSet(env, "run:" + date, run);
+    try {
+      const since = Date.now();
+      for (const id of take) await markDispatched(env, tasks, id, date, min, since);
+      await dispatch(await cfgOf(env), { mode: "run", ids: take.join(",") });
+    } catch (e) {
+      for (const id of take) {
+        run.results[id] = { ok: false, message: "触发执行失败：" + e.message, rounds: run.round };
+        await failState(env, tasks, id, date, min, "触发执行失败：" + e.message);
+      }
+      run.pending = [];
+      await dbSet(env, "run:" + date, run);
+      await writeLog(env, { name: "调度", ok: false, message: "触发执行失败：" + e.message, lines: [] });
+    }
+  }
+  async function runInline(C, ids) {
+    const env = C.env;
+    const s = await getSettings(env);
+    const { date } = localNow(s.tz);
+    const executionId = randomString(20);
+    const updated = await dbMutate(env, "run:" + date, (run2) => {
+      if (!run2) throw new HttpError(409, "批次尚未登记，拒绝派发");
+      run2.runId = run2.runId || randomString(16);
+      run2.executionId = executionId;
+      run2.status = "queued";
+      return run2;
+    });
+    const run = updated.value;
+    for (const id of ids) await dbMutate(env, "st:" + id, (st) => {
+      if (!st || st.date !== date) return;
+      st.executionId = executionId;
+      st.status = "queued";
+      return st;
+    });
+    const job = { id: executionId, executionId, runId: run.runId, round: run.round || 0, date, ids };
+    await executeDurableJob(env, job, { saveResult: async () => {
+    }, acknowledge: async () => {
+    }, storage: null }, false, /* @__PURE__ */ new Map());
+    return { ok: true, count: ids.length, queued: false, executionId };
+  }
+  async function dispatch(C, inputs) {
+    const mode = String(inputs && inputs.mode || "run");
+    const ids = String(inputs && inputs.ids || "").split(",").map(function(x) {
+      return x.trim();
+    }).filter(Boolean);
+    if (mode === "run") {
+      if (!hasDO(C.env)) return runInline(C, ids);
+      const s = await getSettings(C.env);
+      const { date } = localNow(s.tz);
+      const runId = randomString(16), executionId = randomString(20);
+      const updated = await dbMutate(C.env, "run:" + date, (run2) => {
+        if (!run2) throw new HttpError(409, "批次尚未登记，拒绝派发");
+        run2.runId = run2.runId || runId;
+        run2.executionId = executionId;
+        run2.status = "queued";
+        return run2;
+      });
+      const run = updated.value;
+      for (const id of ids) await dbMutate(C.env, "st:" + id, (st) => {
+        if (!st || st.date !== date) return;
+        st.executionId = executionId;
+        st.status = "queued";
+        return st;
+      });
+      const body = { id: executionId, runId: run.runId, round: run.round || 0, date, ids };
+      const stub = C.env.TG.get(C.env.TG.idFromName("scheduler"));
+      const response = await stub.fetch("https://executor/enqueue", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new HttpError(502, result.error || "执行器未确认任务入队");
+      return { ok: true, count: ids.length, queued: true, executionId };
+    }
+    if (mode === "check") {
+      await checkViaDO(C, ids[0]);
+      return { ok: true };
+    }
+    if (mode === "ping") {
+      const accounts = await getAccounts(C.env);
+      if (!accounts.length) return { ok: true, note: "执行器就绪（还没有账号）" };
+      const acc = accounts[0];
+      let sec = null;
+      try {
+        sec = await unseal(C, acc.enc);
+      } catch (e) {
+        return { ok: false, note: "账号会话解密失败：" + (e && e.message || e) };
+      }
+      const t0 = Date.now();
+      let px = null;
+      try {
+        px = proxyFor(C);
+      } catch (e) {
+        return { ok: false, note: e.message };
+      }
+      const r = await checkAccount({ session: sec && sec.session || "", apiId: acc.api_id, apiHash: sec && sec.api_hash || "", proxy: px });
+      const ms = Date.now() - t0;
+      if (r && r.ok) return { ok: true, ms, note: "执行器就绪 · " + (r.display || acc.name) + " 在线" };
+      return { ok: false, ms, note: "执行器连不上 Telegram：" + (r && r.error || "未知错误") };
+    }
+    if (mode === "proxy_test") throw new HttpError(400, "这是旧版的代理测试入口，请用面板的「测试代理」");
+    throw new HttpError(400, "未知的 dispatch 模式：" + mode);
+  }
+  function newState(t, date, min, prev) {
+    const a = toMin(t.windowStart), b = toMin(t.windowEnd);
+    let planned = a + Math.floor(Math.random() * (b - a + 1));
+    let status = "pending";
+    if (!prev) {
+      if (min > b) status = "waiting";
+      else if (min >= a) planned = Math.min(b, min + 1 + Math.floor(Math.random() * Math.max(1, b - min)));
+    }
+    return {
+      date,
+      planned,
+      status,
+      attempts: 0,
+      lastRun: prev?.lastRun || 0,
+      lastOk: prev?.lastOk ?? null,
+      lastMsg: prev?.lastMsg || ""
+    };
+  }
+  async function loadState(env, t, date, min) {
+    const prev = await dbGet(env, "st:" + t.id);
+    if (prev && prev.date === date) return { st: prev, fresh: false };
+    return { st: newState(t, date, min, prev), fresh: true };
+  }
+  var saveState = (env, id, st) => dbSet(env, "st:" + id, st);
+  async function tick(env) {
+    if (!env.DB) return;
+    await purgeOldLogs(env);
+    const tasks = await getTasks(env);
+    if (!tasks.length) return;
+    const s = await getSettings(env);
+    const { date, min } = localNow(s.tz);
+    if (s.unified.on) return tickBatch(env, tasks, s, date, min);
+    return tickPerTask(env, tasks, s, date, min);
+  }
+  async function primeBatchPlan(env, date, minute) {
+    const r = await dbMutate(env, "run:" + date, (prev) => {
+      if (prev && runActive(prev)) return;
+      if (prev && prev.batch) {
+        if (prev.status === "pending" && prev.planned !== minute) {
+          prev.planned = minute;
+          return prev;
+        }
+        return;
+      }
+      return {
+        batch: true,
+        date,
+        runId: randomString(16),
+        planned: minute,
+        status: "pending",
+        round: 0,
+        ids: [],
+        pending: [],
+        results: {},
+        dispatchAt: 0
+      };
+    });
+    return r.value;
+  }
+  async function computeNextWake(env, after) {
+    const s = await getSettings(env);
+    const { date: today, min } = localNow(s.tz);
+    if (s.unified.on) {
+      const run = await dbGet(env, "run:" + today);
+      const pending = run && run.batch ? run.status === "pending" : true;
+      if (pending && !after) return uniSlot(s, today);
+      if (pending && after) return { date: today, minute: min, sec: 0, ts: Date.now() + 6e4 };
+      return uniSlot(s, addDays(today, 1));
+    }
+    const tasks = (await getTasks(env)).filter((t) => t.enabled);
+    if (!tasks.length) return null;
+    let best = null;
+    const push = (slot) => {
+      if (slot && (!best || slot.ts < best.ts)) best = slot;
+    };
+    for (const t of tasks) {
+      const st = await dbGet(env, "st:" + t.id);
+      if (st && st.date === today) {
+        if (st.status === "pending" && Number.isFinite(st.planned))
+          push({ date: today, minute: st.planned, sec: 5, ts: localTs(today, st.planned, 5, s.tz) });
+        continue;
+      }
+      const a = toMin(t.windowStart), b = toMin(t.windowEnd);
+      const lo2 = Number.isNaN(a) ? 0 : a;
+      const hi2 = Number.isNaN(b) || b < lo2 ? lo2 : b;
+      const minute2 = Math.min(hi2, lo2 + Math.floor(Math.random() * (hi2 - lo2 + 1)));
+      push({ date: today, minute: minute2, sec: 5, ts: localTs(today, minute2, 5, s.tz) });
+    }
+    if (best) return best;
+    const starts = tasks.map((t) => toMin(t.windowStart)).filter((n) => !Number.isNaN(n));
+    const lo = starts.length ? Math.min.apply(null, starts) : 0;
+    const hi = Math.max(lo, Math.min(1439, lo + 30));
+    const minute = lo + Math.floor(Math.random() * (hi - lo + 1));
+    const next = addDays(today, 1);
+    return { date: next, minute, sec: 5, ts: localTs(next, minute, 5, s.tz) };
+  }
+  async function plannerWake(env) {
+    if (!env.DB) return null;
+    const tasks = (await getTasks(env)).filter((t) => t.enabled);
+    if (!tasks.length) return null;
+    const s = await getSettings(env);
+    const { date, min } = localNow(s.tz);
+    try {
+      if (s.unified.on) await primeBatchPlan(env, date, min);
+      await tick(env);
+    } catch (e) {
+      console.error("planner tick failed", e);
+    }
+    return computeNextWake(env, true);
+  }
+  async function resetPlan(env) {
+    try {
+      if (!env.TG || typeof env.TG.idFromName !== "function") return;
+      const stub = env.TG.get(env.TG.idFromName("planner"));
+      await stub.fetch(new Request("https://planner/plan", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: '{"reset":true}'
+      }));
+    } catch (e) {
+    }
+  }
+  async function ensureDailyPlan(env) {
+    if (!env.DB) return;
+    const tasks = (await getTasks(env)).filter((t) => t.enabled);
+    if (!tasks.length) return;
+    if (!env.TG || typeof env.TG.idFromName !== "function") return tick(env);
+    const slot = await computeNextWake(env, false);
+    if (!slot) return;
+    try {
+      const stub = env.TG.get(env.TG.idFromName("planner"));
+      const r = await stub.fetch(new Request("https://planner/plan", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ date: slot.date, minute: slot.minute, sec: slot.sec, ts: slot.ts })
+      }));
+      if (r.ok) return;
+    } catch (e) {
+      console.error("planner plan failed", e);
+    }
+    await tick(env);
+  }
+  globalThis.__tgPlannerWake = plannerWake;
+  var cfgOf = async (env) => ({ env, ...await resolveConfig(env) });
+  var effRounds = (t, s) => Number.isFinite(t.maxRetries) ? clampInt(t.maxRetries, 0, 5, 2) : s.retryRounds;
+  async function markDispatched(env, tasks, id, date, min, since) {
+    const t = tasks.find((x) => x.id === id);
+    if (!t) return;
+    const { st } = await loadState(env, t, date, min);
+    if (since && st.lastRun && st.lastRun >= since) return;
+    st.status = "dispatched";
+    st.dispatchedAt = Date.now();
+    st.attempts = (st.attempts || 0) + 1;
+    await saveState(env, id, st);
+  }
+  async function failState(env, tasks, id, date, min, msg) {
+    const t = tasks.find((x) => x.id === id);
+    if (!t) return;
+    const { st } = await loadState(env, t, date, min);
+    st.status = "failed";
+    st.lastRun = Date.now();
+    st.lastOk = false;
+    st.lastMsg = String(msg || "").slice(0, 120);
+    await saveState(env, id, st);
+  }
+  async function notifyRun(env, s, tasks, run) {
+    const ids = Object.keys(run.results || {});
+    if (!ids.length) return;
+    const bad = ids.filter((id) => !run.results[id].ok).length;
+    if (typeof globalThis.__embyNotify === "function") {
+      let cfg = null;
+      try {
+        cfg = await globalThis.__embyNotifyCfg(env);
+      } catch (e) {
+      }
+      if (!cfg) return;
+      if (!(cfg.barkNotify !== false && cfg.barkKey) && !(cfg.tgNotify !== false && cfg.tgToken && cfg.tgChatId)) return;
+      if (cfg.kaNotifyMode === "fail" && !bad) return;
+    } else if (!s.notifyOn) return;
+    if (!bad && !run.batch && ids.length < 2) return;
+    const msg = summaryOf(tasks, run);
+    const r = await pushNotify(env, s, msg);
+    await writeLog(env, { name: "通知", ok: r.indexOf("✗") < 0, message: (msg.body + " ｜ " + r).slice(0, 240), lines: [] });
+  }
+  var runDispatchAt = (run) => Number(run && (run.dispatchAt || run.dispatchedAt)) || 0;
+  var runActive = (run) => !!(run && (run.status === "queued" || ["running", "retrying"].includes(run.status) && Date.now() - runDispatchAt(run) < STALE_MS));
+  async function runAllNow(C) {
+    const env = C.env;
+    const s = await getSettings(env);
+    const tasks = (await getTasks(env)).filter((t) => t.enabled);
+    if (!tasks.length) throw new HttpError(400, "没有启用的任务");
+    const ids = tasks.map((t) => t.id);
+    const { date, min } = localNow(s.tz);
+    const run = { batch: true, date, ids, planned: min, status: "running", round: 0, results: {}, pending: ids.slice(), dispatchAt: Date.now(), manual: true };
+    await dbMutate(env, "run:" + date, (prev) => {
+      if (runActive(prev)) throw new HttpError(409, "今天这批还在执行，等它跑完再手动执行");
+      return run;
+    });
+    await dbDel(env, "cancel:" + date);
+    for (const t of tasks) {
+      const { st } = await loadState(env, t, date, min);
+      st.status = "dispatched";
+      st.dispatchedAt = Date.now();
+      st.attempts = (st.attempts || 0) + 1;
+      await saveState(env, t.id, st);
+    }
+    try {
+      await dispatch(C, { mode: "run", ids: ids.join(",") });
+    } catch (e) {
+      for (const id of ids) run.results[id] = { ok: false, message: "触发执行失败：" + e.message, rounds: 0 };
+      run.pending = [];
+      run.status = "done";
+      await dbSet(env, "run:" + date, run);
+      throw new HttpError(502, "触发执行失败：" + e.message);
+    }
+    await tickBatch(env, await getTasks(env), s, date, min);
+    return { ok: true, count: ids.length };
+  }
+  async function cancelRun(C) {
+    const env = C.env;
+    const s = await getSettings(env);
+    const { date, min } = localNow(s.tz);
+    const key = "run:" + date;
+    const run = await dbGet(env, key);
+    if (!run) throw new HttpError(400, "今天没有批次可结束");
+    const pending = (run.pending || []).slice();
+    const tasks = await getTasks(env);
+    for (const id of pending) {
+      run.results[id] = { ok: false, message: "已手动结束", rounds: run.round || 0, cancelled: true };
+      const t = tasks.filter((x) => x.id === id)[0];
+      if (t) {
+        const { st } = await loadState(env, t, date, min);
+        st.status = "skip";
+        st.lastMsg = "已手动结束";
+        await saveState(env, id, st);
+      }
+    }
+    await dbSet(env, "cancel:" + date, { ts: Date.now() });
+    const wasPending = run.status === "pending";
+    run.pending = [];
+    run.status = "done";
+    run.cancelledAt = Date.now();
+    await dbSet(env, key, run);
+    await writeLog(env, {
+      name: "调度",
+      ok: true,
+      message: wasPending ? "已手动取消今天这一批（尚未派发）" : "已手动结束今天的批次，" + pending.length + " 个任务停在今日",
+      lines: []
+    });
+    return { ok: true, cancelled: pending.length, wasPending };
+  }
+  async function tickBatch(env, tasks, s, date, min) {
+    const cronFixed2 = isFixedCron(s.cron);
+    const on = tasks.filter((t) => t.enabled);
+    const a = toMin(s.unified.start);
+    const b = toMin(s.unified.end);
+    const lo = Number.isNaN(a) ? 0 : a;
+    const hi = Number.isNaN(b) || b < lo ? lo : b;
+    const key = "run:" + date;
+    let run = await dbGet(env, key);
+    if (!run || !run.batch) {
+      const candidate = {
+        batch: true,
+        date,
+        runId: randomString(16),
+        planned: lo + Math.floor(Math.random() * (hi - lo + 1)),
+        status: "pending",
+        round: 0,
+        ids: [],
+        pending: [],
+        results: {},
+        dispatchAt: 0
+      };
+      const created = await dbMutate(env, key, (prev) => {
+        if (prev && (prev.batch || runActive(prev))) return;
+        return candidate;
+      });
+      run = created.value;
+    }
+    if (run.status === "pending") {
+      if (!cronFixed2 && min < run.planned || !on.length) return;
+      const ids = on.map((t) => t.id);
+      const nodo = !hasDO(env);
+      const chunk = nodo ? ids.slice(0, NO_DO_CHUNK) : ids;
+      const claimed = await dbMutate(env, key, (latest) => {
+        if (!latest || latest.status !== "pending") return;
+        latest.status = "running";
+        latest.ids = ids;
+        latest.pending = chunk.slice();
+        latest.round = 0;
+        latest.queue = nodo ? ids.slice(chunk.length) : [];
+        latest.results = {};
+        latest.dispatchAt = Date.now();
+        return latest;
+      });
+      if (!claimed.changed) return;
+      run = claimed.value;
+      await dbDel(env, "cancel:" + date);
+      try {
+        const since = Date.now();
+        for (const id of chunk) await markDispatched(env, tasks, id, date, min, since);
+        await dispatch(await cfgOf(env), { mode: "run", ids: chunk.join(",") });
+      } catch (e) {
+        for (const id of chunk) run.results[id] = { ok: false, message: "触发执行失败：" + e.message, rounds: 0 };
+        run.pending = [];
+        run.queue = [];
+        run.status = "done";
+        await dbSet(env, key, run);
+        for (const id of chunk) await failState(env, tasks, id, date, min, "触发执行失败：" + e.message);
+        await writeLog(env, { name: "调度", ok: false, message: "触发执行失败：" + e.message, lines: [] });
+        await notifyRun(env, s, tasks, run);
+        return;
+      }
+      run = await dbGet(env, key) || run;
+      if (!hasDO(env)) return;
+    }
+    if (run.status !== "running" && run.status !== "retrying") return;
+    if (!hasDO(env) && !(run.pending || []).length && (run.queue || []).length) {
+      return dispatchNextChunk(env, tasks, s, date, min, run);
+    }
+    if (run.pending.length && Date.now() - runDispatchAt(run) > STALE_MS) {
+      for (const id of run.pending) {
+        const m = "执行超时未回报（详见运行日志）";
+        run.results[id] = { ok: false, message: m, rounds: run.round };
+        await failState(env, tasks, id, date, min, m);
+      }
+      run.pending = [];
+      await dbSet(env, key, run);
+    }
+    if (run.pending.length) return;
+    const failed = run.ids.filter((id) => run.results[id] && !run.results[id].ok);
+    const next = failed.filter((id) => {
+      const t = tasks.find((x) => x.id === id);
+      return !!t && !run.results[id].noRetry && !run.results[id].cancelled && run.round < effRounds(t, s);
+    });
+    if (next.length) {
+      const nodo = !hasDO(env);
+      const chunk = nodo ? next.slice(0, NO_DO_CHUNK) : next;
+      run.round += 1;
+      run.status = "retrying";
+      run.ids = next;
+      run.pending = chunk.slice();
+      run.queue = nodo ? next.slice(chunk.length) : [];
+      run.dispatchAt = Date.now();
+      await dbSet(env, key, run);
+      try {
+        const since = Date.now();
+        for (const id of chunk) await markDispatched(env, tasks, id, date, min, since);
+        tasks = await getTasks(env);
+        await dispatch(await cfgOf(env), { mode: "run", ids: chunk.join(",") });
+        return hasDO(env) ? tickBatch(env, tasks, s, date, min) : void 0;
+      } catch (e) {
+        for (const id of chunk) {
+          run.results[id] = { ok: false, message: "第 " + run.round + " 轮重试触发失败：" + e.message, rounds: run.round };
+          await failState(env, tasks, id, date, min, run.results[id].message);
+        }
+        run.pending = [];
+        run.status = "done";
+        await dbSet(env, key, run);
+        await notifyRun(env, s, tasks, run);
+      }
+      return;
+    }
+    run.status = "done";
+    await dbSet(env, key, run);
+    await notifyRun(env, s, tasks, run);
+  }
+  async function tickPerTask(env, tasks, s, date, min) {
+    const due = [];
+    const states = {};
+    for (const t of tasks) {
+      if (!t.enabled) continue;
+      const { st, fresh } = await loadState(env, t, date, min);
+      let changed = fresh;
+      const answered = !!(st.lastRun && st.lastRun >= (st.dispatchedAt || 0));
+      if (st.status === "dispatched" && !answered && Date.now() - (st.dispatchedAt || 0) > STALE_MS) {
+        st.lastMsg = "执行超时未回报，详见运行日志";
+        st.lastOk = false;
+        st.lastRun = Date.now();
+        if ((st.attempts || 0) <= effRounds(t, s)) {
+          st.status = "pending";
+          st.planned = min + 1;
+        } else st.status = "failed";
+        changed = true;
+        await writeLog(env, { taskId: t.id, name: t.name, ok: false, message: st.lastMsg, lines: [] });
+      }
+      if (st.status === "pending" && (cronFixed || min >= st.planned)) {
+        st.status = "dispatched";
+        st.dispatchedAt = Date.now();
+        st.attempts = (st.attempts || 0) + 1;
+        due.push(t.id);
+        changed = true;
+      }
+      states[t.id] = st;
+      if (changed) await saveState(env, t.id, st);
+    }
+    if (!due.length) return;
+    await dbMutate(env, "run:" + date, (prev) => {
+      if (prev && prev.batch) return;
+      const run = prev || { date, batch: false, round: 0, ids: [], pending: [], results: {} };
+      run.ids = [.../* @__PURE__ */ new Set([...run.ids || [], ...due])];
+      run.pending = [.../* @__PURE__ */ new Set([...run.pending || [], ...due])];
+      run.results = run.results || {};
+      for (const id of due) delete run.results[id];
+      run.status = "running";
+      run.dispatchAt = Date.now();
+      return run;
+    });
+    try {
+      await dispatch(await cfgOf(env), { mode: "run", ids: due.join(",") });
+    } catch (e) {
+      for (const id of due) {
+        const st = states[id];
+        st.status = "pending";
+        st.attempts -= 1;
+        st.planned = min + 1;
+        st.lastOk = false;
+        st.lastRun = Date.now();
+        st.lastMsg = "触发执行失败：" + e.message;
+        await saveState(env, id, st);
+      }
+      await writeLog(env, { name: "调度", ok: false, message: "触发执行失败：" + e.message, lines: [] });
+      return;
+    }
+    await finishPerTaskRun(env, s, tasks, date);
+  }
+  async function finishPerTaskRun(env, s, tasks, date) {
+    const updated = await dbMutate(env, "run:" + date, (run) => {
+      if (!run || run.batch || run.status !== "running" || (run.pending || []).length) return;
+      run.status = "done";
+      run.completedAt = Date.now();
+      return run;
+    });
+    if (updated.changed) await notifyRun(env, s, tasks, updated.value);
+  }
+  async function runNow(C, id) {
+    const env = C.env;
+    const tasks = await getTasks(env), t = tasks.find((x) => x.id === id);
+    if (!t) throw new HttpError(404, "任务不存在");
+    const s = await getSettings(env), { date, min } = localNow(s.tz);
+    const { st } = await loadState(env, t, date, min);
+    if (st.status === "queued" || st.status === "dispatched" && Date.now() - (st.dispatchedAt || 0) < STALE_MS)
+      throw new HttpError(409, "该任务正在排队或执行");
+    await dbMutate(env, "run:" + date, (prev) => {
+      if (runActive(prev)) throw new HttpError(409, "已有批次排队或执行中，请等它结束");
+      return {
+        batch: true,
+        manual: true,
+        date,
+        runId: randomString(16),
+        ids: [id],
+        pending: [id],
+        results: {},
+        status: "running",
+        round: 0,
+        dispatchAt: Date.now(),
+        planned: min
+      };
+    });
+    await markDispatched(env, tasks, id, date, min);
+    return dispatch(C, { mode: "run", ids: id });
+  }
+  async function onReport(C, body) {
+    const env = C.env;
+    const s = await getSettings(env);
+    const now = localNow(s.tz), date = C.execution ? C.execution.date : now.date, min = now.min;
+    const tasks = await getTasks(env);
+    if (!body || !Array.isArray(body.results) || body.results.some((r) => !r || typeof r.id !== "string"))
+      throw new HttpError(400, "回报 results 必须是包含任务 id 的数组");
+    const reports = [];
+    for (const r of body.results.slice(0, MAX_TASKS)) {
+      const t = tasks.find((x) => x.id === r.id);
+      const lines = (Array.isArray(r.lines) ? r.lines : []).slice(0, 80).map((x) => String(x).slice(0, 300));
+      const message = String(r.message || "").slice(0, 300);
+      await writeLog(env, { taskId: r.id, name: t ? t.name : String(r.id).slice(0, 12), ok: r.ok, message, lines });
+      if (!t) continue;
+      await dbMutate(env, "st:" + t.id, (prev) => {
+        if (C.execution && (!prev || prev.date !== date || prev.executionId !== C.execution.executionId)) return;
+        const st = prev && prev.date === date ? prev : newState(t, date, min, prev);
+        st.lastRun = Date.now();
+        st.lastOk = !!r.ok;
+        st.lastMsg = message.slice(0, 120);
+        if (r.ok) st.status = "ok";
+        else if (r.cancelled) st.status = "skip";
+        else if (s.unified.on || r.noRetry) st.status = "failed";
+        else if ((st.attempts || 0) <= effRounds(t, s)) {
+          st.status = "pending";
+          st.planned = min + 1;
+        } else st.status = "failed";
+        return st;
+      });
+      reports.push({ id: r.id, ok: !!r.ok, noRetry: !!r.noRetry, cancelled: !!r.cancelled, message: message.slice(0, 120) });
+    }
+    if (reports.length) await dbMutate(env, "run:" + date, (run) => {
+      if (!run || C.execution && (run.runId !== C.execution.runId || (run.round || 0) !== C.execution.round)) return;
+      run.results = run.results || {};
+      for (const r of reports) {
+        run.pending = (run.pending || []).filter((id) => id !== r.id);
+        run.results[r.id] = { ok: r.ok, noRetry: r.noRetry, cancelled: r.cancelled, message: r.message, rounds: run.round || 0 };
+      }
+      return run;
+    });
+    await finishPerTaskRun(env, s, tasks, date);
+  }
+  var clampInt = (v, lo, hi, def) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : def;
+  };
+  var str = (v, n) => String(v ?? "").trim().slice(0, n);
+  function cleanTarget(raw) {
+    let t = str(raw, 100).replace(/^https?:\/\/t\.me\//i, "");
+    if (/^-?\d{5,20}$/.test(t)) return t;
+    t = t.replace(/^@/, "").replace(/\/.*$/, "");
+    if (!/^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(t)) throw new HttpError(400, "目标格式不对：填 @用户名 或群数字 ID");
+    return "@" + t;
+  }
+  function cleanTask(b, accounts, id, allowNoAccount) {
+    const t = {
+      id,
+      name: str(b.name, 40),
+      accountId: str(b.accountId || b.account, 20),
+      target: "",
+      command: str(b.command || b.cmd, 200) || "/start",
+      button: str(b.button, 40),
+      successText: str(b.successText, 120),
+      windowStart: str(b.windowStart || b.start, 5),
+      windowEnd: str(b.windowEnd || b.end, 5),
+      maxRetries: b.maxRetries === "" || b.maxRetries === null || b.maxRetries === void 0 ? null : clampInt(b.maxRetries, 0, 5, 2),
+      enabled: b.enabled !== false
+    };
+    if (!t.name) throw new HttpError(400, "请填写任务名称");
+    if (!accounts.some((a2) => a2.id === t.accountId)) {
+      if (allowNoAccount) t.accountId = "";
+      else throw new HttpError(400, "请选择一个账号");
+    }
+    t.target = cleanTarget(b.target);
+    const a = toMin(t.windowStart), e = toMin(t.windowEnd);
+    if (Number.isNaN(a) || Number.isNaN(e)) throw new HttpError(400, "时间格式应为 HH:MM");
+    if (a > e) throw new HttpError(400, "开始时间不能晚于结束时间（不支持跨零点）");
+    return t;
+  }
+  var publicAccount = (a) => ({
+    id: a.id,
+    name: a.name,
+    api_id: a.api_id,
+    createdAt: a.createdAt,
+    via: a.via,
+    status: a.status || null
+  });
+  function tgApi(C, b) {
+    const api_id = str(b.api_id, 12) || C.tgApiId;
+    const api_hash = str(b.api_hash, 64) || C.tgApiHash;
+    if (!api_id || !api_hash) throw new HttpError(400, "请填写 api_id / api_hash（或在设置页配置）");
+    return { api_id, api_hash };
+  }
+  var DC_ADDR = { 1: "149.154.175.53", 2: "149.154.167.51", 3: "149.154.175.100", 4: "149.154.167.91", 5: "91.108.56.130" };
+  function hexToBytes2(hex) {
+    const h = String(hex || "").replace(/[^0-9a-f]/gi, "");
+    const out = new Uint8Array(h.length >> 1);
+    for (let i = 0; i < out.length; i++) out[i] = parseInt(h.substr(i * 2, 2), 16);
+    return out;
+  }
+  function mtpToGramjs(sessionStr) {
+    let j;
+    try {
+      j = JSON.parse(sessionStr);
+    } catch (e) {
+      throw new HttpError(502, "会话解析失败");
+    }
+    if (!j || !j.authKey) throw new HttpError(502, "会话里没有 auth key");
+    const dc = Number(j.dcId) || 2;
+    const ip = DC_ADDR[dc] || DC_ADDR[2];
+    const ipb = new TextEncoder().encode(ip);
+    const key = hexToBytes2(j.authKey);
+    if (key.length !== 256) throw new HttpError(502, "auth key 长度异常");
+    const buf = new Uint8Array(1 + 2 + ipb.length + 2 + key.length);
+    let o = 0;
+    buf[o++] = dc;
+    buf[o++] = ipb.length >> 8 & 255;
+    buf[o++] = ipb.length & 255;
+    buf.set(ipb, o);
+    o += ipb.length;
+    buf[o++] = 443 >> 8 & 255;
+    buf[o++] = 443 & 255;
+    buf.set(key, o);
+    return "1" + b64u(buf);
+  }
+  var TG_ERR_CN = [
+    [/PHONE_NUMBER_INVALID/, "手机号无效，请检查是否带国家区号"],
+    [/PHONE_CODE_INVALID/, "验证码错误"],
+    [/PHONE_CODE_EXPIRED/, "验证码已过期，请重新发送"],
+    [/PHONE_NUMBER_BANNED/, "该手机号已被 Telegram 封禁"],
+    [/PASSWORD_HASH_INVALID/, "两步验证密码错误"],
+    [/SESSION_PASSWORD_NEEDED/, "需要两步验证密码"],
+    [/AUTH_KEY_UNREGISTERED/, "登录已失效，请重新登录"],
+    [/API_ID_INVALID|API_ID_PUBLISHED_FLOOD/, "api_id / api_hash 不被接受"],
+    [/FLOOD_WAIT_(\d+)/, (m) => "操作太频繁，请等 " + m[1] + " 秒后再试"],
+    [/PHONE_MIGRATE_(\d+)/, (m) => "该号码属于 DC" + m[1] + "，正在切换…"],
+    [/TIMEOUT|timeout|network|connect/i, "连不上 Telegram，请稍后再试"]
+  ];
+  function tgErr(e) {
+    const raw = String(e && (e.errorMessage || e.message) || e || "未知错误");
+    for (const [re, cn] of TG_ERR_CN) {
+      const m = raw.match(re);
+      if (m) return typeof cn === "function" ? cn(m) : cn;
+    }
+    return raw;
+  }
+  function mtpClient(rec, apiHash, session) {
+    return new MTProtoClient(String(session || ""), {
+      TG_API_ID: String(rec.api_id || ""),
+      TG_API_HASH: String(apiHash || "")
+    });
+  }
+  async function displayOf(c) {
+    try {
+      const me = await c.getMe();
+      const n = [me.firstName, me.lastName].filter(Boolean).join(" ");
+      return n || (me.username ? "@" + me.username : "") || "";
+    } catch (e) {
+      return "";
+    }
+  }
+  async function loginSendCodeLocal(C, id) {
+    const env = C.env;
+    const rec = await dbGet(env, "login:" + id);
+    if (!rec) throw new HttpError(404, "登录会话不存在");
+    const sec = await unseal(C, rec.secret);
+    let c = null;
+    try {
+      c = mtpClient(rec, sec.api_hash, "");
+      await c.connect();
+      const hash = await c.sendPhoneCode(sec.phone);
+      await applyLoginResult(C, id, { status: "code_sent", phone_code_hash: hash, tmp: c.saveSession() });
+      return true;
+    } catch (e) {
+      await applyLoginResult(C, id, { status: "error", error: tgErr(e) });
+      throw new HttpError(502, tgErr(e));
+    } finally {
+      if (c) {
+        try {
+          await c.disconnect();
+        } catch (e) {
+        }
+      }
+    }
+  }
+  async function loginVerifyLocal(C, id) {
+    const env = C.env;
+    const rec = await dbGet(env, "login:" + id);
+    if (!rec) throw new HttpError(404, "登录会话不存在");
+    const sec = await unseal(C, rec.secret);
+    const needPwFirst = rec.status === "need_password";
+    let pwDone = false;
+    let c = null;
+    try {
+      c = mtpClient(rec, sec.api_hash, sec.tmp || "");
+      await c.connect();
+      if (!needPwFirst && sec.code) {
+        try {
+          await c.signInWithCode(sec.phone, sec.phone_code_hash || rec.phoneCodeHash || "", sec.code);
+        } catch (e) {
+          const msg = String(e && (e.errorMessage || e.message) || e);
+          if (/SESSION_PASSWORD_NEEDED/.test(msg)) {
+            if (!sec.password) {
+              await applyLoginResult(C, id, { status: "need_password", tmp: c.saveSession(), error: "该账号开了两步验证，请输入密码" });
+              return;
+            }
+            await c.check2FAPassword(sec.password);
+            pwDone = true;
+          } else {
+            throw e;
+          }
+        }
+      }
+      if ((needPwFirst || sec.password) && !pwDone) {
+        if (!sec.password) throw new Error("请输入两步验证密码");
+        await c.check2FAPassword(sec.password);
+      }
+      const display = await displayOf(c);
+      const gram = mtpToGramjs(c.saveSession());
+      await applyLoginResult(C, id, { status: "ok", session: gram, display });
+    } catch (e) {
+      const msg = tgErr(e);
+      const pwErr = /PASSWORD_HASH_INVALID|SRP|PASSWORD|两步验证/i.test(String(msg));
+      const st = pwErr || rec.status === "need_password" ? "need_password" : "error";
+      await applyLoginResult(C, id, { status: st, error: msg, tmp: sec.tmp || "" });
+    } finally {
+      if (c) {
+        try {
+          await c.disconnect();
+        } catch (e) {
+        }
+      }
+    }
+  }
+  async function loginQrLocal(C, id) {
+    const env = C.env;
+    const rec = await dbGet(env, "login:" + id);
+    if (!rec) throw new HttpError(404, "登录会话不存在");
+    const sec = await unseal(C, rec.secret);
+    let c = null;
+    try {
+      c = mtpClient(rec, sec.api_hash, sec.tmp || "");
+      await c.connect();
+      let r;
+      try {
+        r = await c.exportLoginToken();
+      } catch (e) {
+        const msg = String(e && (e.errorMessage || e.message) || e);
+        if (/SESSION_PASSWORD_NEEDED/.test(msg)) {
+          await applyLoginResult(C, id, { status: "need_password", tmp: c.saveSession(), error: "该账号开了两步验证，请输入密码" });
+          return;
+        }
+        throw e;
+      }
+      if (r && r.status === "success") {
+        const display = await displayOf(c);
+        await applyLoginResult(C, id, { status: "ok", session: mtpToGramjs(c.saveSession()), display });
+      } else if (r && r.token) {
+        await applyLoginResult(C, id, { status: "qr_ready", url: "tg://login?token=" + r.token, tmp: c.saveSession() });
+      } else {
+        throw new Error("扫码响应异常");
+      }
+    } finally {
+      if (c) {
+        try {
+          await c.disconnect();
+        } catch (e) {
+        }
+      }
+    }
+  }
+  async function loginFlowAdvance(C, id, rec) {
+    if (!rec) return rec;
+    if (rec.status === "qr_wait" || rec.status === "qr_ready") {
+      try {
+        await loginQrLocal(C, id);
+      } catch (e) {
+      }
+      const fresh = await dbGet(C.env, "login:" + id);
+      return fresh || rec;
+    }
+    return rec;
+  }
+  async function loginStart(C, req) {
+    const env = C.env;
+    const b = await readBody(req);
+    const accounts = await getAccounts(env);
+    if (accounts.length >= MAX_ACCOUNTS) throw new HttpError(400, `最多 ${MAX_ACCOUNTS} 个账号`);
+    const { api_id, api_hash } = tgApi(C, b), phone = str(b.phone, 20).replace(/[\s-]/g, "");
+    if (!/^\d{3,12}$/.test(api_id)) throw new HttpError(400, "api_id 应为纯数字");
+    if (!/^[0-9a-f]{32}$/i.test(api_hash)) throw new HttpError(400, "api_hash 应为 32 位十六进制");
+    if (!/^\+\d{6,15}$/.test(phone)) throw new HttpError(400, "手机号需带国家区号，例如 +8613800000000");
+    const id = randomString(10);
+    const rec = {
+      id,
+      status: "sending",
+      name: str(b.name, 30) || "账号 " + (accounts.length + 1),
+      api_id,
+      via: "login",
+      secret: await seal(C, { api_hash, phone, phone_code_hash: "", tmp: "", code: "", password: "" }),
+      updatedAt: Date.now()
+    };
+    await dbSet(env, "login:" + id, rec);
+    try {
+      await loginSendCodeLocal(C, id);
+    } catch (e) {
+      await dbDel(env, "login:" + id);
+      throw new HttpError(502, e.message);
+    }
+    return json({ ok: true, id });
+  }
+  async function loginStartQr(C, req) {
+    const env = C.env;
+    const b = await readBody(req);
+    const accounts = await getAccounts(env);
+    if (accounts.length >= MAX_ACCOUNTS) throw new HttpError(400, `最多 ${MAX_ACCOUNTS} 个账号`);
+    const { api_id, api_hash } = tgApi(C, b);
+    if (!/^\d{3,12}$/.test(api_id)) throw new HttpError(400, "api_id 应为纯数字");
+    if (!/^[0-9a-f]{32}$/i.test(api_hash)) throw new HttpError(400, "api_hash 应为 32 位十六进制");
+    const id = randomString(10);
+    const rec = {
+      id,
+      status: "qr_wait",
+      name: str(b.name, 30) || "账号 " + (accounts.length + 1),
+      api_id,
+      via: "login",
+      qrUrl: "",
+      secret: await seal(C, { api_hash, phone: "", phone_code_hash: "", tmp: "", code: "", password: "" }),
+      updatedAt: Date.now()
+    };
+    await dbSet(env, "login:" + id, rec);
+    try {
+      await loginQrLocal(C, id);
+    } catch (e) {
+      await dbDel(env, "login:" + id);
+      throw new HttpError(502, e.message);
+    }
+    return json({ ok: true, id });
+  }
+  async function loginVerify(C, req, id) {
+    const env = C.env;
+    const b = await readBody(req);
+    const rec = await dbGet(env, "login:" + id);
+    if (!rec) throw new HttpError(404, "登录会话已过期，请重新开始");
+    if (rec.status !== "code_sent" && rec.status !== "need_password") throw new HttpError(409, "当前状态不能提交");
+    const code = str(b.code, 12).replace(/\D/g, "");
+    const password = String(b.password || "").slice(0, 200);
+    if (rec.status === "code_sent" && !code) throw new HttpError(400, "请输入验证码");
+    if (rec.status === "need_password" && !password) throw new HttpError(400, "请输入两步验证密码");
+    const sec = await unseal(C, rec.secret);
+    sec.code = rec.status === "code_sent" ? code : "";
+    sec.password = password;
+    rec.secret = await seal(C, sec);
+    rec.status = "verifying";
+    rec.error = "";
+    rec.updatedAt = Date.now();
+    await dbSet(env, "login:" + id, rec);
+    try {
+      await loginVerifyLocal(C, id);
+    } catch (e) {
+      rec.status = "error";
+      rec.error = e.message;
+      rec.updatedAt = Date.now();
+      await dbSet(env, "login:" + id, rec);
+    }
+    return json({ ok: true });
+  }
+  async function runnerRoute(C, req, p, url, m) {
+    const env = C.env;
+    if (p === "/api/runner/config" && m === "GET") {
+      const ids = (url.searchParams.get("ids") || "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, MAX_TASKS);
+      const tasks = (await getTasks(env)).filter((t) => ids.includes(t.id));
+      const accounts = await getAccounts(env);
+      const out = {};
+      for (const t of tasks) {
+        if (out[t.accountId]) continue;
+        const a = accounts.find((x) => x.id === t.accountId);
+        if (!a) continue;
+        const sec = await unseal(C, a.enc);
+        out[a.id] = { api_id: a.api_id, api_hash: sec.api_hash, session: sec.session };
+      }
+      return json({ tasks, accounts: out, proxy: proxyOf(C) });
+    }
+    if (p === "/api/runner/account" && m === "GET") {
+      const a = (await getAccounts(env)).find((x) => x.id === url.searchParams.get("id"));
+      if (!a) throw new HttpError(404, "账号不存在");
+      const sec = await unseal(C, a.enc);
+      return json({ api_id: a.api_id, api_hash: sec.api_hash, session: sec.session, proxy: proxyOf(C) });
+    }
+    if (p === "/api/runner/proxy-result" && m === "POST") {
+      const b = await readBody(req);
+      await dbSet(env, "proxytest", {
+        ts: Date.now(),
+        pending: false,
+        ok: !!b.ok,
+        ip: str(b.ip, 60),
+        ms: Number(b.ms) || 0,
+        tgOk: !!b.tgOk,
+        tgMs: Number(b.tgMs) || 0,
+        err: str(b.err, 300),
+        via: str(b.via, 80)
+      });
+      return json({ ok: true });
+    }
+    if (p === "/api/runner/report" && m === "POST") {
+      await onReport(C, await readBody(req));
+      return json({ ok: true });
+    }
+    if (p === "/api/runner/ping" && m === "POST") {
+      await dbSet(env, "ping", { ts: Date.now() });
+      return json({ ok: true });
+    }
+    if (p === "/api/runner/account-status" && m === "POST") {
+      const b = await readBody(req);
+      const accounts = await getAccounts(env);
+      const a = accounts.find((x) => x.id === b.id);
+      if (a) {
+        a.status = { ok: !!b.ok, msg: str(b.message, 120), ts: Date.now() };
+        await dbSet(env, "accounts", accounts);
+      }
+      return json({ ok: true });
+    }
+    if (p === "/api/runner/login" && m === "GET") {
+      const id = url.searchParams.get("id") || "";
+      const rec = await dbGet(env, "login:" + id);
+      if (!rec) throw new HttpError(404, "登录会话不存在或已过期");
+      const sec = await unseal(C, rec.secret);
+      const out = { api_id: rec.api_id, ...sec, proxy: proxyOf(C) };
+      if (sec.code || sec.password) {
+        rec.secret = await seal(C, { ...sec, code: "", password: "" });
+        await dbSet(env, "login:" + id, rec);
+      }
+      return json(out);
+    }
+    if (p === "/api/runner/login-result" && m === "POST") {
+      const b = await readBody(req);
+      await applyLoginResult(C, b.id, b);
+      return json({ ok: true });
+    }
+    throw new HttpError(404, "Not Found");
+  }
+  var SEC_HEADERS = {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+    "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src data: blob: https:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+  };
+  function withDeadline2(p, ms, msg) {
+    return Promise.race([
+      Promise.resolve(p).catch((e) => ({ ok: false, error: String(e && (e.errorMessage || e.message) || e) })),
+      new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: msg }), ms))
+    ]);
+  }
+  async function executeDurableJob(env, job, hooks, recovery = false, records = /* @__PURE__ */ new Map()) {
+    const C = { ...await cfgOf(env), execution: job };
+    const s = await getSettings(env), now = localNow(s.tz);
+    const current = await dbGet(env, "run:" + job.date);
+    if (!current || current.runId !== job.runId || (current.round || 0) !== job.round) return;
+    let deliveryError = null;
+    C.deliverResult = async (r) => {
+      try {
+        await hooks.saveResult(r);
+        await onReport(C, { results: [r] });
+        await hooks.acknowledge(r.id);
+      } catch (e) {
+        deliveryError = e;
+        throw e;
+      }
+    };
+    if (recovery) {
+      for (const id of job.ids) {
+        const saved = [...records.values()].find((x) => x.result && x.result.id === id);
+        if (saved && saved.acked) continue;
+        const result = saved ? saved.result : {
+          id,
+          ok: false,
+          noRetry: true,
+          message: "执行器中断，结果不明；为避免重复签到未自动重发",
+          lines: []
+        };
+        await C.deliverResult(result);
+      }
+    } else {
+      await dbMutate(env, "run:" + job.date, (run) => {
+        if (!run || run.runId !== job.runId || run.cancelledAt) return;
+        run.status = "running";
+        run.dispatchAt = Date.now();
+        return run;
+      });
+      for (const id of job.ids) await dbMutate(env, "st:" + id, (st) => {
+        if (!st || st.date !== job.date || st.executionId !== job.executionId || st.status !== "queued") return;
+        st.status = "dispatched";
+        st.dispatchedAt = Date.now();
+        return st;
+      });
+      await runViaDO(C, job.ids);
+      if (deliveryError) throw deliveryError;
+    }
+    await finishSettledBatch(env, s, await getTasks(env), job.date);
+  }
+  async function finishSettledBatch(env, s, tasks, date) {
+    const changed = await dbMutate(env, "run:" + date, (run) => {
+      if (!run || !run.batch || !["running", "retrying", "queued"].includes(run.status) || (run.pending || []).length || (run.queue || []).length) return;
+      const retry = (run.ids || []).some((id) => {
+        const r = (run.results || {})[id], t = tasks.find((t2) => t2.id === id);
+        return r && !r.ok && !r.noRetry && !r.cancelled && t && run.round < effRounds(t, s);
+      });
+      if (retry) return;
+      run.status = "done";
+      run.completedAt = Date.now();
+      return run;
+    });
+    if (changed.changed) await notifyRun(env, s, tasks, changed.value);
+  }
+  function pickRunTask(t) {
+    return {
+      id: t.id,
+      name: t.name || "",
+      target: t.target || "",
+      command: t.command || "",
+      button: t.button || "",
+      successText: t.successText || ""
+    };
+  }
+  async function runViaDO(C, ids) {
+    const env = C.env;
+    const all = await getTasks(env);
+    const tasks = all.filter(function(t) {
+      return ids.indexOf(t.id) >= 0;
+    });
+    if (!tasks.length) return;
+    const accounts = await getAccounts(env);
+    const groups = /* @__PURE__ */ new Map();
+    tasks.forEach(function(t) {
+      const k = t.accountId || "";
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(t);
+    });
+    const proxyUrl = C.proxyOn && C.proxyUrl || "";
+    const st0 = await getSettings(env);
+    const cdate = localNow(st0.tz).date;
+    const jobStart = C.execution && C.execution.createdAt || 0;
+    const shouldStop = async function() {
+      const c = await dbGet(env, "cancel:" + cdate);
+      if (!c) return false;
+      return !jobStart || !c.ts || jobStart <= c.ts;
+    };
+    async function report(r) {
+      if (C.deliverResult) return C.deliverResult(r);
+      return onReport(C, { results: [r] });
+    }
+    function fail(list, msg) {
+      return Promise.all(list.map(function(t) {
+        return report({ id: t.id, name: t.name, target: t.target, ok: false, noRetry: true, message: msg });
+      }));
+    }
+    for (const entry of groups.entries()) {
+      const list = entry[1];
+      const acc = accounts.filter(function(a) {
+        return a.id === entry[0];
+      })[0];
+      if (!acc) {
+        await fail(list, "账号不存在或已删除");
+        continue;
+      }
+      let sec = null;
+      try {
+        sec = await unseal(C, acc.enc);
+      } catch (e) {
+        await fail(list, "账号会话解密失败");
+        continue;
+      }
+      const done = /* @__PURE__ */ new Set();
+      try {
+        await runTasks({
+          session: sec && sec.session || "",
+          apiId: acc.api_id,
+          apiHash: sec && sec.api_hash || "",
+          proxy: parseProxyUrl(proxyUrl),
+          tasks: list.map(pickRunTask),
+          shouldStop,
+          onResult: async function(r) {
+            done.add(r.id);
+            await report(r);
+          }
+        });
+      } catch (e) {
+      }
+      const missed = list.filter(function(t) {
+        return !done.has(t.id);
+      });
+      if (missed.length) await fail(missed, "执行中断（未拿到结果）");
+    }
+  }
+  async function checkViaDO(C, accountId) {
+    const env = C.env;
+    const accounts = await getAccounts(env);
+    const acc = accounts.filter(function(a) {
+      return a.id === accountId;
+    })[0];
+    if (!acc) throw new HttpError(404, "账号不存在");
+    const sec = await unseal(C, acc.enc);
+    const proxyUrl = C.proxyOn && C.proxyUrl || "";
+    const px = proxyFor(C);
+    let out = await checkAccount({ session: sec && sec.session || "", apiId: acc.api_id, apiHash: sec && sec.api_hash || "", proxy: px });
+    if ((!out || !out.ok) && proxyUrl) {
+      try {
+        const o2 = await checkAccount({ session: sec && sec.session || "", apiId: acc.api_id, apiHash: sec && sec.api_hash || "", proxy: null });
+        if (o2 && o2.ok) out = { ok: true, user: o2.user, display: o2.display, note: "代理不通，已改用直连" };
+      } catch (e) {
+      }
+    }
+    if (!out || !out.ok) out = { error: "连接 Telegram 失败：" + (out && out.error || "未知错误") };
+    return out;
+  }
+  async function applyLoginResult(C, id, b) {
+    const env = C.env;
+    const rec = await dbGet(env, "login:" + id);
+    if (!rec) throw new HttpError(404, "登录会话不存在或已过期");
+    const sec = await unseal(C, rec.secret);
+    rec.updatedAt = Date.now();
+    rec.error = str(b.error, 200);
+    const status = String(b.status || "");
+    if (status === "qr_ready") {
+      const u = String(b.url || "");
+      if (!/^tg:\/\/login\?token=[A-Za-z0-9_-]{16,160}$/.test(u)) throw new HttpError(400, "二维码链接格式不对");
+      if (rec.status === "qr_wait" || rec.status === "qr_ready") {
+        rec.status = "qr_ready";
+        rec.qrUrl = u;
+        rec.error = "";
+      }
+      await dbSet(env, "login:" + id, rec);
+      return true;
+    }
+    if (status === "ok") {
+      const accounts = await getAccounts(env);
+      const a = {
+        id: randomString(8),
+        name: rec.name,
+        api_id: rec.api_id,
+        enc: await seal(C, { api_hash: sec.api_hash, session: String(b.session || "") }),
+        createdAt: Date.now(),
+        via: "login",
+        status: { ok: true, msg: str(b.display, 60) || "已登录", ts: Date.now() }
+      };
+      if (!b.session || String(b.session).length < 50) throw new HttpError(400, "session 无效");
+      accounts.push(a);
+      await dbSet(env, "accounts", accounts);
+      rec.status = "ok";
+      rec.qrUrl = "";
+      rec.accountId = a.id;
+      rec.secret = await seal(C, { api_hash: "", phone: "", phone_code_hash: "", tmp: "", code: "", password: "" });
+    } else if (status === "code_sent" || status === "need_password") {
+      rec.status = status;
+      rec.qrUrl = "";
+      if (b.phone_code_hash) sec.phone_code_hash = String(b.phone_code_hash);
+      if (b.tmp) sec.tmp = String(b.tmp);
+      rec.secret = await seal(C, sec);
+    } else {
+      rec.status = "error";
+      if (!rec.error) rec.error = "登录失败";
+    }
+    await dbSet(env, "login:" + id, rec);
+    return true;
+  }
+  async function diag(C, url) {
+    const env = C.env;
+    if (!(await getSettings(env)).diag) throw new HttpError(404, "Not Found");
+    const out = {};
+    const host = url.searchParams.get("host") || "149.154.167.51";
+    const port = Number(url.searchParams.get("port") || 443);
+    if (!/^[0-9a-zA-Z.:\-\[\]]{1,100}$/.test(host) || !(port > 0 && port < 65536)) {
+      throw new HttpError(400, "host / port 参数不合法");
+    }
+    let t0 = Date.now();
+    if (url.searchParams.get("socks")) {
+      try {
+        const { makeSocksFactory: makeSocksFactory2, parseProxyUrl: parseProxyUrl3 } = await Promise.resolve().then(() => (init_socks5(), socks5_exports));
+        const cfg = parseProxyUrl3(C && C.proxyOn && C.proxyUrl || env && env.PROXY_URL || "");
+        out.proxy = cfg ? cfg.host + ":" + cfg.port + (cfg.user ? " (auth)" : "") : "none";
+        if (cfg) {
+          const LOG = [];
+          out.steps = LOG;
+          const f = makeSocksFactory2(cfg, LOG);
+          const sock = await f({ hostname: host, port }, {});
+          let timer;
+          await Promise.race([
+            sock.opened,
+            new Promise((_, rej) => {
+              timer = setTimeout(() => rej(new Error("open timeout 10s")), 1e4);
+            })
+          ]);
+          clearTimeout(timer);
+          out.socks = { ok: true, ms: Date.now() - t0, host, port };
+          if (url.searchParams.get("socks") === "2") {
+            const w = sock.writable.getWriter();
+            await w.write(new TextEncoder().encode("GET / HTTP/1.0\r\nHost: " + host + "\r\n\r\n"));
+            const rd = sock.readable.getReader();
+            const r = await Promise.race([
+              rd.read(),
+              new Promise((_, rej) => setTimeout(() => rej(new Error("read timeout 8s")), 8e3))
+            ]);
+            const txt = r && r.value ? new TextDecoder().decode(r.value.slice(0, 60)) : "(empty)";
+            out.echo = { ok: !!r && !r.done, head: txt.replace(/\s+/g, " ") };
+          }
+          try {
+            sock.close();
+          } catch (e) {
+          }
+        }
+      } catch (e) {
+        out.socks = { ok: false, ms: Date.now() - t0, err: String(e && e.message || e) };
+      }
+      return json(out);
+    }
+    try {
+      const sock = connect({ hostname: host, port, secureTransport: url.searchParams.get("tls") === "0" ? "off" : "on" });
+      let timer;
+      await Promise.race([
+        sock.opened,
+        new Promise((_, rej) => {
+          timer = setTimeout(() => rej(new Error("open timeout 8s")), 8e3);
+        })
+      ]);
+      clearTimeout(timer);
+      out.tcp = { ok: true, ms: Date.now() - t0, host, port };
+      try {
+        sock.close();
+      } catch (e) {
+      }
+    } catch (e) {
+      out.tcp = { ok: false, ms: Date.now() - t0, host, port, err: String(e && e.message || e) };
+    }
+    return json(out);
+  }
+  var index_default = {
+    async fetch(req, env, ctx) {
+      try {
+        return await route(req, env, ctx);
+      } catch (e) {
+        if (e instanceof HttpError) return json({ error: e.message }, e.status);
+        console.error(e);
+        return json({ error: "服务器内部错误：" + (e && e.message || e) }, 500);
+      }
+    },
+    async scheduled(event, env, ctx) {
+      ctx.waitUntil(ensureDailyPlan(env).catch((e) => console.error("tick failed", e)));
+    }
+  };
+  async function route(req, env, ctx) {
+    const url = new URL(req.url);
+    const p = url.pathname.replace(/\/+$/, "") || "/";
+    const m = req.method;
+    if (!p.startsWith("/api/")) {
+      if (m !== "GET" && m !== "HEAD") throw new HttpError(405, "Method Not Allowed");
+      return new Response(PANEL_HTML, { headers: SEC_HEADERS });
+    }
+    if (!env.DB) throw new HttpError(500, "未绑定 D1 数据库：在 Worker 设置里添加 D1 绑定，变量名填 DB");
+    await ensureSchema(env);
+    const C = { env, ctx, ...await resolveConfig(env) };
+    if (p.startsWith("/api/runner/")) {
+      await requireRunner(C, req);
+      return runnerRoute(C, req, p, url, m);
+    }
+    if (p === "/api/login" && m === "POST") return doLogin(C, req);
+    if (p === "/api/logout" && m === "POST")
+      return json({ ok: true }, 200, { "set-cookie": "sid=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict" });
+    if (p === "/api/me") return json({ authed: await isAdmin(C, req) });
+    await isAdmin(C, req).then((ok) => {
+      if (!ok) throw new HttpError(401, "未登录");
+    });
+    if (req.headers.get("x-requested-with") !== "panel") throw new HttpError(403, "请求被拒绝");
+    return adminRoute(C, p, m, req, url);
+  }
+  var DEFAULT_ICON_LIBS = [
+    { id: "tfel", name: "TFEL", url: "https://emby-icon.vercel.app/TFEL-Emby.json" }
+  ];
+  var MAX_ICON_LIBS = 12;
+  var MAX_AVATAR_CHARS = 12e4;
+  async function getIconLibs(env) {
+    try {
+      const row = await env.DB.prepare("SELECT value FROM app_config WHERE key = 'icon_libs'").first();
+      if (row && row.value) {
+        const shared = JSON.parse(row.value);
+        if (Array.isArray(shared) && shared.length) {
+          return [{ id: "tfel", name: "TFEL", url: DEFAULT_ICON_LIBS[0].url }].concat(shared.filter((x) => x && x.url).map((x) => ({ id: String(x.id || ""), name: String(x.name || ""), url: String(x.url) })));
+        }
+      }
+    } catch (e) {
+    }
+    const libs = await dbGet(env, "iconlibs");
+    if (Array.isArray(libs)) return libs;
+    const seed = DEFAULT_ICON_LIBS.map((x) => ({ ...x }));
+    await dbSet(env, "iconlibs", seed);
+    return seed;
+  }
+  async function getAvatars(env) {
+    const m = await dbGet(env, "avatars");
+    return m && typeof m === "object" && !Array.isArray(m) ? m : {};
+  }
+  function cleanIconLib(b, id) {
+    const url = str(b.url, 500);
+    if (!/^https?:\/\/\S+$/i.test(url)) throw new HttpError(400, "图标库地址要以 http:// 或 https:// 开头");
+    let name = str(b.name, 24);
+    if (!name) {
+      try {
+        name = (new URL(url).pathname.split("/").pop() || "").replace(/\.json$/i, "").slice(0, 24) || "图标库";
+      } catch {
+        name = "图标库";
+      }
+    }
+    return { id, name, url };
+  }
+  var absUrl = (u, base) => {
+    try {
+      return new URL(u, base).toString();
+    } catch {
+      return "";
+    }
+  };
+  function normalizeIconLib(j, baseUrl) {
+    const list = Array.isArray(j) ? j : Array.isArray(j && j.icons) ? j.icons : j && j.icons && typeof j.icons === "object" ? Object.keys(j.icons).map((k) => ({ name: k, url: j.icons[k] })) : Array.isArray(j && j.items) ? j.items : [];
+    const icons = [];
+    for (const it of list) {
+      if (!it) continue;
+      let name = "", raw = "";
+      if (typeof it === "string") raw = it;
+      else {
+        raw = it.url || it.src || it.icon || it.image || it.path || "";
+        name = str(it.name || it.title || it.id || "", 40);
+      }
+      if (!raw) continue;
+      const url = absUrl(String(raw), baseUrl);
+      if (!/^https?:/i.test(url)) continue;
+      icons.push({ name: name || (url.split("/").pop() || "").replace(/\.[a-z0-9]+$/i, "").slice(0, 40), url });
+      if (icons.length >= 3e3) break;
+    }
+    return { name: str(j && j.name, 40), description: str(j && j.description, 160), icons };
+  }
+  async function fetchIconLib(env, rawUrl) {
+    if (!/^https?:\/\/\S+$/i.test(rawUrl)) throw new HttpError(400, "图标库地址无效");
+    try {
+      checkWebhook(rawUrl, null);
+    } catch (e) {
+      throw new HttpError(400, "图标库地址不可用：" + e.message);
+    }
+    const key = "lib:cache:" + b64u(await hmac("iconlib", rawUrl)).slice(0, 22);
+    const hit = await dbGet(env, key);
+    if (hit && hit.data && Date.now() - hit.ts < 6 * 36e5) return hit.data;
+    let res;
+    try {
+      res = await fetch(rawUrl, { headers: { accept: "application/json" }, cf: { cacheTtl: 3600, cacheEverything: true } });
+    } catch (e) {
+      throw new HttpError(502, "图标库下载失败：" + (e && e.message ? e.message : "网络错误"));
+    }
+    if (!res.ok) throw new HttpError(502, "图标库下载失败：HTTP " + res.status);
+    const text = await res.text();
+    if (text.length > 4e6) throw new HttpError(400, "图标库文件太大（超过 4MB）");
+    let j;
+    try {
+      j = JSON.parse(text);
+    } catch {
+      throw new HttpError(400, "图标库内容不是合法 JSON");
+    }
+    const data = normalizeIconLib(j, rawUrl);
+    if (!data.icons.length) throw new HttpError(400, "没能从这个图标库里解析出图标");
+    const rec = { ts: Date.now(), data };
+    if (JSON.stringify(rec).length < 9e5) {
+      try {
+        await dbSet(env, key, rec);
+      } catch {
+      }
+    }
+    return data;
+  }
+  async function sweepStuck(env, tasks, date) {
+    const settings = await getSettings(env);
+    const min = localNow(settings.tz).min;
+    const run = await dbGet(env, "run:" + date);
+    const running = !!(run && run.batch && (run.status === "running" || run.status === "retrying") && Date.now() - runDispatchAt(run) < STALE_MS);
+    const limit = running ? STALE_MS : 18e4;
+    let changed = 0;
+    for (const t of tasks || []) {
+      const { st } = await loadState(env, t, date, min);
+      const answered = !!(st && st.lastRun && st.lastRun >= (st.dispatchedAt || 0));
+      if (st && st.status === "dispatched" && !answered && Date.now() - (st.dispatchedAt || 0) > limit) {
+        st.status = "failed";
+        st.lastOk = false;
+        st.lastMsg = "执行中断（超过 3 分钟没有回报，可能是页面刷新导致请求被中止）";
+        await saveState(env, t.id, st);
+        changed++;
+      }
+    }
+    return changed;
+  }
+  async function fullState(C) {
+    const env = C.env;
+    const [tasks, accounts, settings, ping, iconLibs, avatars, proxyTest] = await Promise.all([
+      getTasks(env),
+      getAccounts(env),
+      getSettings(env),
+      dbGet(env, "ping"),
+      getIconLibs(env),
+      getAvatars(env),
+      dbGet(env, "proxytest")
+    ]);
+    const { date } = localNow(settings.tz);
+    await sweepStuck(env, tasks, date);
+    const withState = [];
+    for (const t of tasks) {
+      const st = await dbGet(env, "st:" + t.id);
+      withState.push({ ...t, avatar: avatars[t.id] || "", state: st && st.date === date ? st : st ? { lastRun: st.lastRun, lastOk: st.lastOk, lastMsg: st.lastMsg, status: "new" } : null });
+    }
+    return {
+      tasks: withState,
+      accounts: accounts.map(publicAccount),
+      settings: { ...settings, cronFixed: isFixedCron(settings.cron) },
+      cron: globalThis.__TG_NODO === true ? await cronInfo(env, settings) : void 0,
+      iconLibs,
+      now: localNow(settings.tz),
+      ping: ping ? ping.ts : 0,
+      pingNote: ping ? ping.note || "" : "",
+      pingOk: ping ? ping.ok !== false : null,
+      pingMs: ping ? ping.ms || 0 : 0,
+      proxyTest: proxyTest || null,
+      env: {
+        ready: !!(C.tgApiId && C.tgApiHash),
+        TG_API: !!(C.tgApiId && C.tgApiHash),
+        GH_REPO: !!C.ghRepo,
+        GH_REPO_value: C.ghRepo,
+        GH_REPO_lock: C.ghRepoLock,
+        GH_TOKEN: !!C.ghToken,
+        GH_TOKEN_value: "",
+        GH_TOKEN_lock: C.ghLock,
+        RUNNER_TOKEN: !!C.runnerToken,
+        RUNNER_TOKEN_value: C.runnerToken,
+        RUNNER_TOKEN_lock: C.rtLock,
+        ENC_KEY: true,
+        ENC_KEY_lock: C.encLock,
+        ENC_KEY_AUTO: !!C.encKeyAuto,
+        TG_API_ID_value: C.tgApiId,
+        TG_API_ID_lock: C.tgApiIdLock,
+        TG_API_HASH_value: C.tgApiHash,
+        TG_API_HASH_lock: C.tgApiHashLock,
+        GH_REF_value: C.ghRef === "main" ? "" : C.ghRef,
+        GH_REF_lock: C.ghRefLock,
+        GH_WORKFLOW_value: C.ghWorkflow === "run.yml" ? "" : C.ghWorkflow,
+        GH_WORKFLOW_lock: C.ghWfLock,
+        PROXY_ON_value: !!C.proxyOn,
+        PROXY_URL_value: C.proxyUrl,
+        PROXY_INVALID: !!(C.proxyOn && C.proxyUrl && !parseProxy(C.proxyUrl)),
+        PROXY_URL_lock: !!C.proxyLock,
+        PROXY_lock: !!C.proxyLock
+      }
+    };
+  }
+  var CRON_RE = /^[\d*,/-]+ [\d*,/-]+ [\d*,/-]+ [\d*,/-]+ [\d*,/-]+$/;
+  function validCron(v) {
+    const s2 = String(v || "").trim().replace(/\s+/g, " ");
+    if (!CRON_RE.test(s2)) return "";
+    const f = s2.split(" ");
+    const range = [[0, 59], [0, 23], [1, 31], [1, 12], [0, 7]];
+    for (let i = 0; i < 5; i++) {
+      for (const piece of f[i].split(",")) {
+        const st = piece.split("/");
+        if (st[1] !== void 0 && (!/^\d+$/.test(st[1]) || +st[1] < 1)) return "";
+        if (st[0] === "*") continue;
+        const mm = st[0].match(/^(\d+)(?:-(\d+))?$/);
+        if (!mm) return "";
+        const a = +mm[1];
+        const b = mm[2] ? +mm[2] : a;
+        if (a < range[i][0] || b > range[i][1] || a > b) return "";
+      }
+    }
+    return s2;
+  }
+  function isFixedCron(v) {
+    const s2 = validCron(v);
+    if (!s2) return false;
+    const m0 = s2.split(" ")[0];
+    return m0 !== "*" && m0.indexOf("*") < 0 && m0.indexOf("/") < 0;
+  }
+  function cronCtx(env) {
+    const token = env.CF_API_TOKEN || "";
+    const acc = env.CF_ACCOUNT_ID || "";
+    const name = env.CF_WORKER_NAME || "";
+    const missing = [];
+    if (!token) missing.push("CF_API_TOKEN");
+    if (!acc) missing.push("CF_ACCOUNT_ID");
+    if (!name) missing.push("CF_WORKER_NAME");
+    return { token, acc, name, missing, ok: missing.length === 0 };
+  }
+  function cfMsg(j, r) {
+    const e = j && j.errors && j.errors[0] || {};
+    return (e.message || "HTTP " + r.status) + (e.code ? " (" + e.code + ")" : "");
+  }
+  async function cfCronList(env) {
+    const c = cronCtx(env);
+    if (!c.ok) throw new HttpError(400, "缺少 Worker 变量：" + c.missing.join(" / "));
+    const r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + c.acc + "/workers/scripts/" + c.name + "/schedules", { headers: { authorization: "Bearer " + c.token } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.success) throw new HttpError(r.status === 403 ? 403 : 502, "读取触发器失败：" + cfMsg(j, r));
+    return (j.result && j.result.schedules || []).map((x) => x.cron).filter(Boolean);
+  }
+  async function cfCronSet(env, list) {
+    const c = cronCtx(env);
+    if (!c.ok) throw new HttpError(400, "缺少 Worker 变量：" + c.missing.join(" / "));
+    const r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + c.acc + "/workers/scripts/" + c.name + "/schedules", {
+      method: "PUT",
+      headers: { authorization: "Bearer " + c.token, "content-type": "application/json" },
+      body: JSON.stringify(list.map((cron) => ({ cron })))
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.success) throw new HttpError(r.status === 403 ? 403 : 502, "设置触发器失败：" + cfMsg(j, r) + "（令牌需要 Workers Scripts:Edit 权限）");
+    return (j.result && j.result.schedules || []).map((x) => x.cron).filter(Boolean);
+  }
+  async function cronInfo(env, settings) {
+    const c = cronCtx(env);
+    const cache = await dbGet(env, "croncache");
+    return {
+      value: settings.cron || "",
+      fixed: isFixedCron(settings.cron || ""),
+      canEdit: c.ok,
+      missing: c.missing,
+      script: c.name,
+      list: cache && cache.list || [],
+      at: cache && cache.ts || 0
+    };
+  }
+  async function cronRoute(C, p, m, req) {
+    const env = C.env;
+    if (p === "/api/cron" && m === "GET") {
+      const list = await cfCronList(env);
+      await dbSet(env, "croncache", { list, ts: Date.now() });
+      const st = await getSettings(env);
+      return json({ ok: true, list, info: await cronInfo(env, st) });
+    }
+    if (p === "/api/cron" && (m === "PUT" || m === "POST")) {
+      const b = await readBody(req);
+      const want = String(b && b.cron || "").trim();
+      const st = await getSettings(env);
+      const list = await cfCronList(env);
+      const keep = list.filter((x) => x !== st.cron);
+      if (!want) {
+        const got2 = await cfCronSet(env, keep);
+        await saveSettings(env, { cron: "" });
+        await dbSet(env, "croncache", { list: got2, ts: Date.now() });
+        return json({ ok: true, list: got2, info: await cronInfo(env, await getSettings(env)) });
+      }
+      const cron = validCron(want);
+      if (!cron) throw new HttpError(400, "cron 格式不对，需要 5 段，例如 */5 * * * *");
+      if (keep.indexOf(cron) < 0) keep.push(cron);
+      const got = await cfCronSet(env, keep);
+      await saveSettings(env, { cron });
+      await dbSet(env, "croncache", { list: got, ts: Date.now() });
+      return json({ ok: true, list: got, info: await cronInfo(env, await getSettings(env)) });
+    }
+    throw new HttpError(404, "not found");
+  }
+  async function adminRoute(C, p, m, req, url) {
+    const env = C.env;
+    let r;
+    if (globalThis.__TG_NODO === true && p.indexOf("/api/cron") === 0) return cronRoute(C, p, m, req);
+    if (p === "/api/state" && m === "GET") return json(await fullState(C));
+    if (p === "/api/config" && (m === "PUT" || m === "POST")) {
+      const b = await readBody(req);
+      if (b && b.unified !== void 0) {
+        await saveSettings(env, { unified: b.unified });
+        await resetPlan(env);
+        await ensureDailyPlan(env).catch(() => {
+        });
+      }
+      if (b && b.diag !== void 0) await saveSettings(env, { diag: b.diag });
+      const rest = { ...b || {} };
+      delete rest.unified;
+      delete rest.diag;
+      if (Object.keys(rest).length) await saveConfig(env, rest);
+      return json({ ok: true });
+    }
+    if (p === "/api/settings" && m === "PUT") {
+      const b = await readBody(req);
+      const tz = Number(b.tz);
+      if (!Number.isFinite(tz) || tz < -12 || tz > 14) throw new HttpError(400, "时区偏移应在 -12 到 14 之间");
+      const cur = await getSettings(env);
+      await dbSet(env, "settings", { ...cur, tz, retryRounds: clampInt(b.retryRounds, 0, 5, cur.retryRounds) });
+      return json({ ok: true });
+    }
+    if (p === "/api/proxy/test" && m === "POST") {
+      const proxy = proxyOf(C);
+      if (!C.proxyOn) throw new HttpError(400, "代理开关没打开");
+      if (!proxy) throw new HttpError(400, "先填一个格式正确的代理地址：" + proxyError(C.proxyUrl));
+      const accounts = await getAccounts(env);
+      const acc = accounts[0];
+      if (!acc) throw new HttpError(400, "先在账号页添加一个账号，测试要用它的 session 连一次 Telegram");
+      const sec = await unseal(C, acc.enc);
+      const pr = proxy;
+      const base = { session: sec.session || "", apiId: acc.api_id, apiHash: sec.api_hash || "" };
+      const t0 = Date.now();
+      const out = await withDeadline2(checkAccount({ ...base, proxy: pr }), 35e3, "代理握手超时（35 秒）：CF 连不上这个代理，或代理本身不通");
+      const ms = Date.now() - t0;
+      const ok = !!out.ok;
+      let detail = "";
+      if (!ok) {
+        const direct = await withDeadline2(checkAccount(base), 25e3, "直连超时");
+        detail = String(out.error || "未知错误").slice(0, 120) + (direct.ok ? "（直连正常，说明是代理链路的问题）" : "（直连也不通：" + String(direct.error || "").slice(0, 60) + "）");
+      }
+      const note = ok ? "代理可用 · " + pr.host + ":" + pr.port + (out.display ? "（" + out.display + "）" : "") : "代理不可用：" + detail;
+      await dbSet(env, "proxytest", {
+        ts: Date.now(),
+        ok,
+        ms,
+        note,
+        err: ok ? "" : detail,
+        via: ok ? pr.host + ":" + pr.port : ""
+      });
+      if (!ok) throw new HttpError(502, detail.slice(0, 200));
+      return json({ ok: true, ms, display: out.display || "", note });
+    }
+    if (p === "/api/notify/config" && (m === "POST" || m === "PUT")) {
+      await saveSettings(env, await readBody(req));
+      return json({ ok: true });
+    }
+    if (p === "/api/notify/test" && m === "POST") {
+      const cur = await getSettings(env);
+      const b = await readBody(req);
+      for (const k of Object.keys(NOTIFY_STR)) if (b && b[k] !== void 0) cur[k] = String(b[k] || "").trim();
+      const any = cur.notifyBarkOn || cur.notifyDingOn || cur.notifyScOn || cur.notifyTgOn;
+      if (!any) throw new HttpError(400, "先打开至少一个通知平台的开关并保存");
+      const txt = await pushNotify(env, cur, { title: "TG 签到 · 测试通知", body: "收到这条说明通知通道已经接通 ✅" });
+      const okAll = txt.indexOf("✗") < 0;
+      return json({ ok: okAll, text: txt });
+    }
+    if (p === "/api/tasks/order" && m === "POST") {
+      const b = await readBody(req);
+      const ids = Array.isArray(b && b.ids) ? b.ids.map((x) => String(x)) : [];
+      const tasks = await getTasks(env);
+      const byId = new Map(tasks.map((t) => [t.id, t]));
+      const out = [];
+      for (const id of ids) {
+        const t = byId.get(id);
+        if (t) {
+          out.push(t);
+          byId.delete(id);
+        }
+      }
+      for (const t of byId.values()) out.push(t);
+      await dbSet(env, "tasks", out);
+      return json({ ok: true });
+    }
+    if (p === "/api/ping" && m === "POST") {
+      const t0 = Date.now();
+      let r2;
+      try {
+        r2 = await dispatch(C, { mode: "ping" });
+      } catch (e) {
+        await dbSet(env, "ping", { ts: Date.now(), ok: false, ms: Date.now() - t0, note: e.message });
+        throw new HttpError(502, e.message);
+      }
+      const ms = Date.now() - t0;
+      const note = r2 && r2.note || "";
+      if (!r2 || r2.ok !== true) {
+        await dbSet(env, "ping", { ts: Date.now(), ok: false, ms, note: note || "执行器没有返回结果" });
+        throw new HttpError(502, note || "执行器没有返回结果");
+      }
+      await dbSet(env, "ping", { ts: Date.now(), ok: true, ms, note });
+      return json({ ok: true, ms, note });
+    }
+    if (p === "/api/tasks" && m === "POST") {
+      const tasks = await getTasks(env);
+      if (tasks.length >= MAX_TASKS) throw new HttpError(400, `最多 ${MAX_TASKS} 个任务`);
+      const t = cleanTask(await readBody(req), await getAccounts(env), randomString(8));
+      tasks.push(t);
+      await dbSet(env, "tasks", tasks);
+      return json({ ok: true, id: t.id });
+    }
+    if (r = /^\/api\/tasks\/([\w-]+)$/.exec(p)) {
+      const id = r[1];
+      const tasks = await getTasks(env);
+      const i = tasks.findIndex((x) => x.id === id);
+      if (i < 0) throw new HttpError(404, "任务不存在");
+      if (m === "PUT") {
+        tasks[i] = cleanTask(await readBody(req), await getAccounts(env), id);
+        await dbSet(env, "tasks", tasks);
+        await dbDel(env, "st:" + id);
+        return json({ ok: true });
+      }
+      if (m === "DELETE") {
+        tasks.splice(i, 1);
+        await dbSet(env, "tasks", tasks);
+        await dbDel(env, "st:" + id);
+        const av = await getAvatars(env);
+        if (av[id]) {
+          delete av[id];
+          await dbSet(env, "avatars", av);
+        }
+        return json({ ok: true });
+      }
+    }
+    if (p === "/api/run/cancel" && m === "POST") {
+      return json(await cancelRun(C));
+    }
+    if (p === "/api/run/all" && m === "POST") {
+      return json(await runAllNow(C));
+    }
+    if ((r = /^\/api\/tasks\/([\w-]+)\/run$/.exec(p)) && m === "POST") {
+      await runNow(C, r[1]);
+      return json({ ok: true });
+    }
+    if ((r = /^\/api\/tasks\/([\w-]+)\/toggle$/.exec(p)) && m === "POST") {
+      const tasks = await getTasks(env);
+      const t = tasks.find((x) => x.id === r[1]);
+      if (!t) throw new HttpError(404, "任务不存在");
+      t.enabled = !t.enabled;
+      await dbSet(env, "tasks", tasks);
+      return json({ ok: true, enabled: t.enabled });
+    }
+    if (p === "/api/accounts" && m === "POST") {
+      const b = await readBody(req);
+      const accounts = await getAccounts(env);
+      if (accounts.length >= MAX_ACCOUNTS) throw new HttpError(400, `最多 ${MAX_ACCOUNTS} 个账号`);
+      const { api_id, api_hash } = tgApi(C, b);
+      const session = str(b.session, 4e3);
+      if (!/^\d{3,12}$/.test(api_id)) throw new HttpError(400, "api_id 应为纯数字");
+      if (!/^[0-9a-f]{32}$/i.test(api_hash)) throw new HttpError(400, "api_hash 应为 32 位十六进制");
+      if (session.length < 50) throw new HttpError(400, "session 字符串太短");
+      const a = {
+        id: randomString(8),
+        name: str(b.name, 30) || "账号 " + (accounts.length + 1),
+        api_id,
+        enc: await seal(C, { api_hash, session }),
+        createdAt: Date.now(),
+        via: "session"
+      };
+      accounts.push(a);
+      await dbSet(env, "accounts", accounts);
+      return json({ ok: true, id: a.id });
+    }
+    if ((r = /^\/api\/accounts\/([\w-]+)$/.exec(p)) && m === "DELETE") {
+      const tasks = await getTasks(env);
+      if (tasks.some((t) => t.accountId === r[1])) throw new HttpError(400, "还有任务在使用这个账号，请先处理");
+      const all = await getAccounts(env);
+      const accounts = all.filter((a) => a.id !== r[1]);
+      if (accounts.length === all.length) throw new HttpError(404, "账号不存在（可能已删除，请刷新页面）");
+      await dbSet(env, "accounts", accounts);
+      return json({ ok: true });
+    }
+    if ((r = /^\/api\/accounts\/([\w-]+)\/check$/.exec(p)) && m === "POST") {
+      const accounts = await getAccounts(env);
+      const a = accounts.find((x) => x.id === r[1]);
+      if (!a) throw new HttpError(404, "账号不存在");
+      let out;
+      try {
+        out = await checkViaDO(C, a.id);
+      } catch (e) {
+        out = { error: e.message };
+      }
+      if (out && out.ok) {
+        const nm = out.user && (out.user.username || out.user.firstName) || "";
+        if (nm) a.name = nm;
+        a.status = { ok: true, msg: "正常" + (nm ? "·" + nm : ""), ts: Date.now() };
+      } else {
+        a.status = { ok: false, msg: String(out && out.error || "检测失败"), ts: Date.now() };
+      }
+      await dbSet(env, "accounts", accounts);
+      return json({ ok: a.status.ok === true, status: a.status });
+    }
+    if (p === "/api/diag" && m === "GET") return diag(C, url);
+    if (p === "/api/backup" && m === "GET") {
+      const accounts = await getAccounts(env);
+      const accs = [];
+      for (const a of accounts) {
+        let sec = {};
+        try {
+          sec = await unseal(C, a.enc);
+        } catch (e) {
+          sec = {};
+        }
+        accs.push({ id: a.id, name: a.name, api_id: a.api_id, api_hash: sec.api_hash || "", session: sec.session || "", via: "session" });
+      }
+      return json({
+        ok: true,
+        app: "tg-signin-cf",
+        version: 1,
+        exportedAt: Date.now(),
+        settings: await getSettings(env),
+        tasks: await getTasks(env),
+        accounts: accs,
+        iconLibs: await getIconLibs(env)
+      });
+    }
+    if (p === "/api/backup" && m === "POST") {
+      const b = await readBody(req);
+      const mode = b.mode === "replace" ? "replace" : "merge";
+      const res = { tasks: 0, tasksUnassigned: 0, accounts: 0, skipped: 0, settings: false, iconLibs: false, errors: [] };
+      const note = (s) => {
+        if (res.errors.length < 6) res.errors.push(s);
+      };
+      if (b.settings && typeof b.settings === "object") {
+        await saveSettings(env, b.settings);
+        res.settings = true;
+      }
+      if (Array.isArray(b.iconLibs) && b.iconLibs.length) {
+        await dbSet(env, "iconlibs", b.iconLibs.slice(0, MAX_ICON_LIBS));
+        res.iconLibs = true;
+      }
+      let accounts = mode === "replace" ? [] : await getAccounts(env);
+      if (Array.isArray(b.accounts)) {
+        for (const a of b.accounts.slice(0, MAX_ACCOUNTS)) {
+          const nm = str(a.name, 30) || "账号 " + (accounts.length + 1);
+          const api_id = String(a.api_id || a.apiId || "").trim();
+          const api_hash = String(a.api_hash || a.apiHash || "").trim().toLowerCase();
+          const session = String(a.session || a.stringSession || "").trim();
+          if (!/^\d{3,12}$/.test(api_id)) {
+            res.skipped++;
+            note("账号「" + nm + "」没有有效的 api_id");
+            continue;
+          }
+          if (!/^[0-9a-f]{32}$/.test(api_hash)) {
+            res.skipped++;
+            note("账号「" + nm + "」的 api_hash 不是 32 位十六进制");
+            continue;
+          }
+          if (session.length < 50) {
+            res.skipped++;
+            note("账号「" + nm + "」没有可用的 session（要先用原面板登录过）");
+            continue;
+          }
+          const dup = accounts.filter((x) => x.api_id === api_id && x.name === nm)[0];
+          const enc2 = await seal(C, { api_hash, session });
+          if (dup) {
+            dup.enc = enc2;
+            res.accounts++;
+            continue;
+          }
+          if (accounts.length >= MAX_ACCOUNTS) {
+            res.skipped++;
+            note("账号数量已达上限 " + MAX_ACCOUNTS);
+            continue;
+          }
+          const wantId = String(a.id || "");
+          const freeId = SAFE_ID.test(wantId) && !accounts.filter((x) => x.id === wantId)[0];
+          accounts.push({ id: freeId ? wantId : randomString(8), name: nm, api_id, enc: enc2, createdAt: Date.now() });
+          res.accounts++;
+        }
+        await dbSet(env, "accounts", accounts);
+      }
+      if (Array.isArray(b.tasks) && b.tasks.length) {
+        const tasks = mode === "replace" ? [] : await getTasks(env);
+        const allowNo = accounts.length === 0;
+        const accIds = accounts.map((x) => x.id);
+        for (const raw of b.tasks.slice(0, MAX_TASKS)) {
+          if (!raw || typeof raw !== "object") {
+            res.skipped++;
+            continue;
+          }
+          try {
+            const wantAcc = String(raw.accountId || raw.account || "");
+            const accId = accIds.indexOf(wantAcc) >= 0 ? wantAcc : accIds[0] || "";
+            const wantId = String(raw.id || "");
+            const freeId = SAFE_ID.test(wantId) && !tasks.filter((x) => x.id === wantId)[0];
+            const t = cleanTask(Object.assign({}, raw, { accountId: accId }), accounts, freeId ? wantId : randomString(8), allowNo);
+            if (!t.accountId) res.tasksUnassigned++;
+            const idx = tasks.map((x) => x.id).indexOf(t.id);
+            if (idx >= 0) tasks[idx] = t;
+            else tasks.push(t);
+            res.tasks++;
+          } catch (e) {
+            res.skipped++;
+            note("任务「" + str(raw.name, 20) + "」" + (e && e.message || "格式不正确"));
+          }
+        }
+        await dbSet(env, "tasks", tasks);
+      }
+      return json({ ok: true, mode, result: res });
+    }
+    if (p === "/api/dbkeys" && m === "GET") {
+      const rows = await env.DB.prepare("SELECT key, length(value) AS len FROM kv ORDER BY key").all();
+      return json({ ok: true, rows: (rows.results || []).map(function(x) {
+        return [x.key, x.len];
+      }) });
+    }
+    if (p === "/api/trace" && m === "GET") {
+      const v = await dbGet(env, "trace:login");
+      return json({ ok: true, trace: v });
+    }
+    if (p === "/api/login-flow/start" && m === "POST") return loginStart(C, req);
+    if (p === "/api/login-flow/start-qr" && m === "POST") return loginStartQr(C, req);
+    if (r = /^\/api\/login-flow\/([\w-]+)$/.exec(p)) {
+      const rec = await dbGet(env, "login:" + r[1]);
+      if (!rec) throw new HttpError(404, "登录会话已过期，请重新开始");
+      if (m === "GET") {
+        const r2 = await loginFlowAdvance(C, r[1], rec);
+        return json({
+          status: r2.status,
+          error: r2.error || "",
+          name: r2.name,
+          accountId: r2.accountId || "",
+          updatedAt: r2.updatedAt,
+          qrUrl: r2.status === "qr_ready" ? r2.qrUrl || "" : ""
+        });
+      }
+      if (m === "DELETE") {
+        await dbDel(env, "login:" + r[1]);
+        return json({ ok: true });
+      }
+    }
+    if ((r = /^\/api\/login-flow\/([\w-]+)\/verify$/.exec(p)) && m === "POST") return loginVerify(C, req, r[1]);
+    if (p === "/api/logs" && m === "GET") return json({ logs: await listLogs(env) });
+    if (p === "/api/logs" && m === "DELETE") {
+      await env.DB.prepare("DELETE FROM logs").run();
+      return json({ ok: true });
+    }
+    if (p === "/api/log" && m === "GET") {
+      const key = url.searchParams.get("key") || "";
+      if (!/^\d+$/.test(key)) throw new HttpError(400, "日志键无效");
+      const v = await getLog(env, key);
+      if (!v) throw new HttpError(404, "日志已过期");
+      return json(v);
+    }
+    if (p === "/api/iconlibs" && m === "POST") {
+      const libs = await getIconLibs(env);
+      if (libs.length >= MAX_ICON_LIBS) throw new HttpError(400, `最多只能添加 ${MAX_ICON_LIBS} 个图标库`);
+      const lib = cleanIconLib(await readBody(req), "lib" + Date.now().toString(36).slice(-6) + Math.random().toString(36).slice(2, 5));
+      libs.push(lib);
+      await dbSet(env, "iconlibs", libs);
+      return json({ ok: true, id: lib.id, lib });
+    }
+    if ((r = /^\/api\/iconlibs\/([\w-]+)$/.exec(p)) && m === "PUT") {
+      const libs = await getIconLibs(env);
+      const i = libs.findIndex((x) => x.id === r[1]);
+      if (i < 0) throw new HttpError(404, "图标库不存在");
+      const lib = cleanIconLib(await readBody(req), r[1]);
+      libs[i] = lib;
+      await dbSet(env, "iconlibs", libs);
+      return json({ ok: true, lib });
+    }
+    if ((r = /^\/api\/iconlibs\/([\w-]+)$/.exec(p)) && m === "DELETE") {
+      const libs = (await getIconLibs(env)).filter((x) => x.id !== r[1]);
+      await dbSet(env, "iconlibs", libs);
+      return json({ ok: true });
+    }
+    if (p === "/api/iconlib" && m === "GET") return json(await fetchIconLib(env, url.searchParams.get("url") || ""));
+    if ((r = /^\/api\/tasks\/([\w-]+)\/avatar$/.exec(p)) && m === "PUT") {
+      const tid = r[1];
+      const tasks = await getTasks(env);
+      if (!tasks.some((t) => t.id === tid)) throw new HttpError(404, "任务不存在");
+      const avatar = str((await readBody(req)).avatar, MAX_AVATAR_CHARS + 1);
+      if (avatar.length > MAX_AVATAR_CHARS) throw new HttpError(400, "头像数据太大，换一张小一点的图片");
+      if (avatar && !/^(data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+|https?:\/\/\S+)$/.test(avatar)) throw new HttpError(400, "头像格式不支持");
+      const map = await getAvatars(env);
+      if (avatar) map[tid] = avatar;
+      else delete map[tid];
+      await dbSet(env, "avatars", map);
+      return json({ ok: true });
+    }
+    throw new HttpError(404, "Not Found");
+  }
+
+  // src/tg/env.js
+  async function sha256hex(s) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s)));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  async function tgEnv(env) {
+    const e = Object.create(env || {});
+    e.ADMIN_PASSWORD = env.ADMIN_TOKEN || env.ADMIN_PASSWORD || "";
+    const explicitKey = !!(env.TG_ENC_KEY || env.ENC_KEY);
+    e.ENC_KEY = env.TG_ENC_KEY || env.ENC_KEY || await sha256hex("cf-tg-signin/enc/v1:" + (env.ADMIN_TOKEN || ""));
+    e.ENC_KEY_AUTO = !explicitKey;
+    const alts = [];
+    if (env.TG_ENC_KEY && env.TG_ENC_KEY !== e.ENC_KEY) alts.push(env.TG_ENC_KEY);
+    if (env.ADMIN_TOKEN) {
+      if (env.ADMIN_TOKEN !== e.ENC_KEY) alts.push(env.ADMIN_TOKEN);
+      const bare = await sha256hex(env.ADMIN_TOKEN);
+      if (bare !== e.ENC_KEY && alts.indexOf(bare) < 0) alts.push(bare);
+    }
+    e.ENC_KEY_ALTS = alts;
+    return e;
+  }
+
+  // src/tg/nodo.js
+  globalThis.__TG_NODO = true;
+  return __toCommonJS(nodo_exports);
+})();
+
+/* ===================== TG 签到（无 Durable Object 版） =====================
+   入口：主面板顶部「签到」按钮 → 全屏浮层 iframe /tg（和伪装版同一套）
+   /tg-api/*  ：转给签到模块的 /api/*，并自动带上由 admin_token 派生的 sid（免二次登录）
+   调度       ：cron 里先跑签到、再跑原来的保活；没有 alarm，任务 3 个一片分到多个周期 */
+const __TG_PANEL_PATHS = ['/tg', '/tg/', '/tg/index.html'];
+// 签到面板里写死的 /api/xxx 改到 /tg-api/xxx，避免和反代自己的接口撞车
+const __TG_BOOT =
+  '<script>(function(){var f=window.fetch;window.fetch=function(i,o){try{' +
+  'if(typeof i==="string"&&i.indexOf("/api/")===0)i="/tg-api/"+i.slice(5);' +
+  'else if(i&&i.url&&i.url.indexOf("/api/")===0)i=new Request("/tg-api/"+i.url.slice(5),i);' +
+  '}catch(e){}return f(i,o)}})();</script>';
+
+function __tgPanel() {
+  return new Response(__TGM.PANEL_HTML.replace('<head>', '<head>' + __TG_BOOT), {
+    headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'no-store' },
+  });
+}
+
+/* ---------- 复用主面板管理员登录态（与伪装版 tgSsoSid 同一套算法） ---------- */
+const __tgTE = new TextEncoder();
+async function __tgSha256Hex(str) {
+  const d = await crypto.subtle.digest('SHA-256', __tgTE.encode(str));
+  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+async function __tgHmacRaw(secret, msg) {
+  const k = await crypto.subtle.importKey('raw', __tgTE.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, __tgTE.encode(msg)));
+}
+async function __tgHmacHex(secret, msg) {
+  return Array.from(await __tgHmacRaw(secret, msg)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+function __tgB64u(u8) {
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function __tgCookieVal(header, name) {
+  const list = String(header || '').split(';');
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i].trim();
+    const pos = it.indexOf('=');
+    if (pos > 0 && it.slice(0, pos) === name) return it.slice(pos + 1);
+  }
+  return '';
+}
+function __tgSafeEq(a, b) {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+// admin_token（s1.admin.<exp>.<fp>.<sig>）有效 → 派生签到 sid；订阅者/失效/未登录一律不给
+async function __tgSsoSid(request, env) {
+  const token = env.ADMIN_TOKEN || '';
+  if (!token) return '';
+  const ck = __tgCookieVal(request.headers.get('cookie'), 'admin_token');
+  if (!ck || ck.slice(0, 3) !== 's1.') return '';
+  const parts = ck.split('.');
+  if (parts.length !== 5 || parts[1] !== 'admin') return '';
+  const exp = parseInt(parts[2], 10);
+  if (!exp || exp < Date.now()) return '';
+  const base = parts.slice(0, 4).join('.');
+  if (!__tgSafeEq(await __tgHmacHex(token, base), parts[4])) return '';
+  const encKey = env.TG_ENC_KEY || (await __tgSha256Hex('cf-tg-signin/enc/v1:' + token));
+  const tExp = Date.now() + 30 * 86400000;
+  const sig = __tgB64u(await __tgHmacRaw(encKey + '|' + token, 'sess:' + tExp));
+  return tExp + '.' + sig;
+}
+function __tgApiRequest(request, sid) {
+  const u = new URL(request.url);
+  u.pathname = '/api/' + u.pathname.slice(8);
+  const h = new Headers(request.headers);
+  if (sid) {
+    const kept = (h.get('cookie') || '').split(';').map((x) => x.trim())
+      .filter((x) => x && x.indexOf('sid=') !== 0).join('; ');
+    h.set('cookie', kept ? kept + '; sid=' + sid : 'sid=' + sid);
+  }
+  const init = { method: request.method, headers: h, redirect: request.redirect };
+  if (request.method !== 'GET' && request.method !== 'HEAD') { init.body = request.body; init.duplex = 'half'; }
+  return new Request(u.toString(), init);
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const p = new URL(request.url).pathname;
+    if (__TG_PANEL_PATHS.includes(p)) {
+      try { return __tgPanel(); } catch (e) { return new Response('签到面板加载失败：' + e.message, { status: 500 }); }
+    }
+    if (p.indexOf('/tg-api/') === 0) {
+      try {
+        let sid = '';
+        try { sid = await __tgSsoSid(request, env); } catch (e) { sid = ''; }
+        return await __TGM.tgWorker.fetch(__tgApiRequest(request, sid), await __TGM.tgEnv(env), ctx);
+      } catch (e) {
+        return new Response('签到模块出错：' + ((e && e.message) || e), { status: 500 });
+      }
+    }
+    return __NORMAL_WORKER.fetch(request, env, ctx);
+  },
+  async scheduled(event, env, ctx) {
+    try {
+      await __TGM.tgWorker.scheduled(event, await __TGM.tgEnv(env), ctx);
+    } catch (e) {
+      console.error('[tg scheduled]', e);
+    }
+    return __NORMAL_WORKER.scheduled(event, env, ctx);
+  },
 };
