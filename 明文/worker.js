@@ -1,5 +1,5 @@
-// VERSION: 4.0.8
-const CURRENT_VERSION = "4.0.8"; 
+// VERSION: 4.0.9
+const CURRENT_VERSION = "4.0.9"; 
 //网页区域
 // ============ isolate 级内存缓存 / 一次性初始化(减少每个请求的 D1 读写) ============
 const memoStore = new Map();
