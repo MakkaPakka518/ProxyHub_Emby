@@ -40,6 +40,33 @@ function getWatchState(route, now = Date.now()) {
   state.status = state.remainingDays <= 0 ? 'overdue' : (state.elapsedDays >= 1 && state.remainingDays <= 3 ? 'warning' : 'safe');
   return state;
 }
+// 4.1.1版本后 发布块热修复：在 HTML 模板生成前替换被混淆的校验函数，
+// 使旧模板的 toString() 也能得到不依赖 Worker 字符串表的独立函数。
+normalizeNodeBotUrl = function normalizeNodeBotUrl(value) {
+  const raw = String(value == null ? '' : value).trim();
+  if (!raw) return '';
+  if (raw.length > 2048 || /[\s\\<>"\u0000-\u001f]/.test(raw)) throw new Error('TG Bot 链接格式不正确');
+  let text = raw;
+  if (/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(text)) text = 'https://t.me/' + text.replace(/^@/, '');
+  else if (/^(?:www\.)?(?:t\.me|telegram\.me)\//i.test(text)) text = 'https://' + text;
+  let url;
+  try { url = new URL(text); } catch (e) { throw new Error('请填写 @Bot用户名 或 https://t.me/机器人链接'); }
+  if (url.protocol === 'tg:' && url.hostname === 'resolve') {
+    const domain = url.searchParams.get('domain') || '';
+    if (!/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(domain)) throw new Error('TG Bot 用户名格式不正确');
+    const params = new URLSearchParams(url.search);
+    params.delete('domain');
+    url = new URL('https://t.me/' + domain);
+    url.search = params.toString();
+  }
+  if (!['http:', 'https:'].includes(url.protocol) || !['t.me', 'telegram.me', 'www.t.me', 'www.telegram.me'].includes(url.hostname) || url.username || url.password || url.port || url.hash || !/^\/[A-Za-z][A-Za-z0-9_]{4,31}\/?$/.test(url.pathname)) {
+    throw new Error('请填写 Telegram Bot 链接（https://t.me/机器人名，可带 start 参数）');
+  }
+  url.protocol = 'https:';
+  url.hostname = 't.me';
+  url.pathname = url.pathname.replace(/\/$/, '');
+  return url.toString();
+};
 //网页区域
 // ============ isolate 级内存缓存 / 一次性初始化(减少每个请求的 D1 读写) ============
 const memoStore = new Map();
