@@ -7,9 +7,11 @@
 1. 备份当前 Worker 代码和绑定。
 2. 使用 `test/worker-emby-doctor.js` 覆盖测试 Worker，保留原有 `DB` 和 `ADMIN_TOKEN` 等绑定。
 3. 管理员登录后，点击顶栏紫色烧杯图标。
-4. 选择已配置节点。可留空 Token 做公开链路检查，也可临时填写普通 Emby 用户 Token 做播放检查。
+4. 选择已配置节点。可留空账号做公开链路检查，也可临时填写普通 Emby 用户的账号和密码做播放检查。
 
-普通用户 Token 只存在于单次请求内，不写入 D1、不放入 URL，也不会返回前端。播放检查只读取一个可见媒体的 `PlaybackInfo`，Range 请求最多读取两个字节并立即中止，不主动启动转码。
+账号和密码只存在于单次请求内，不写入 D1、URL 或浏览器存储。Worker 会临时登录获取 Token，完成账号与播放检测后在同一个请求内调用 `/Sessions/Logout` 注销；播放检查只读取一个可见媒体的 `PlaybackInfo`，Range 请求最多读取两个字节并立即中止，不主动启动转码。
+
+Doctor 请求临时模拟 Pro 版默认的 SenPlayer 6.2.2 iPhone 客户端画像，包括 `User-Agent`、`X-Emby-Authorization`、`Accept-Language`、`Origin` 和 `Referer`。该画像只在管理员发起的 Doctor 体检请求中生效，不保存到节点，也不改变普通版的实际反代请求。
 
 ## 当前检查项
 

@@ -3,13 +3,16 @@
             try {
                 const body = await request.json();
                 const prefix = String(body.prefix || '').trim();
-                const token = String(body.token || '').trim();
+                const username = String(body.username || '').trim();
+                const password = String(body.password == null ? '' : body.password);
                 if (!prefix || prefix.length > 80) return Response.json({ success: false, error: '请选择需要检测的节点' }, { status: 400 });
-                if (token.length > 1024 || /[\u0000-\u001f]/.test(token)) return Response.json({ success: false, error: '用户 Token 格式不正确' }, { status: 400 });
+                if (username.length > 128 || /[\u0000-\u001f]/.test(username)) return Response.json({ success: false, error: '普通用户账号格式不正确' }, { status: 400 });
+                if (password.length > 512 || password.includes('\u0000')) return Response.json({ success: false, error: '普通用户密码格式不正确' }, { status: 400 });
+                if (!username && password) return Response.json({ success: false, error: '填写密码时必须同时填写普通用户账号' }, { status: 400 });
                 await ensureRoutesSchema(env);
                 const route = await env.DB.prepare("SELECT prefix, target, remark FROM routes WHERE prefix = ? AND IFNULL(owner, '') = ''").bind(prefix).first();
                 if (!route) return Response.json({ success: false, error: '节点不存在或不是管理员节点' }, { status: 404 });
-                const report = await runEmbyDoctor(route, token);
+                const report = await runEmbyDoctor(route, { username, password });
                 const gate = await getProxyToken(env);
                 const pathPrefix = gate && gate.enabled && gate.key ? '/' + encodeURIComponent(gate.key) : '';
                 report.proxyBase = pathPrefix + '/' + route.prefix.split('/').map(encodeURIComponent).join('/');
