@@ -40,7 +40,7 @@ function getWatchState(route, now = Date.now()) {
   state.status = state.remainingDays <= 0 ? 'overdue' : (state.elapsedDays >= 1 && state.remainingDays <= 3 ? 'warning' : 'safe');
   return state;
 }
-// 4.1.1 发布块热修复：在 HTML 模板生成前替换被混淆的校验函数，
+// 4.1.1版本后 发布块热修复：在 HTML 模板生成前替换被混淆的校验函数，
 // 使旧模板的 toString() 也能得到不依赖 Worker 字符串表的独立函数。
 normalizeNodeBotUrl = function normalizeNodeBotUrl(value) {
   const raw = String(value == null ? '' : value).trim();
