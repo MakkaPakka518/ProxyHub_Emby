@@ -1,0 +1,144 @@
+    <div id="doctorModal" class="modal-mask" style="z-index:1200;">
+        <div class="modal-box" style="max-width:760px;">
+            <div class="modal-head">
+                <h2>${I.flask} Emby Doctor <span style="font-size:13px;font-weight:400;color:var(--text-sec);">普通账号播放链路体检</span></h2>
+                <button class="close-x" onclick="closeDoctor()" title="关闭">${I.xmark}</button>
+            </div>
+            <div style="padding:4px 0 14px;color:var(--text-sec);font-size:12px;line-height:1.7;">仅检测面板中已经配置的节点。用户 Token 可选，只在本次体检中使用，不保存、不写入 URL；不会开始完整播放或转码。</div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;" class="doctor-form-grid">
+                <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--text-sec);">选择节点
+                    <select id="doctorNode" style="width:100%;"></select>
+                </label>
+                <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--text-sec);">普通用户 Token（可选）
+                    <input id="doctorToken" type="password" autocomplete="off" maxlength="1024" placeholder="留空只检查公开链路" style="width:100%;">
+                </label>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                <button id="doctorRunBtn" class="btn-submit" onclick="runDoctor()">${I.flask} 开始体检</button>
+                <button class="btn-ghost" onclick="copyDoctorReport()">${I.link} 复制脱敏报告</button>
+            </div>
+            <div id="doctorProgress" style="display:none;margin-top:16px;color:var(--primary);font-size:13px;">正在检查 CF 到源站及浏览器到反代的链路，请稍候...</div>
+            <div id="doctorResults" style="margin-top:16px;display:grid;gap:10px;"></div>
+        </div>
+    </div>
+    <style>
+        .doctor-result{border:1px solid var(--border);border-radius:14px;padding:13px 15px;background:var(--bg-soft);display:flex;align-items:flex-start;gap:11px}
+        .doctor-result strong{display:block;font-size:13px;margin-bottom:4px}.doctor-result p{margin:0;color:var(--text-sec);font-size:12px;line-height:1.65;word-break:break-word}
+        .doctor-mark{width:10px;height:10px;border-radius:999px;margin-top:5px;flex:0 0 auto;background:#8e8e93}.doctor-pass .doctor-mark{background:#34c759;box-shadow:0 0 10px rgba(52,199,89,.45)}
+        .doctor-warn .doctor-mark{background:#ff9500;box-shadow:0 0 10px rgba(255,149,0,.4)}.doctor-fail .doctor-mark{background:#ff3b30;box-shadow:0 0 10px rgba(255,59,48,.4)}
+        @media(max-width:640px){.doctor-form-grid{grid-template-columns:1fr!important}}
+    </style>
+    <script>
+        var doctorLastReport = '';
+        function doctorEsc(value){ return String(value == null ? '' : value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];}); }
+        function doctorJoinPath(base,path){ return String(base||'').replace(/\\/+$/,'')+'/'+String(path||'').replace(/^\\/+/, ''); }
+        function doctorAdd(kind,title,detail){
+            var box=document.getElementById('doctorResults');
+            var row=document.createElement('div');row.className='doctor-result doctor-'+kind;
+            row.innerHTML='<span class="doctor-mark"></span><div><strong>'+doctorEsc(title)+'</strong><p>'+doctorEsc(detail)+'</p></div>';
+            box.appendChild(row);
+        }
+        function openDoctor(){
+            if(window.ROLE && window.ROLE!=='admin') return showToast('仅管理员可使用链路体检');
+            var select=document.getElementById('doctorNode');
+            var routes=(window.globalRoutesData||[]).filter(function(route){return route&&route.prefix&&!route.owner;});
+            select.innerHTML=routes.map(function(route){return '<option value="'+doctorEsc(route.prefix)+'">'+doctorEsc(route.remark||route.prefix)+' / '+doctorEsc(route.prefix)+'</option>';}).join('');
+            if(!routes.length) select.innerHTML='<option value="">请先添加节点</option>';
+            document.getElementById('doctorResults').innerHTML='';
+            document.getElementById('doctorModal').style.display='block';
+        }
+        function closeDoctor(){ document.getElementById('doctorModal').style.display='none'; }
+        async function doctorTimedFetch(url,init){
+            var controller=new AbortController();var timer=setTimeout(function(){controller.abort();},8000);var started=performance.now();
+            try{var response=await fetch(url,Object.assign({redirect:'manual'},init||{},{signal:controller.signal,cache:'no-store'}));return {response:response,ms:Math.round(performance.now()-started)};}
+            finally{clearTimeout(timer);}
+        }
+        async function doctorTimedJson(url,init){
+            var controller=new AbortController();var timer=setTimeout(function(){controller.abort();},8000);var started=performance.now();var reader=null;
+            try{
+                var response=await fetch(url,Object.assign({redirect:'manual'},init||{},{signal:controller.signal,cache:'no-store'}));
+                var limit=1048576;var declared=Number(response.headers.get('Content-Length')||0);if(declared>limit){if(response.body)await response.body.cancel();throw new Error('响应内容过大');}
+                var text='';var size=0;
+                if(response.body&&response.body.getReader){reader=response.body.getReader();var decoder=new TextDecoder();while(true){var chunk=await reader.read();if(chunk.done)break;size+=chunk.value.byteLength;if(size>limit)throw new Error('响应内容过大');text+=decoder.decode(chunk.value,{stream:true});}text+=decoder.decode();}
+                else{text=await response.text();if(text.length>limit)throw new Error('响应内容过大');}
+                var data=null;try{data=JSON.parse(text);}catch(e){}
+                return {response:response,ms:Math.round(performance.now()-started),data:data};
+            }catch(error){if(reader)await reader.cancel().catch(function(){});throw error;}
+            finally{clearTimeout(timer);}
+        }
+        async function doctorProxyChecks(data,token){
+            var headers={Accept:'application/json'};if(token)headers['X-Emby-Token']=token;
+            try{
+                var pub=await doctorTimedJson(doctorJoinPath(data.proxyBase,data.publicPath),{headers:headers});
+                var pubJson=pub.data;
+                var sameServer=!!(pubJson&&data.serverId&&pubJson.Id&&String(pubJson.Id)===String(data.serverId));
+                if(pub.response.ok&&pubJson&&sameServer) doctorAdd('pass','反代公开接口','HTTP '+pub.response.status+' · '+pub.ms+'ms · 已确认反代与源站指向同一服务器');
+                else if(pub.response.ok&&pubJson) doctorAdd('warn','反代公开接口','接口可用，但服务器标识与源站直检不一致，可能指向了其他线路');
+                else doctorAdd('fail','反代公开接口','HTTP '+pub.response.status+' · 当前浏览器经过 CF 反代后未通过');
+            }catch(error){doctorAdd('fail','反代公开接口',error&&error.name==='AbortError'?'浏览器请求超时':'浏览器无法访问反代接口');}
+            if(!token||!data.account||!data.account.auth)return;
+            var apiPrefix=String(data.publicPath||'').indexOf('/emby/')===0?'/emby':'';
+            try{
+                var me=await doctorTimedJson(doctorJoinPath(data.proxyBase,apiPrefix+'/Users/Me'),{headers:headers});
+                var accountOk=!!(me.response.ok&&me.data&&me.data.Id);
+                doctorAdd(accountOk?'pass':'fail','反代账号鉴权','HTTP '+me.response.status+' · '+me.ms+'ms · '+(accountOk?'Token 通过当前反代线路验证':'Token 未通过当前反代线路验证'));
+            }catch(error){doctorAdd('fail','反代账号鉴权',error&&error.name==='AbortError'?'请求超时':'请求失败');}
+            if(!data.account.itemId||!data.account.userId)return;
+            var playbackPath=apiPrefix+'/Items/'+encodeURIComponent(data.account.itemId)+'/PlaybackInfo?UserId='+encodeURIComponent(data.account.userId)+'&IsPlayback=false&AutoOpenLiveStream=false';
+            try{
+                var playback=await doctorTimedJson(doctorJoinPath(data.proxyBase,playbackPath),{headers:headers});
+                var body=playback.data;
+                if(!playback.response.ok||!body){
+                    playback=await doctorTimedJson(doctorJoinPath(data.proxyBase,playbackPath),{method:'POST',headers:Object.assign({},headers,{'Content-Type':'application/json'}),body:JSON.stringify({UserId:data.account.userId,IsPlayback:false,AutoOpenLiveStream:false})});
+                    body=playback.data;
+                }
+                var sources=body&&Array.isArray(body.MediaSources)?body.MediaSources:[];
+                var media=sources.find(function(source){return source&&source.DirectStreamUrl;})||sources.find(function(source){return source&&(source.SupportsDirectPlay||source.SupportsDirectStream);})||sources[0];
+                if(!playback.response.ok||!media){doctorAdd('fail','反代 PlaybackInfo','HTTP '+playback.response.status+' · 未获得可播放媒体信息');return;}
+                doctorAdd('pass','反代 PlaybackInfo','HTTP '+playback.response.status+' · '+playback.ms+'ms · 播放信息已正确经过反代');
+                var stream=String(media.DirectStreamUrl||'');if(!stream){doctorAdd('warn','反代 Range','未返回 DirectStreamUrl，为避免启动转码已跳过媒体请求');return;}
+                var streamUrl;
+                if(/^https?:\\/\\//i.test(stream))streamUrl=new URL(stream);
+                else if(stream.charAt(0)==='/')streamUrl=new URL(stream,location.origin);
+                else streamUrl=new URL(doctorJoinPath(data.proxyBase,stream),location.origin);
+                if(streamUrl.origin!==location.origin){doctorAdd('warn','媒体地址改写','PlaybackInfo 返回了站外直连地址，媒体可能绕过当前 CF 反代');return;}
+                var decodedStreamPath=streamUrl.pathname;try{decodedStreamPath=decodeURIComponent(decodedStreamPath);}catch(e){}
+                if(decodedStreamPath.indexOf('/http://')>=0||decodedStreamPath.indexOf('/https://')>=0){doctorAdd('warn','反代 Range','媒体地址封装了站外源，为保护用户 Token 已跳过 Range 请求');return;}
+                var range=await doctorTimedFetch(streamUrl.href,{redirect:'manual',headers:Object.assign({},headers,{Range:'bytes=0-1'})});
+                if(range.response.body&&range.response.body.cancel)await range.response.body.cancel().catch(function(){});
+                if(range.response.status===206)doctorAdd('pass','反代 Range','HTTP 206 · '+range.ms+'ms · 拖动进度所需的分段请求正常');
+                else if(range.response.status>=300&&range.response.status<400)doctorAdd('warn','反代 Range','HTTP '+range.response.status+' · 媒体发生跳转，请确认外部 302 策略符合预期');
+                else doctorAdd('warn','反代 Range','HTTP '+range.response.status+' · 未返回 206，部分播放器拖动进度可能异常');
+            }catch(error){doctorAdd('fail','反代播放链路',error&&error.name==='AbortError'?'请求超时':'PlaybackInfo 或 Range 请求失败');}
+        }
+        async function runDoctor(){
+            var prefix=document.getElementById('doctorNode').value;var token=document.getElementById('doctorToken').value.trim();
+            if(!prefix)return showToast('请先选择节点');
+            var button=document.getElementById('doctorRunBtn');var progress=document.getElementById('doctorProgress');var results=document.getElementById('doctorResults');
+            button.disabled=true;progress.style.display='block';results.innerHTML='';doctorLastReport='';
+            try{
+                var response=await fetch('/api/doctor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:prefix,token:token})});
+                var data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||('HTTP '+response.status));
+                data.lines.forEach(function(line){
+                    var detail=line.ok?'HTTP '+line.status+' · '+line.ms+'ms'+(line.product?' · '+line.product:'')+(line.version?' '+line.version:''):'HTTP '+(line.status||'无响应')+' · '+(line.error||'公开接口未通过');
+                    doctorAdd(line.ok?'pass':(line.reachable?'warn':'fail'),'源站线路 '+line.line,detail);
+                });
+                if(data.account&&data.account.tested){
+                    doctorAdd(data.account.auth?'pass':'fail','普通账号鉴权',data.account.auth?'Token 有效 · '+data.account.authMs+'ms':'HTTP '+(data.account.authStatus||'无响应')+' · Token 无效或账号接口不可用');
+                    if(data.account.auth)doctorAdd(data.account.library?'pass':'warn','媒体库读取',data.account.library?(data.account.itemId?'已找到一个可检测媒体':'接口正常，但没有可用于播放检测的媒体'):'HTTP '+(data.account.libraryStatus||'无响应'));
+                    if(data.account.playback)doctorAdd('pass','源站 PlaybackInfo','直播放 '+(data.account.directPlay?'支持':'不支持')+' · DirectStream '+(data.account.directStream?'支持':'不支持')+' · 转码 '+(data.account.transcoding?'支持':'不支持'));
+                    if(data.account.range)doctorAdd(data.account.range.ok?'pass':'warn','源站 Range',data.account.range.skipped==='external'?'站外媒体地址，为保护 Token 已跳过请求':'HTTP '+data.account.range.status+' · '+data.account.range.ms+'ms'+(data.account.range.redirected?' · 媒体发生跳转':''));
+                }else doctorAdd('warn','账号与播放检测','未填写普通用户 Token，本次只检查公开接口和基础反代链路');
+                await doctorProxyChecks(data,token);
+                data.recommendations.forEach(function(text){doctorAdd('warn','诊断建议',text);});
+                var visible=Array.prototype.map.call(results.querySelectorAll('.doctor-result'),function(row){return row.innerText.replace(/\\n+/g,'：');});
+                doctorLastReport='Emby Doctor 脱敏报告\\n节点：'+(data.node.remark||data.node.prefix)+'\\n'+visible.join('\\n');
+            }catch(error){doctorAdd('fail','体检失败',error&&error.message?error.message:'未知错误');}
+            finally{button.disabled=false;progress.style.display='none';document.getElementById('doctorToken').value='';}
+        }
+        async function copyDoctorReport(){
+            if(!doctorLastReport)return showToast('请先完成一次体检');
+            try{await navigator.clipboard.writeText(doctorLastReport);showToast('脱敏报告已复制');}
+            catch(e){showToast('复制失败，请手动选择结果');}
+        }
+    </script>
