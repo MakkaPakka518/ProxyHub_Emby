@@ -79,12 +79,12 @@ test('Doctor logs in with an ordinary account and tests PlaybackInfo and Range u
   assert.ok(calls.every(call => !call.url.includes(token) && !call.url.includes(password)), 'credentials must never be placed in a URL');
   assert.ok(calls.every(call => !call.url.includes('server-leaked-token')), 'server-provided media tokens must be stripped from probe URLs');
   const login = calls.find(call => new URL(call.url).pathname === '/Users/AuthenticateByName');
-  assert.deepEqual(JSON.parse(login.body), { Username: 'ordinary-user', Pw: password, Password: password });
+  assert.deepEqual(JSON.parse(login.body), { Username: 'ordinary-user', Pw: password });
   assert.equal(login.token, null);
   assert.match(login.auth, /Client="SenPlayer"/);
   assert.equal(login.ua, 'SenPlayer/6.2.2 (iPhone; iOS 17.5; Scale/3.00)');
-  assert.equal(login.origin, 'https://backup.example');
-  assert.equal(login.referer, 'https://backup.example/');
+  assert.equal(login.origin, null);
+  assert.equal(login.referer, null);
   assert.ok(calls.filter(call => /Users\/Me|Items|Videos/.test(new URL(call.url).pathname)).every(call => call.token === token && call.auth.includes('Token="' + token + '"')));
   assert.equal(calls.find(call => call.range).range, 'bytes=0-1');
   assert.equal(calls.some(call => new URL(call.url).pathname === '/Sessions/Logout' && call.token === token), true);
@@ -102,8 +102,37 @@ test('Doctor detects an /emby API base without credentials', async () => {
   assert.equal(report.lines[0].ok, true);
   assert.equal(report.publicPath, '/emby/System/Info/Public');
   assert.equal(report.account.tested, false);
-  assert.deepEqual(calls, ['/System/Info/Public', '/emby/System/Info/Public']);
+  assert.deepEqual(calls, ['/emby/System/Info/Public']);
   assert.ok(report.recommendations.some(message => message.includes('/emby')));
+});
+
+test('Doctor follows the disguise keepalive login flow when root login would return HTTP 500', async () => {
+  const calls = [];
+  const api = await loadDoctor(async (input, init = {}) => {
+    const url = new URL(input);
+    calls.push({ path: url.pathname, method: init.method || 'GET', body: init.body || '' });
+    if (url.pathname === '/emby/System/Info/Public') return new Response('Not Found', { status: 404 });
+    if (url.pathname === '/System/Info/Public') return Response.json({ ProductName: 'Emby', Version: '4.8', Id: 'server-1' });
+    if (url.pathname === '/emby/Users/AuthenticateByName') return Response.json({ AccessToken: 'temp-token', User: { Id: 'login-user' } });
+    if (url.pathname === '/Users/AuthenticateByName') return new Response('Internal Error', { status: 500 });
+    if (url.pathname === '/Users/Me' || url.pathname === '/emby/Users/Me') return new Response('must not be called', { status: 500 });
+    if (url.pathname === '/emby/Items' && url.searchParams.get('Recursive') === 'true') return Response.json({ Items: [{ Id: 'item-1' }] });
+    if (url.pathname === '/emby/Items/item-1/PlaybackInfo' && (init.method || 'GET') === 'POST') return Response.json({});
+    if (url.pathname === '/emby/Items/item-1/PlaybackInfo') return Response.json({ MediaSources: [{ DirectStreamUrl: '/Videos/item-1/stream', SupportsDirectStream: true }] });
+    if (url.pathname === '/Videos/item-1/stream') return new Response('ab', { status: 206 });
+    if (url.pathname === '/emby/Sessions/Logout') return new Response(null, { status: 204 });
+    return new Response('Not Found', { status: 404 });
+  });
+  const report = await api.runEmbyDoctor({ target: 'https://compat.example' }, { username: 'ordinary-user', password: 'password-secret' });
+  assert.equal(report.account.auth, true);
+  assert.equal(report.account.userId, 'login-user');
+  assert.equal(report.account.playback, true);
+  assert.equal(report.account.logout.ok, true);
+  assert.equal(calls.some(call => call.path === '/Users/AuthenticateByName'), false);
+  assert.equal(calls.some(call => /\/Users\/Me$/.test(call.path)), false);
+  const playbackCalls = calls.filter(call => call.path === '/emby/Items/item-1/PlaybackInfo');
+  assert.deepEqual(playbackCalls.map(call => call.method), ['POST', 'GET']);
+  assert.equal(JSON.parse(playbackCalls[0].body).DeviceId, '9c4e7a2b-6d8f-4b3a-9e2c-1f5d8a0b7e64');
 });
 
 test('Doctor never sends account credentials to an HTTP source', async () => {
@@ -135,7 +164,7 @@ test('Doctor never forwards account credentials or a token across an origin-chan
     calls.push({ host: url.hostname, path: url.pathname, token: new Headers(init.headers || {}).get('X-Emby-Token'), body: init.body || '' });
     if (url.pathname === '/steal') throw new Error('credential leak');
     if (url.pathname === '/System/Info/Public') return Response.json({ ProductName: 'Emby', Version: '4.8', Id: 'safe-server' });
-    if (url.pathname === '/Users/AuthenticateByName') return Response.json({ AccessToken: token, User: { Id: 'user-1' } });
+    if (url.pathname === '/Users/AuthenticateByName') return Response.json({ AccessToken: token });
     if (url.pathname === '/Users/Me') return new Response('', { status: 302, headers: { Location: 'http://safe.example/steal' } });
     return new Response('Not Found', { status: 404 });
   });

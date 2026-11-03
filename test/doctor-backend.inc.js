@@ -42,11 +42,27 @@ function doctorStripMediaCredentials(url) {
 function doctorPublicCandidates(base) {
   const normalized = doctorNormalizeBase(base);
   const parsed = new URL(normalized);
-  const candidates = [{ url: normalized + '/System/Info/Public', requestPath: '/System/Info/Public', apiBase: normalized }];
+  const candidates = [];
   if (!parsed.pathname || parsed.pathname === '/') {
     candidates.push({ url: parsed.origin + '/emby/System/Info/Public', requestPath: '/emby/System/Info/Public', apiBase: parsed.origin + '/emby' });
   }
+  candidates.push({ url: normalized + '/System/Info/Public', requestPath: '/System/Info/Public', apiBase: normalized });
   return candidates;
+}
+
+function doctorApiBaseCandidates(apiBase) {
+  const normalized = doctorNormalizeBase(apiBase);
+  const parsed = new URL(normalized);
+  const bases = [];
+  const add = value => { if (value && !bases.includes(value)) bases.push(value); };
+  if (/\/emby$/i.test(parsed.pathname)) {
+    add(normalized);
+    add(parsed.origin + (parsed.pathname.replace(/\/emby$/i, '') || ''));
+  } else {
+    add(normalized + '/emby');
+    add(normalized);
+  }
+  return bases;
 }
 
 async function doctorFetch(url, init = {}, readText = false) {
@@ -104,7 +120,7 @@ async function doctorFetchJson(url, init = {}) {
       const next = new URL(location, current);
       if (!['http:', 'https:'].includes(next.protocol)) return { status, ok: false, ms: totalMs, data: null, blockedRedirect: true };
       if (next.origin !== allowedOrigin) return { status, ok: false, ms: totalMs, data: null, blockedRedirect: true };
-      if ([301, 302, 303].includes(status) && String(options.method || 'GET').toUpperCase() !== 'GET') {
+      if (status === 303 && String(options.method || 'GET').toUpperCase() !== 'GET') {
         const headers = new Headers(options.headers || {});
         headers.delete('Content-Type');
         options = Object.assign({}, options, { method: 'GET', headers });
@@ -155,14 +171,11 @@ function doctorAuthHeaderValue(token = '') {
 }
 
 function doctorAuthHeaders(url, token = '', json = false) {
-  const origin = new URL(url).origin;
   const headers = {
     Accept: '*/*',
     'Accept-Language': 'en-US,en;q=0.9',
     'User-Agent': DOCTOR_CLIENT_PROFILE.ua,
-    'X-Emby-Authorization': doctorAuthHeaderValue(token),
-    Origin: origin,
-    Referer: origin + '/'
+    'X-Emby-Authorization': doctorAuthHeaderValue(token)
   };
   if (token) headers['X-Emby-Token'] = token;
   if (json) headers['Content-Type'] = 'application/json';
@@ -170,19 +183,24 @@ function doctorAuthHeaders(url, token = '', json = false) {
 }
 
 async function doctorAuthenticate(apiBase, username, password) {
-  try {
-    const authUrl = doctorJoin(apiBase, '/Users/AuthenticateByName');
-    const response = await doctorFetchJson(authUrl, {
-      method: 'POST',
-      headers: doctorAuthHeaders(authUrl, '', true),
-      body: JSON.stringify({ Username: username, Pw: password, Password: password })
-    });
-    const token = response.data && String(response.data.AccessToken || '');
-    const userId = response.data && response.data.User && String(response.data.User.Id || '');
-    return { ok: !!(response.ok && token), status: response.status, ms: response.ms, token, userId };
-  } catch (error) {
-    return { ok: false, status: 0, ms: -1, token: '', userId: '', error: error && error.name === 'AbortError' ? '登录超时' : '登录失败' };
+  let last = { ok: false, status: 0, ms: -1, token: '', userId: '', apiBase };
+  for (const candidateBase of doctorApiBaseCandidates(apiBase)) {
+    try {
+      const authUrl = doctorJoin(candidateBase, '/Users/AuthenticateByName');
+      const response = await doctorFetchJson(authUrl, {
+        method: 'POST',
+        headers: doctorAuthHeaders(authUrl, '', true),
+        body: JSON.stringify({ Username: username, Pw: password })
+      });
+      const token = response.data && String(response.data.AccessToken || '');
+      const userId = response.data && response.data.User && String(response.data.User.Id || '');
+      last = { ok: !!(response.ok && token), status: response.status, ms: response.ms, token, userId, apiBase: candidateBase };
+      if (last.ok) return last;
+    } catch (error) {
+      last = { ok: false, status: 0, ms: -1, token: '', userId: '', apiBase: candidateBase, error: error && error.name === 'AbortError' ? '登录超时' : '登录失败' };
+    }
   }
+  return last;
 }
 
 async function doctorLogoutSession(apiBase, token) {
@@ -197,35 +215,49 @@ async function doctorLogoutSession(apiBase, token) {
   }
 }
 
-async function doctorProbeAccount(apiBase, token) {
+async function doctorProbeAccount(apiBase, token, loginUserId = '') {
   const result = { tested: true, auth: false, library: false, playback: false, range: null };
   try {
-    const meUrl = doctorJoin(apiBase, '/Users/Me');
-    const me = await doctorFetchJson(meUrl, { headers: doctorAuthHeaders(meUrl, token) });
-    result.authStatus = me.status;
-    result.authMs = me.ms;
-    if (!me.ok || !me.data || !me.data.Id) return result;
+    result.userId = String(loginUserId || '');
+    if (!result.userId) {
+      const meUrl = doctorJoin(apiBase, '/Users/Me');
+      const me = await doctorFetchJson(meUrl, { headers: doctorAuthHeaders(meUrl, token) });
+      result.authStatus = me.status;
+      result.authMs = me.ms;
+      if (!me.ok || !me.data || !me.data.Id) return result;
+      result.userId = String(me.data.Id);
+    }
     result.auth = true;
-    result.userId = String(me.data.Id);
 
-    const listPath = '/Users/' + encodeURIComponent(result.userId) + '/Items?Recursive=true&IncludeItemTypes=Movie,Episode&Limit=1&Fields=MediaSources&SortBy=DateCreated&SortOrder=Descending';
-    const libraryUrl = doctorJoin(apiBase, listPath);
-    const library = await doctorFetchJson(libraryUrl, { headers: doctorAuthHeaders(libraryUrl, token) });
-    result.libraryStatus = library.status;
-    result.libraryMs = library.ms;
-    const item = library.data && Array.isArray(library.data.Items) ? library.data.Items[0] : null;
-    if (!library.ok) return result;
-    result.library = true;
+    const fields = 'MediaSources,RunTimeTicks,SeriesName,ParentIndexNumber,IndexNumber';
+    const listPaths = [
+      '/Items?Recursive=true&IncludeItemTypes=Movie,Episode&Limit=1&SortBy=DateCreated&SortOrder=Descending&Fields=' + fields,
+      '/Users/' + encodeURIComponent(result.userId) + '/Items?Recursive=true&IncludeItemTypes=Movie,Episode&Limit=1&SortBy=DateCreated&SortOrder=Descending&Fields=' + fields,
+      '/Users/' + encodeURIComponent(result.userId) + '/Items/Recents?Limit=1&Fields=' + fields
+    ];
+    let item = null;
+    for (const listPath of listPaths) {
+      const libraryUrl = doctorJoin(apiBase, listPath);
+      const library = await doctorFetchJson(libraryUrl, { headers: doctorAuthHeaders(libraryUrl, token) });
+      result.libraryStatus = library.status;
+      result.libraryMs = library.ms;
+      if (library.ok) result.library = true;
+      const items = library.data && Array.isArray(library.data.Items) ? library.data.Items : (Array.isArray(library.data) ? library.data : []);
+      item = items.find(value => value && value.Id) || null;
+      if (item) break;
+    }
     if (!item || !item.Id) return result;
     result.itemId = String(item.Id);
 
-    const playbackPath = '/Items/' + encodeURIComponent(result.itemId) + '/PlaybackInfo?UserId=' + encodeURIComponent(result.userId) + '&IsPlayback=false&AutoOpenLiveStream=false';
+    const playbackPath = '/Items/' + encodeURIComponent(result.itemId) + '/PlaybackInfo';
     const playbackUrl = doctorJoin(apiBase, playbackPath);
-    let playback = await doctorFetchJson(playbackUrl, { headers: doctorAuthHeaders(playbackUrl, token) });
-    if (!playback.ok || !playback.data) {
-      playback = await doctorFetchJson(playbackUrl, {
-        method: 'POST', headers: doctorAuthHeaders(playbackUrl, token, true), body: JSON.stringify({ UserId: result.userId, IsPlayback: false, AutoOpenLiveStream: false })
-      });
+    let playback = await doctorFetchJson(playbackUrl, {
+      method: 'POST', headers: doctorAuthHeaders(playbackUrl, token, true),
+      body: JSON.stringify({ UserId: result.userId, DeviceId: DOCTOR_CLIENT_PROFILE.deviceId, MediaSources: [], AutoOpenLiveStream: false, StartTimeTicks: 0 })
+    });
+    if (!playback.ok || !playback.data || !Array.isArray(playback.data.MediaSources) || playback.data.MediaSources.length === 0) {
+      const getUrl = playbackUrl + '?UserId=' + encodeURIComponent(result.userId) + '&AutoOpenLiveStream=true';
+      playback = await doctorFetchJson(getUrl, { headers: doctorAuthHeaders(getUrl, token) });
     }
     result.playbackStatus = playback.status;
     result.playbackMs = playback.ms;
@@ -283,10 +315,10 @@ async function runEmbyDoctor(route, credentials = {}) {
       account = { tested: true, auth: false, library: false, playback: false, range: null, authStatus: login.status, authMs: login.ms };
       if (login.ok) {
         try {
-          account = await doctorProbeAccount(selected.apiBase, login.token);
+          account = await doctorProbeAccount(login.apiBase, login.token, login.userId);
           account.loginMs = login.ms;
         } finally {
-          const logout = await doctorLogoutSession(selected.apiBase, login.token);
+          const logout = await doctorLogoutSession(login.apiBase, login.token);
           account.logout = logout;
           if (!logout.ok) recommendations.push('临时 Token 自动注销失败，请在 Emby 客户端设备列表中手动退出 Emby Doctor。');
         }

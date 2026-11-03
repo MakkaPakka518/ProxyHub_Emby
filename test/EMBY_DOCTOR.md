@@ -11,7 +11,9 @@
 
 账号和密码只存在于单次请求内，不写入 D1、URL 或浏览器存储。Worker 会临时登录获取 Token，完成账号与播放检测后在同一个请求内调用 `/Sessions/Logout` 注销；播放检查只读取一个可见媒体的 `PlaybackInfo`，Range 请求最多读取两个字节并立即中止，不主动启动转码。
 
-Doctor 请求临时模拟 Pro 版默认的 SenPlayer 6.2.2 iPhone 客户端画像，包括 `User-Agent`、`X-Emby-Authorization`、`Accept-Language`、`Origin` 和 `Referer`。该画像只在管理员发起的 Doctor 体检请求中生效，不保存到节点，也不改变普通版的实际反代请求。
+Doctor 的账号与播放请求临时模拟 Pro 版默认的 SenPlayer 6.2.2 iPhone 客户端画像，包括 `User-Agent`、`X-Emby-Authorization` 和 `Accept-Language`；浏览器经过面板反代的探测还会由 Worker 补上源站 `Origin` 与 `Referer`。该画像只在管理员发起的 Doctor 体检请求中生效，不保存到节点，也不改变普通版的实际反代请求。
+
+账号检测按伪装版保活流程优先请求 `/emby/Users/AuthenticateByName`，失败再回退根路径；直接使用登录响应中的 `User.Id`，避免共享服的 `/Users/Me` 返回 403/500。
 
 ## 当前检查项
 

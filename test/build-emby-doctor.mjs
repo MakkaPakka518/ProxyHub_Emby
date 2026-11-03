@@ -14,7 +14,7 @@ function inject(anchor, replacement, label) {
   source = source.replace(anchor, replacement);
 }
 
-inject('// VERSION: 4.1.1\nconst CURRENT_VERSION = "4.1.1";', '// VERSION: 4.1.1-doctor-test.2\nconst CURRENT_VERSION = "4.1.1-doctor-test.2";', 'version');
+inject('// VERSION: 4.1.1\nconst CURRENT_VERSION = "4.1.1";', '// VERSION: 4.1.1-doctor-test.3\nconst CURRENT_VERSION = "4.1.1-doctor-test.3";', 'version');
 inject('const __NORMAL_WORKER = {', backend + '\n\nconst __NORMAL_WORKER = {', 'backend helpers');
 inject('    <div class="topbar">', ui + '\n\n    <div class="topbar">', 'doctor modal');
 inject('                <button class="tb-icon-btn" onclick="location.href=\'/speedtest\'" title="下载测速" style="color:var(--success);">${I.bolt}</button>', '                <button class="tb-icon-btn" onclick="location.href=\'/speedtest\'" title="下载测速" style="color:var(--success);">${I.bolt}</button>\n                <button class="tb-icon-btn admin-only" onclick="openDoctor()" title="Emby Doctor" style="color:#a855f7;">${I.flask}</button>', 'toolbar button');
