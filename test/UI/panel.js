@@ -31,31 +31,63 @@
       snowfall.append(flake);
     }
     const trail = create('div', 'ui-deer-trail', `<div class="ui-reindeer">
-      <svg viewBox="0 0 180 116" fill="none" aria-hidden="true" focusable="false">
+      <svg viewBox="0 0 260 180" fill="none" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="ui-deer-coat" x1="86" y1="61" x2="135" y2="137" gradientUnits="userSpaceOnUse"><stop stop-color="#e1b27b"/><stop offset=".52" stop-color="#bc824f"/><stop offset="1" stop-color="#91562f"/></linearGradient>
+          <linearGradient id="ui-deer-scarf" x1="144" y1="70" x2="183" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#d56670"/><stop offset=".5" stop-color="#b33a4f"/><stop offset="1" stop-color="#8d293e"/></linearGradient>
+          <radialGradient id="ui-deer-bell" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(176 89) rotate(65) scale(8)"><stop stop-color="#fff0b8"/><stop offset=".55" stop-color="#e3b85d"/><stop offset="1" stop-color="#b27e36"/></radialGradient>
+        </defs>
+        <ellipse class="ui-deer-shadow" cx="113" cy="173" rx="57" ry="4" fill="#29362c" opacity=".12"/>
         <g class="ui-deer-bob">
-          <g stroke="#885334" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-            <path class="ui-deer-leg back far" d="M64 67 55 85 65 104"/>
-            <path class="ui-deer-leg front far" d="M104 66 116 86 110 104"/>
+          <g class="ui-deer-leg back far">
+            <path d="M76 109c-12 1-20 12-20 23l-11 29 8 3 17-31 15-17-9-7Z" fill="#87532f"/>
+            <path d="m45 157 11 4-3 8H41c-1-4 1-8 4-12Z" fill="#42352c"/>
           </g>
-          <path d="m49 53-15-9c-4 9 2 19 18 19" fill="#c48b59"/>
-          <path d="M109 59c7-10 7-23 15-30l13 7c-3 12-4 26-14 35" fill="#b9794b"/>
-          <ellipse cx="81" cy="61" rx="36" ry="20" fill="#c48b59"/>
-          <path d="M55 68c13 14 35 16 53 4-20 3-33-1-53-4Z" fill="#e6b987"/>
-          <path d="m123 29-8-14c9-2 17 3 16 13" fill="#c48b59"/>
-          <path d="m121 24-3-6c6 0 8 3 8 7" fill="#e6b987"/>
-          <path d="M131 24 127 12 121 6m7 9 8-7m-10 4-11 1m24 12 3-12 8-7m-9 10-7-8m9 5 11 2" stroke="#dfc39a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <ellipse cx="140" cy="33" rx="21" ry="13" transform="rotate(-10 140 33)" fill="#c48b59"/>
-          <ellipse cx="155" cy="36" rx="12" ry="9" fill="#e6b987"/>
-          <circle cx="140" cy="28" r="2.5" fill="#352b25"/>
-          <circle cx="141" cy="27" r=".8" fill="#fff7e8"/>
-          <ellipse cx="165" cy="33" rx="5.5" ry="5" fill="#bf3b4c"/>
-          <path d="M151 42c3 1 5 0 6-1" stroke="#885334" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="m119 44 15 6-4 8-14-6Z" fill="#b73e51"/>
-          <path d="m117 47-23-3 8 7-6 4 23-3" fill="#cc5c67"/>
-          <circle cx="124" cy="57" r="3" fill="#f2d18a"/>
-          <g stroke="#b9794b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-            <path class="ui-deer-leg back near" d="M61 69 53 87 58 106"/>
-            <path class="ui-deer-leg front near" d="M106 68 102 87 115 104"/>
+          <g class="ui-deer-leg front far">
+            <path d="M145 105c-2 12 4 24 16 32l18 19 6-7-15-25-13-19h-12Z" fill="#925d36"/>
+            <path d="m179 149 9 2 5 8c-5 4-10 2-16-4l2-6Z" fill="#42352c"/>
+          </g>
+          <path d="M57 92C40 88 36 76 28 74c-3 15 8 31 29 29" fill="#bb834e"/>
+          <path d="M30 77c2 9 8 16 16 19-2-8-8-14-16-19Z" fill="#f2d8ac"/>
+          <path d="M63 81c16-13 49-8 76-1 11-11 18-21 23-37 3-4 11-3 15 5l6 19c-6 10-6 24-19 42-2 17-16 24-31 22H87c-24 0-38-12-38-29-1-10 5-17 14-21Z" fill="url(#ui-deer-coat)"/>
+          <path d="M61 103c13 18 40 28 72 20-4 7-20 10-39 8-18-1-30-10-33-28Z" fill="#efd0a1"/>
+          <path d="M68 87c16-9 40-6 57 0" stroke="#f0cea0" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+          <path d="M166 63c10 9 10 28-7 49l-2-7-8 6 1-10-7 3 6-14c8-7 11-17 17-27Z" fill="#f2dab5"/>
+          <path d="M151 89c7-5 12-11 14-16" stroke="#d2ad79" stroke-width="1.5" stroke-linecap="round"/>
+          <g stroke-linecap="round" stroke-linejoin="round">
+            <path d="M187 43c-3-12 6-22 8-35m-4 15 14-8 5-9m-15 5-7-6m16 12 10 1" stroke="#976d43" stroke-width="4"/>
+            <path d="M174 43c-9-8-5-21-12-33m8 21c-12 0-22-8-18-19m1 10-9-7m25 8c10-4 14-11 10-17m0 10 9-4" stroke="#956a41" stroke-width="6"/>
+            <path d="M174 43c-9-8-5-21-12-33m8 21c-12 0-22-8-18-19m1 10-9-7m25 8c10-4 14-11 10-17m0 10 9-4" stroke="#e2c795" stroke-width="3"/>
+          </g>
+          <path d="M178 45c-12 1-24-4-31-17 15-4 28 2 31 17Z" fill="#c58f59"/>
+          <path d="M172 41c-7-1-14-4-19-10 9 0 16 3 19 10Z" fill="#ecc1a0"/>
+          <path d="M171 44c4-11 19-10 27 0l10 11c7 1 18 1 22 8 1 7-6 15-16 16l-21-2c-10 2-18-5-19-14l-3-19Z" fill="#ce985f"/>
+          <path d="M193 59c8 3 17 0 27 1 9 2 9 10 2 15-8 6-23 3-31-2l2-14Z" fill="#f1d8b1"/>
+          <path d="M175 45c5-5 12-4 16-1" stroke="#e7bb80" stroke-width="2.5" stroke-linecap="round"/>
+          <ellipse cx="189" cy="52" rx="3.5" ry="4.5" fill="#332d28"/>
+          <circle cx="190" cy="50" r="1.2" fill="#fffdf3"/>
+          <path d="M184 44c3-2 6-1 8 0" stroke="#785134" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M207 74c5 2 10 1 13-2" stroke="#986846" stroke-width="1.3" stroke-linecap="round"/>
+          <ellipse cx="227" cy="63" rx="7" ry="6" fill="#ad3448"/>
+          <ellipse cx="225" cy="61" rx="2.7" ry="1.4" transform="rotate(-20 225 61)" fill="#e88e97"/>
+          <g class="ui-deer-scarf">
+            <path d="M174 77c-13-4-24-8-38-3l14 9-9 6c14 4 29 0 38-5l-5-7Z" fill="url(#ui-deer-scarf)"/>
+            <path d="m146 75 3 6m7-5 3 8m-13 4 1 2" stroke="#edaaa1" stroke-width="1.5" stroke-linecap="round"/>
+          </g>
+          <path d="m167 71 18 8-5 10-20-10 7-8Z" fill="url(#ui-deer-scarf)"/>
+          <path d="m166 73 15 7m-18-3 16 7" stroke="#df9290" stroke-width="1.2" opacity=".75"/>
+          <path d="m178 87-1 3" stroke="#e6c37c" stroke-width="1.5"/>
+          <circle cx="177" cy="94" r="5.5" fill="url(#ui-deer-bell)"/>
+          <path d="M173 97h8m-4-3v3" stroke="#9c702f" stroke-width="1.2" stroke-linecap="round"/>
+          <g class="ui-deer-leg back near">
+            <path d="M71 109c-7 8-6 20 1 28l11 8 7-8-9-10 4-15-14-3Z" fill="#ba7f49"/>
+            <path d="m73 114 1 16 9 9" stroke="#d9a56a" stroke-width="3" stroke-linecap="round"/>
+            <g class="ui-deer-shin back"><path d="m81 137 11 5-2 21-8 1 1-17-7-6 5-4Z" fill="#c58f58"/><path d="m82 159 10 2 1 8H80c-1-4 0-7 2-10Z" fill="#46372e"/><path d="M86 162v5" stroke="#7d6451" stroke-width="1"/></g>
+          </g>
+          <g class="ui-deer-leg front near">
+            <path d="M144 107c-2 10 3 22 7 33l10-2-6-29-11-2Z" fill="#c58d55"/>
+            <path d="m147 112 6 20" stroke="#e3b47b" stroke-width="2.5" stroke-linecap="round"/>
+            <g class="ui-deer-shin front"><path d="m151 134 10 5-14 23-7-5 11-23Z" fill="#d3a16b"/><path d="m140 155 10 6-3 7-13-7 6-6Z" fill="#46372e"/><path d="m141 160 4 3" stroke="#7d6451" stroke-width="1"/></g>
           </g>
         </g>
       </svg></div>`);

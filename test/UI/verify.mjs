@@ -34,7 +34,7 @@ for (const name of ['HTML_UI', 'LOGIN_UI']) {
   const scripts = html => [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match => match[1]);
   assert.deepEqual(scripts(candidate[name]).slice(0, -1), scripts(original[name]), name + ' original scripts');
   const ids = html => [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]).sort();
-  assert.deepEqual(ids(candidate[name]).filter(id => id !== 'proxyhub-ui'), ids(original[name]), name + ' DOM hooks');
+  assert.deepEqual(ids(candidate[name]).filter(id => id !== 'proxyhub-ui' && !id.startsWith('ui-deer-')), ids(original[name]), name + ' DOM hooks');
 }
 writeFileSync(join(output, 'panel.html'), candidate.HTML_UI);
 writeFileSync(join(output, 'login.html'), candidate.LOGIN_UI);
@@ -136,6 +136,25 @@ try {
       });
       assert.deepEqual(lowContrast, [], 'Core text contrast in ' + (dark ? 'dark' : 'light'));
       if ([390, 1280].includes(width)) await page.screenshot({ path: join(output, `nodes-${width}-${dark ? 'dark' : 'light'}.png`) });
+      if (width <= 900) {
+        await page.locator('.ui-menu-toggle').click();
+        const alignment = await page.evaluate(() => {
+          const themeButton = document.getElementById('themeToggle');
+          const peerButton = document.getElementById('nodeReqBtn');
+          const theme = themeButton.querySelector('.ui-tool-label').getBoundingClientRect();
+          const peer = peerButton.querySelector('.ui-tool-label').getBoundingClientRect();
+          const menu = document.querySelector('.topbar-actions').getBoundingClientRect();
+          const button = themeButton.getBoundingClientRect();
+          const styles = [themeButton, peerButton].map(el => {
+            const style = getComputedStyle(el), rect = el.getBoundingClientRect();
+            return { x: rect.x, width: rect.width, padding: style.padding, gap: style.gap, margin: style.margin };
+          });
+          return { labelOffset: theme.x - peer.x, contained: button.x >= menu.x && button.right <= menu.right, styles };
+        });
+        if (width === 390) await page.screenshot({ path: join(output, `tools-${dark ? 'dark' : 'light'}.png`) });
+        assert.ok(Math.abs(alignment.labelOffset) <= 1 && alignment.contained, 'Tool labels align: ' + JSON.stringify(alignment));
+        await page.locator('.ui-menu-toggle').click();
+      }
     }
     // Tab navigation on mode filters uses the same existing click handlers.
     const mode = page.locator('.mode-card[data-mode="off"]');
