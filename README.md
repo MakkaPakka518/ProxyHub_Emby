@@ -33,7 +33,7 @@
    [立即注册 - DNSHE](https://my.dnshe.com/register.php)（推荐这个免费域名即可，也可以用自己的域名）
 
 3. **明文源码**
-   来TG群找
+   main库下的 明文 文件夹内
 
 ---
 
