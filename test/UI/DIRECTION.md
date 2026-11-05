@@ -1,15 +1,11 @@
-# UI v3 direction contract
+# UI 2 Christmas
 
-THESIS: A media-node gallery with a selected-node stage. The user rejects the sidebar / overview / list / inbox template. Browse nodes as a collection and act on the selected node without hunting through an expanded row.
+用户明确选择 UI 2（77b1053）的工作台布局，不沿用 UI 3 的节点展台 / 图库。
 
-OWN-WORLD: Refine the incumbent midnight-blue, warm-white and copper palette with Apple-style hierarchy: translucent floating navigation only, solid content, large system-sans node names, rounded controls, immediate press feedback and interruptible selection transitions. Material and typography support focus rather than decorating every surface.
+- **布局：** 216px 桌面侧栏、72px 顶栏、真实数据总览、左侧节点列表及右侧保号提醒；900px 以下恢复手机顶栏和底部导航，提醒与批量管理可折叠。
+- **主题：** 松绿导航与总览，暖白内容面、酒红操作色、浅金导航选择。深色模式沿用同样的信息层级。
+- **节日表现：** 总览“圣诞放映季”，自绘内联 SVG 圣诞树、礼物、星星，细彩带边缘；侧栏底部与登录页使用同一套艺术素材。
+- **功能：** 沿用节点编辑、搜索、模式过滤、复制、导入及共享保号口径，保留弹窗键盘焦点与错误提示处理。
+- **交付：** 仍从明文/worker.js 构建多行、未混淆的 test/UI/worker.js。预览使用 fixture 数据，用户自行测试部署。
 
-STORY: See the selected node, copy its real entry URL or open its existing editor/import flow; select another node from the gallery. Search, filter, reorder and batch operations still work. Retention is shown as text and a real cycle indicator, never fabricated uptime.
-
-FIRST VIEWPORT: Desktop: floating brand/navigation/tool strip, compact title and real counts, a wide solid selected-node stage with identity/actions on the left and retention/usage on the right, then a gallery grid. Mobile: compact header and bottom tab bar, stage stacked with readily reachable actions, gallery below, alerts via a disclosure at the header. No persistent side rail or reminder column.
-
-FORM: User-pinned Apple refinement of the existing palette. Operate mode, code-led. Signature: selecting a real node updates the large stage and its original actions, with a short interruptible transition. Reference principles: HIG layout › Visual hierarchy; materials › Liquid Glass; split-views › Best practices; motion › Providing feedback. These are translated to Web controls, not imitation OS chrome.
-
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
-
-User confirmed: redesign both mobile and desktop; continue the current theme with Apple qualities and a genuinely different composition. Preserve role restrictions and backend behavior. No shipping raster assets added.
+所有节日艺术为内联矢量，无新增字体、图片下载、计时器或数据接口。

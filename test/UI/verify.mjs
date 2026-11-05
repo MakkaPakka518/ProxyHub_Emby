@@ -102,14 +102,16 @@ try {
     await page.waitForFunction(() => document.querySelectorAll('.emby-card').length === 6);
     await page.waitForFunction(() => document.querySelector('[data-ui-metric="total"]')?.textContent === '6');
     assert.equal(await page.locator('[data-ui-metric="plays"]').textContent(), '12');
-    assert.equal(await page.locator('[data-ui-metric="attention"]').textContent(), '3');
-    assert.equal(await page.locator('.ui-focus').getAttribute('data-prefix'), 'main');
+    assert.equal(await page.locator('.ui-metrics [data-ui-metric="attention"]').textContent(), '3');
+    assert.equal(await page.locator('.ui-focus').count(), 0, 'Use the UI 2 workspace, not the node stage');
+    assert.equal(await page.locator('.ui-rail').count(), 1);
+    assert.equal(await page.locator('.ui-mode-segment').count(), 5);
+    assert.match(await page.locator('.ui-overview-title').textContent(), /圣诞放映季/);
+    assert.equal(await page.locator('.ui-overview .ui-holiday-art svg').getAttribute('aria-hidden'), 'true');
     assert.equal(await page.locator('#rttValue').isVisible(), true, 'RTT remains reachable at every width');
-    if (width <= 760) assert.equal(await page.locator('#searchNode').evaluate(el => getComputedStyle(el).fontSize), '16px');
+    if (width <= 900) assert.equal(await page.locator('#searchNode').evaluate(el => getComputedStyle(el).fontSize), '16px');
     if (width === 390) {
-      const action = await page.locator('[data-focus-action="copy"]').boundingBox();
-      const nav = await page.locator('.ds-dock').boundingBox();
-      assert.ok(action.y >= 0 && action.y + action.height < nav.y, 'Selected node action must clear the mobile navigation');
+      assert.ok((await page.locator('.emby-card').first().boundingBox()).y < 780, 'First route remains near the initial mobile viewport');
     }
     if (!await page.locator('#list-grid').isVisible()) await page.locator('#nodesHint').click();
     for (const dark of [false, true]) {
@@ -122,7 +124,7 @@ try {
         const rgb = value => value.match(/[\d.]+/g).map(Number).slice(0, 3);
         const luminance = color => color.map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
           .reduce((sum, value, i) => sum + value * [.2126, .7152, .0722][i], 0);
-        return [...document.querySelectorAll('.hero-sub,.card-sub,.card-remark,.watch-alert-actions strong,.watch-meter-head strong,.btn-submit,.ui-focus-age,.ui-focus-mode,.ui-cycle-label,.ui-focus-actions button,.ui-node-usage dt')]
+        return [...document.querySelectorAll('.hero-sub,.card-sub,.card-remark,.watch-alert-actions strong,.watch-meter-head strong,.btn-submit,.ui-overview-title span,.ui-metrics dt,.ui-metrics dd')]
           .filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden').flatMap(el => {
             let parent = el;
             while (parent.parentElement && getComputedStyle(parent).backgroundColor === 'rgba(0, 0, 0, 0)') parent = parent.parentElement;
@@ -158,7 +160,7 @@ try {
     await page.evaluate(() => openNodeModal());
     const modalBounds = await page.locator('#nodeModal .modal-box').boundingBox();
     assert.ok(modalBounds.x >= 0 && modalBounds.x + modalBounds.width <= width, 'Modal width');
-    if (width <= 760) assert.ok((await page.locator('#iconSelectBtn').boundingBox()).width >= width - 110, 'Mobile editor groups must stack');
+    if (width <= 900) assert.ok((await page.locator('#iconSelectBtn').boundingBox()).width >= width - 110, 'Mobile editor groups must stack');
     await page.locator('#submitBtn').scrollIntoViewIfNeeded();
     const hit = await page.locator('#submitBtn').evaluate(el => {
       const r = el.getBoundingClientRect(), top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
@@ -173,15 +175,12 @@ try {
     await page.locator('#nodeModal .close-x').click();
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('[data-prefix="backup"] .ui-select-node').click();
-  await page.waitForFunction(() => document.querySelector('.ui-focus').dataset.prefix === 'backup');
-  assert.equal(await page.locator('.ui-focus h2').textContent(), '备用媒体库');
-  assert.equal(await page.locator('[data-prefix="backup"] .ui-select-node').getAttribute('aria-pressed'), 'true');
-  assert.equal(await page.locator('.ui-focus-main').evaluate(el => el.getAnimations().length), 0, 'Reduced motion skips selection animation');
+  await page.locator('[data-prefix="backup"] button[title="展开详情"]').click();
   await page.evaluate(() => { navigator.clipboard.writeText = async value => { window.uiCopied = value; }; });
-  await page.locator('[data-focus-action="copy"]').click();
+  await page.locator('[data-prefix="backup"] .node-summary button[title="复制直达链接"]').click();
   assert.equal(await page.evaluate(() => window.uiCopied), 'https://panel.test/backup');
-  await page.locator('[data-focus-action="edit"]').click();
+  const editBackup = page.locator('[data-prefix="backup"]').getByRole('button', { name: '编辑配置', exact: true });
+  await editBackup.click();
   assert.equal(await page.locator('#remark').inputValue(), '备用媒体库');
   await page.waitForFunction(() => document.activeElement.id === 'remark');
   assert.equal(await page.getByRole('dialog', { name: '节点配置', exact: true }).isVisible(), true);
@@ -197,29 +196,18 @@ try {
   await page.keyboard.press('Tab');
   assert.equal(await page.locator('#nodeModal .close-x').evaluate(el => el === document.activeElement), true);
   await page.keyboard.press('Escape');
-  await page.waitForFunction(() => document.activeElement.dataset.focusAction === 'edit');
+  await page.waitForFunction(() => document.activeElement.textContent === '编辑配置');
+  assert.equal(await editBackup.evaluate(el => el === document.activeElement), true);
   assert.equal(await page.locator('.topbar').evaluate(el => el.inert), false);
-  await page.locator('[data-focus-action="import"]').click();
+  await page.locator('[data-prefix="backup"] .card-footer button[onclick^="openImportModal("]').click();
   assert.equal(await page.locator('#importModal').isVisible(), true);
   assert.equal(await page.locator('#impPrefix').inputValue(), 'backup');
   assert.equal(await page.getByRole('dialog', { name: '导入播放器', exact: true }).evaluate(el => el.contains(document.activeElement)), true);
   await page.locator('button[onclick="closeImpModal()"]').click();
-  await page.locator('[data-focus-action="detail"]').click();
-  assert.equal(await page.locator('[data-prefix="backup"] .node-detail').isVisible(), true);
-  await page.locator('[data-focus-action="detail"]').click();
-  assert.equal(await page.locator('[data-prefix="backup"] .node-detail').isVisible(), true, 'Details action is idempotent');
-  await page.evaluate(() => toggleNodesCollapse());
-  await page.locator('[data-focus-action="detail"]').click();
-  assert.equal(await page.locator('[data-prefix="backup"] .node-detail').isVisible(), true, 'Details reveal a collapsed gallery');
-  await page.locator('[data-prefix="archive"] .ui-select-node').focus();
-  await page.keyboard.press('Enter');
-  await page.waitForFunction(() => document.querySelector('.ui-focus').dataset.watch === 'overdue');
-  assert.equal(await page.locator('.ui-cycle-label').textContent(), '已超天数');
   await page.locator('#searchNode').fill('no-such-media-node');
-  await page.waitForFunction(() => document.querySelector('.ui-focus').hidden);
-  assert.equal(await page.locator('.ui-search-empty').isVisible(), true);
+  await page.waitForFunction(() => [...document.querySelectorAll('.emby-card')].every(el => el.style.display === 'none'));
   await page.locator('#searchNode').fill('main');
-  await page.waitForFunction(() => document.querySelector('.ui-focus').dataset.prefix === 'main' && !document.querySelector('.ui-focus').hidden);
+  await page.waitForFunction(() => document.querySelector('[data-prefix="main"]').style.display !== 'none');
   await page.locator('.mode-card.mc-all').click();
   await page.locator('.mode-card[data-mode="off"]').click();
   await page.locator('#mmFilter').click();
@@ -233,7 +221,7 @@ try {
   assert.equal(savedNode.tgBotUrl, 'https://t.me/AnotherBot');
   await page.waitForFunction(() => document.querySelector('.mode-card.mc-all').getAttribute('aria-pressed') === 'true');
   assert.equal(await page.locator('.emby-card:visible').count(), 6, 'Save/reload resets filter and selected chip together');
-  await page.waitForFunction(() => document.querySelector('.ui-focus h2').textContent === 'Updated route');
+  await page.waitForFunction(() => document.querySelector('[data-prefix="main"] .ui-node-title').textContent.includes('Updated route'));
   await page.locator('.ui-menu-toggle').click();
   assert.equal(await page.getByRole('button', { name: '工具', exact: true }).count(), 1);
   assert.equal(await page.locator('.topbar-actions').isVisible(), true);
@@ -253,20 +241,18 @@ try {
   await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   currentRoutes = [{ ...routes[0], watch_limit: '7', last_play: ago(6.9) }];
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForFunction(() => document.querySelector('.ui-cycle-number').textContent === '0.1');
+  await page.waitForFunction(() => document.querySelector('.watch-meter-head strong')?.textContent === '剩余 0.1 天');
   currentRoutes = [{ ...currentRoutes[0], last_play: ago(9.01) }];
   await page.evaluate(() => load());
-  await page.waitForFunction(() => document.querySelector('.ui-focus').dataset.watch === 'overdue');
-  assert.equal(await page.locator('.ui-cycle-number').textContent(), '2');
+  await page.waitForFunction(() => document.querySelector('.watch-meter-head strong')?.textContent === '已超 2 天');
   currentRoutes = [{ ...currentRoutes[0], last_play: 'invalid-record' }];
   await page.evaluate(() => load());
-  await page.waitForFunction(() => document.querySelector('.ui-cycle-description strong').textContent === '观看时间待确认');
+  await page.waitForFunction(() => document.querySelector('.watch-meter-head strong')?.textContent === '观看时间待确认');
   role = 'user'; currentRoutes = [{ ...routes[0], prefix: 'member/main', owner: '42' }];
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForFunction(() => window.ROLE === 'user' && document.querySelector('.ui-focus').dataset.prefix === 'member/main');
-  assert.equal(await page.locator('[data-focus-action="edit"]').isVisible(), true);
-  assert.equal(await page.locator('[data-focus-action="import"]').isVisible(), true);
-  await page.locator('[data-focus-action="edit"]').click();
+  await page.waitForFunction(() => window.ROLE === 'user' && document.querySelector('[data-prefix="member/main"]'));
+  await page.locator('[data-prefix="member/main"] button[title="展开详情"]').click();
+  await page.locator('[data-prefix="member/main"]').getByRole('button', { name: '编辑配置', exact: true }).click();
   assert.equal(await page.locator('#oldPrefix').inputValue(), 'member/main');
   await page.keyboard.press('Escape');
   role = 'sub'; currentRoutes = routes;
@@ -274,14 +260,14 @@ try {
   await page.waitForFunction(() => window.ROLE === 'sub');
   assert.equal(await page.locator('.ui-batch').isVisible(), false);
   assert.equal(await page.locator('#nodesToolbar').isVisible(), false);
-  assert.equal(await page.locator('[data-focus-action="edit"]').isVisible(), false);
-  assert.equal(await page.locator('[data-focus-action="import"]').isVisible(), false);
-  assert.equal(await page.locator('[data-focus-action="copy"]').isVisible(), true);
+  await page.locator('[data-prefix="main"] button[title="展开详情"]').click();
+  assert.equal(await page.locator('[data-prefix="main"] .card-footer').isVisible(), false);
+  assert.equal(await page.locator('[data-prefix="main"] .node-summary button[title="复制直达链接"]').isVisible(), true);
   role = 'admin'; currentRoutes = [];
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.querySelector('[data-ui-metric="total"]')?.textContent === '0');
   assert.equal(await page.locator('.ui-inbox').isVisible(), false);
-  assert.equal(await page.locator('.ui-focus').isVisible(), false);
+  assert.equal(await page.locator('.ui-mode-segment').count(), 0);
   assert.match(await page.locator('#list-grid').textContent(), /暂无/);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('https://panel.test/login', { waitUntil: 'networkidle' });
