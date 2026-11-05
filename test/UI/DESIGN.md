@@ -1,178 +1,130 @@
 ---
-name: ProxyHub Emby 测试工作空间
-description: 午夜蓝导航、暖白工作面与铜色操作组成的媒体线路管理界面。
+name: ProxyHub 媒体空间
+description: 午夜蓝节点展台、媒体图库与 Apple 式功能材质。
 colors:
-  primary: "#b74424"
-  primary-soft: "#f9ece5"
-  on-primary: "#fff"
-  bg: "#f5f4f0"
-  bg-soft: "#f0f1f3"
-  card: "#fff"
+  bg: "#f5f4f1"
+  card: "#ffffff"
+  card-glass: "#ffffffdf"
   text: "#202d40"
   text-sec: "#596579"
-  text-faint: "#657184"
-  border: "#e0e3e8"
-  border-strong: "#b3bdc9"
-  success: "#247049"
-  warning: "#906112"
-  danger: "#b33242"
-  dark-primary: "#f3a580"
-  dark-primary-soft: "#42312e"
-  dark-on-primary: "#331e17"
-  dark-bg: "#101927"
-  dark-bg-soft: "#233047"
-  dark-card: "#192539"
+  primary: "#b74424"
+  primary-soft: "#f9ece5"
+  border: "#dce1e8"
+  border-strong: "#a8b3c2"
+  dark-bg: "#101824"
+  dark-card: "#1a2638"
+  dark-card-glass: "#1a2638ed"
   dark-text: "#edf0f5"
   dark-text-sec: "#b1bed1"
-  dark-text-faint: "#a2b1c7"
-  dark-border: "#344258"
-  dark-border-strong: "#62718a"
-  dark-success: "#8bc5a3"
-  dark-warning: "#efc784"
-  dark-danger: "#ffa5b4"
-  rail: "#14233a"
-  rail-text: "#f0f3fa"
-  rail-muted: "#b6c3d5"
-  rail-hover: "#273a54"
-  rail-selected: "#fff0e5"
-  rail-selected-text: "#913b20"
-  overview: "#20334e"
-  overview-text: "#f3f5f9"
-  overview-muted: "#c0cddd"
-  overview-attention: "#f0b793"
-  mode-off: "#df825d"
-  mode-real: "#879cc3"
-  mode-dual: "#7cbab1"
-  mode-strict: "#d3ab65"
-  mode-emos: "#b09ebd"
+  dark-primary: "#f3a580"
+  dark-on-primary: "#331e17"
+  stage: "#1d3049"
+  dark-stage: "#20334d"
+  stage-text: "#f4f6fa"
+  stage-muted: "#bfcbda"
+  stage-button: "#fff0e6"
+  stage-button-text: "#74361e"
+  stage-button-hover: "#fff7f1"
+  cycle: "#8dceac"
+  cycle-warning: "#eaca92"
+  cycle-overdue: "#ffb2bb"
 typography:
-  headline: {fontSize: "32px", fontWeight: 650, letterSpacing: "-1px"}
-  headline-mobile: {fontSize: "28px", fontWeight: 650, letterSpacing: "-1px"}
-  title: {fontSize: "16px", fontWeight: 600}
-  body: {fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif', fontSize: "14px", lineHeight: 1.55, letterSpacing: "0px"}
-  button: {fontSize: "13px", fontWeight: 550}
+  body: {fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif', fontSize: "14px", lineHeight: 1.6}
+  headline: {fontSize: "2.375rem", fontWeight: 650, letterSpacing: "-.035em", lineHeight: 1.18}
+  node-title: {fontSize: "2.5rem", fontWeight: 600, letterSpacing: "-.035em", lineHeight: 1.22}
+  mobile-headline: {fontSize: "1.875rem", fontWeight: 650}
+  mobile-node-title: {fontSize: "1.625rem", fontWeight: 600}
   label: {fontSize: "12px", fontWeight: 500}
-  metric: {fontSize: "36px", fontWeight: 550, lineHeight: 1.2, letterSpacing: "-1px"}
-  metric-mobile: {fontSize: "30px", fontWeight: 550, lineHeight: 1.2, letterSpacing: "-1px"}
+  mobile-input: {fontSize: "16px"}
   route-path: {fontFamily: "ui-monospace,SFMono-Regular,Consolas,monospace", fontSize: "11px"}
 rounded:
-  radius-sm: "8px"
-  radius-md: "10px"
-  route: "12px"
-  radius: "14px"
-  overlay: "16px"
+  badge: "6px"
+  control: "10px"
+  selected-tab: "11px"
+  action: "12px"
+  panel: "14px"
+  menu: "18px"
+  card: "20px"
+  bar: "22px"
+  sheet: "24px"
+  stage: "28px"
+  pill: "99px"
 spacing:
   compact: "8px"
   control: "12px"
-  mobile: "16px"
   inset: "20px"
   panel: "24px"
-  desktop: "32px"
+  desktop: "48px"
 components:
-  button-primary: {backgroundColor: "{colors.primary}", textColor: "{colors.on-primary}", typography: "{typography.button}", rounded: "{rounded.radius-sm}", padding: "10px 16px"}
-  button-ghost: {backgroundColor: "transparent", textColor: "{colors.text-sec}", rounded: "{rounded.radius-sm}", padding: "8px 12px"}
-  button-delete: {backgroundColor: "transparent", textColor: "{colors.danger}", rounded: "{rounded.radius-sm}", padding: "8px 12px"}
-  button-danger: {backgroundColor: "{colors.danger}", textColor: "{colors.card}", rounded: "{rounded.radius-sm}"}
-  input: {backgroundColor: "{colors.card}", textColor: "{colors.text}", rounded: "{rounded.radius-sm}", padding: "10px 12px"}
-  nav-item: {textColor: "{colors.rail-muted}", rounded: "{rounded.radius-md}", padding: "12px 16px"}
-  nav-item-selected: {backgroundColor: "{colors.rail-selected}", textColor: "{colors.rail-selected-text}", rounded: "{rounded.radius-md}"}
-  mode-filter: {backgroundColor: "{colors.card}", textColor: "{colors.text}", rounded: "7px", padding: "7px 10px"}
-  route-row: {backgroundColor: "{colors.card}", textColor: "{colors.text}", rounded: "{rounded.route}", padding: "18px 20px 14px"}
-  retention-inbox: {backgroundColor: "{colors.card}", textColor: "{colors.text}", rounded: "{rounded.radius}"}
+  button-primary: {backgroundColor: "{colors.primary}", textColor: "{colors.card}", rounded: "{rounded.action}", padding: "11px 18px"}
+  stage-action: {backgroundColor: "{colors.stage-button}", textColor: "{colors.stage-button-text}", rounded: "{rounded.action}", padding: "10px 15px"}
+  input: {backgroundColor: "{colors.card}", textColor: "{colors.text}", rounded: "{rounded.control}", padding: "11px 12px"}
+  navigation: {backgroundColor: "{colors.card-glass}", textColor: "{colors.text-sec}", rounded: "{rounded.bar}"}
+  mode-chip: {textColor: "{colors.text-sec}", rounded: "{rounded.pill}", padding: "8px 14px"}
+  node-card: {backgroundColor: "{colors.card}", textColor: "{colors.text}", rounded: "{rounded.card}", padding: "20px"}
 ---
 
-# Design System: ProxyHub Emby 测试工作空间
+# Design System: ProxyHub 媒体空间
 
 ## Overview
 
-**Creative North Star: "Cinematheque 媒体工作空间"**
+**Creative North Star: "节点展台与媒体图库"**
 
-午夜蓝导航承托暖白工作面，铜色标记操作和选择；深色主题保留相同结构。界面的辨识度来自目录式排布、清楚的数字和可直接操作的线路，而非装饰图像。系统字体服务中文管理任务。
-
-这是独立构建的 `test/UI` 预览系统。依据 `panel.css`、`panel.js`、构建模板及三张 `preview-*.png` 记录已实现规则；`DIRECTION.md` 保存页面方向与构图约定。用户已否定轻量换肤，当前实现采用侧栏、总览带与分区工作空间。
+在午夜蓝与铜色主题上，用 Apple 式功能材质、系统排版与直接反馈建立层级。选中的真实节点拥有主工作区，图库负责浏览和切换；工作区构图详见 DIRECTION.md。
 
 **Key Characteristics:**
-- 固定午夜蓝导航，暖色工作面与铜色交互。
-- 桌面线路行与保号收件箱并列，手机保留完整操作入口。
-- 总览、模式分布与保号提醒由实际线路数据派生。
-- 不新增图片资产；用文字、原有 SVG 图标和克制的状态反馈组织任务。
+- 透明材质只用于悬浮导航，媒体内容使用实色表面。
+- 节点选择、状态和快捷操作始终对应同一条真实线路。
+- 明暗主题、键盘操作及减少动态 / 透明度均有明确状态。
 
 ## Colors
 
 ### Primary
-
-铜色 `primary` 用于主操作、链接、焦点与筛选选择；`primary-soft` 承接浅色选择背景。深色主题使用 `dark-primary` 与深铜色文字 `dark-on-primary`，避免直接把浅色按钮反白搬过去。
+铜色用于主要操作、焦点与选中状态；展台的浅铜按钮在深色内容上突出复制入口。深色主题用明亮铜色与深色按钮文字。
 
 ### Neutral
+暖白底、实色卡片和蓝灰文字构成浅色空间；深色空间使用海军蓝层级。展台使用独立的 stage 色组，文字和分隔线不依赖背景模糊。
 
-`bg` 是暖白工作底，`card` 是实色面板，略冷的 `bg-soft` 区分工具条与次级信息。`text`、`text-sec`、`text-faint` 分工为主文、说明与占位文字；`border-strong` 用于可输入控件。`dark-*` 对应 `body.ui-studio.dark` 的实际覆盖值；组件随同名 CSS 变量切换。
-
-午夜蓝 `rail` 和总览蓝 `overview` 在两种主题下不变。桌面当前导航项保持奶油底与深铜文字；手机当前项改用主题内的 `primary-soft` / `primary`。
-
-语义色 `success` / `warning` / `danger` 表示正常、临期、逾期或危险操作，柔和背景沿用 CSS 中各自的 `*-soft` 变量。五个 `mode-*` 色区分 off、realip_only、dual、strict、emos；它们是类别编码，不是健康评级。
-
-**The Semantic Separation Rule.** 铜色表示交互，模式色表示类别，保号状态同时提供文字；不可仅靠颜色传达状态。
+周期环以 cycle、cycle-warning、cycle-overdue 区分状态，并始终附带文字。其余普通状态控件沿用 CSS 的 success、warning、danger 双主题变量。
 
 ## Typography
 
-沿用前置 token 中的系统中文无衬线栈；不加载字体文件。路径使用等宽栈，测量值使用等宽数字（`tabular-nums`）。
-
-- 页面标题使用 headline；手机切换 headline-mobile。普通面板标题使用 title，媒体库区标题为桌面（19px）/ 手机（18px）。
-- 正文（14px）、按钮（13px）、筛选标签与说明（12px）构成紧凑层级；路径与次级数据（11px），局部辅助信息（10px）。这些小字不应推广为正文尺寸。
-- 总览数字使用 metric / metric-mobile；字体大小按断点切换，不使用流体展示字。
+中文系统无衬线贯穿页面；路径用等宽体，数据用 tabular-nums。页面标题与选中节点使用 rem 单位，移动端分别缩至 mobile-headline、mobile-node-title。手机输入固定为 16px；倒计时保留共享函数的小数精度，长数值标签缩小以避免挤出环形区域。
 
 ## Layout
 
-- **桌面骨架：** 固定导航轨（216px）；右侧工具栏高（72px）。内容最大宽（1520px），内边距（104px 32px 32px），计入顶部工具栏留空。
-- **宽屏工作区：** 在（≥1200px）时，线路占剩余宽度，右侧保号区宽（264px），间距（24px）；在（≥1500px）时右区增至（300px），间距（32px）。路线始终是一列可展开行，不恢复多列卡片墙。
-- **1200px 分界：** CSS 的（≤1199px）规则将保号区移到线路上方，收件箱默认折叠，隐藏边缘连接说明；RTT 移到工具栏。总览收起介绍文案、保留数字。中间宽度下提醒列表为两列。
-- **900px 分界：** 在（≤900px）时取消侧栏占位，改为（64px）顶栏、带安全区留白的底部导航；内容内边距（84px 20px 28px）。工具进入带文字的菜单，批量管理默认折叠，模式筛选横向滚动。
-- 手机线路行重排为全宽卡片（16px 内边距）；搜索独占一行，两个次级操作并列。提醒、设置、测速配置均转单列。页脚为底部导航预留（96px + safe-area）空间。
-- 节点编辑器是右侧全高面板，最大宽（760px），桌面左角圆角（20px）；手机去圆角并堆叠字段。登录面板最大宽（440px）。
+内容最大宽 1440px，桌面左右内边距 48px。导航距顶部 16px、侧边 24px。桌面导航位于顶栏中央；≤760px 时同一导航节点移到 body 底部，避免 backdrop-filter 创建的定位容器影响固定导航。
+
+展台以可变宽身份区和 360px 状态区并排；≤1100px 状态区收为 300px，≤760px 两区上下排列。图库按最小 290px 卡片自适应，手机为单列。选择卡片会更新展台、移动焦点并滚动至留有 104px 顶部空间的位置。提醒是顶部展开面板，不占据固定侧栏。
 
 ## Elevation & Depth
 
-实色表面与细边框承担层级，不使用玻璃模糊或霓虹光晕。静止卡片用 `--shadow-sm`，线路悬停用 `--shadow`，菜单、弹窗、登录与 toast 用 `--shadow-lg`；两种主题的准确值保存在侧车 `extensions.shadows`。
+导航使用 24px blur 与 130% saturation，内容卡片没有玻璃材质。菜单、弹窗与浮动导航的阴影承担遮挡层级。减少透明度或提高对比度时导航改为实色；减少动态时跳转立即完成且不播放选择动画。
 
-按钮颜色过渡为（180ms），不位移、不缩放；页面切换与弹窗入场取消动画。焦点即时呈现。`prefers-reduced-motion: reduce` 关闭动画、过渡并恢复即时滚动。
+选中节点切换使用 220ms、可中断的透明度过渡；按压时局部 scale(.97/.98) 即时反馈，没有常驻装饰动画。
 
 ## Shapes
 
-控件使用小圆角（8px），导航与次级面板使用中圆角（10px），线路（12px）、卡片与收件箱（14px）、总览和弹窗（16px）依次区分层级。细线划分行内保号计量、展开详情与提醒条目；不靠厚边或重复嵌套卡片制造结构。
+节点卡片使用 card 圆角，展台用 stage 圆角；浮动导航与弹窗分别采用 bar、sheet。胶囊只用于模式选择和提醒入口，小状态标签使用 badge。边框表示分区与选中，不使用霓虹光晕。
 
 ## Components
 
-### Buttons and inputs
-
-- 主按钮实心铜色、最小高（40px）；次级按钮透明底加细边、最小高（36px）。行内删除用危险色文字，确认危险操作使用危险色实底。
-- 主按钮悬停亮度（0.95）；普通次级按钮悬停采用 `bg-soft` 与主文色。键盘焦点统一为铜色外描边（2px，偏移 3px），禁用按钮透明度（0.5）并显示禁用指针。
-- 输入框采用 `border-strong`、实色面、可读占位文字。桌面输入字（14px），手机输入、选择和多行文本统一（16px）；登录密钥输入始终（16px），最小高（48px）。
-- 请求中、失败和保存反馈沿用既有业务处理器；toast 设置为 `role=status` / `aria-live=polite`。这里不把未逐项验证的加载、错误或按压样式记为通用组件状态。
-
-### Navigation and filters
-
-- 导航项最小高（48px），当前页通过 `aria-current` 同步。桌面图标与文字同行，手机垂直排列；强制色模式下当前项增加系统 Highlight 边框。
-- 手机工具菜单按钮同步 `aria-expanded`；点击操作、外部区域或 Escape 收起。主题按钮的可访问名称和可见标签随主题变化。
-- 模式筛选以 `aria-pressed` 表示选择，Enter / Space 复用现有点击操作。清除搜索、显示全部、提醒定位与保存刷新同步筛选选择状态。批量管理入口遵循管理员角色限制。
-
-### Route rows and retention inbox
-
-- 线路行集中展示名称、等宽路径、模式、测量值、复制和展开入口；下方保号计量带提供期限与剩余天数，详情在本行展开。名称允许换行，沿用用户自定义图标。
-- 保号收件箱使用原生 `details` / `summary`，列出需关注节点与可用操作；点击节点沿用原定位行为，刷新沿用保号处理器。无待关注节点时隐藏整个收件箱。
-- 总览初始显示破折号；读取 `window.globalRoutesData` 后，节点数为数组长度，今日播放为 `todayReqs` 数值之和，待关注数来自 `getWatchState()` 的 overdue / warning / unknown。统计口径覆盖已加载线路，不随当前搜索裁剪。
-- 五类分布条按实际模式计数分配宽度，零计数类别不绘制；空数据时总览归零、分布条为空。分布条是 `aria-hidden` 的辅助图形，文字模式筛选和计数承载可读信息。
-- RTT 表示设备到 Cloudflare 的往返延迟，节点测速是独立操作；不将 RTT 当作源站健康或在线率。
+- **快捷操作：** 复制入口是展台主操作，其他操作为深色面上的描边按钮；最小高度 44px。管理员与节点所有者沿用原编辑 / 导入处理器，订阅者保持只读。
+- **图库：** 图标和名称组成原生选择按钮，aria-pressed 与所选展台同步；拖拽、批量选择、原卡片详情和搜索仍使用原处理器。
+- **保号环：** 仅表达真实周期；数值与提示均使用原共享格式化函数，无效记录显示“观看时间待确认”。
+- **模式与工具：** 分段导航同步 aria-current；工具菜单和原生 details 具有可访问名称，支持 Escape。切换主题后标签持续准确。
+- **编辑 / 导入弹窗：** 使用 dialog 语义、初始焦点、Tab 循环、背景 inert 和关闭后焦点恢复。全局状态提示移入当前弹窗，确保保存失败仍能被朗读；关闭时恢复原位置。
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** 沿用主题变量、系统中文字体与统一焦点，保持手机输入文字至少 16px。
-- **Do** 让线路、保号文字和实际数据主导层级，同时保留订阅者权限边界。
-- **Do** 保留用户已有头像、Logo 和自定义节点图标，使用原有内联 SVG 表达控件。
+- **Do** 用真实节点数据驱动展台与周期，保持原接口和所有者权限。
+- **Do** 使用系统字体、明确焦点和 44px 手机主要操作目标。
+- **Do** 只在导航功能层使用透明材质，并提供实色回退。
 
 ### Don't:
-- **Don't** 将截图中的 6 / 12 / 3、延迟或 P 头像当作生产数据和新品牌资产。
-- **Don't** 为此工作空间添加 sprite、emoji 图标、装饰栅格图、霓虹或电影胶片边框。
-- **Don't** 将缺失数据包装成在线率、流量趋势或其它虚构遥测。
+- **Don't** 把截图里的 P 头像、统计数字当作新生产素材；它们是 fixture。
+- **Don't** 用整数向上取整替代原保号小数规则，或把无效时间当作首次观看。
+- **Don't** 把面板包装成模仿 OS 窗口的外壳。
 
-**资产与验证边界：** 新 UI 没有新增 sprite、emoji 或栅格资产；现有用户 Logo / 头像 / 自定义图标仍可由原页面加载。截图左上角的绿色 P 头像是 `verify.mjs` 拦截图片请求时返回的 SVG fixture，不是生产资产；侧栏底部的 P 是文字。三张 PNG 是测试证据，不是界面依赖。侧车合成色阶只供文档面板预览，不是实现 token。`verify.mjs` 使用 mock APIs、模拟路由数据及第三方脚本替身，覆盖多宽度、双主题、部分对比度与操作；不能据此宣称真实 Cloudflare、Emby、D1 或播放链路已验证。
+测试文件基于明文/worker.js，未混淆；预览 PNG 仅为模拟接口的检查证据。真实 Cloudflare / Emby 播放及物理 iPhone 尚未实测。

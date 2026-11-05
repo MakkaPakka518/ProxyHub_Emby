@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Cloudflare Worker 单文件，原生 HTML、CSS、JavaScript；D1 保存配置。测试文件位于 test/UI/worker.js。
+Cloudflare Worker 单文件，原生 HTML、CSS、JavaScript；D1 保存配置。以 `明文/worker.js` 为底稿，测试文件位于 `test/UI/worker.js`，必须为可读、多行的明文 JavaScript。用户自行测试、混淆。
 
 ## Users
 
@@ -24,6 +24,7 @@ Cloudflare Worker 单文件，原生 HTML、CSS、JavaScript；D1 保存配置�
 - 节点增删改、模式切换、搜索、复制、拖拽、批量操作和播放器导入均保留。
 - 保留真实的保号状态与订阅者权限边界，不编造在线率或流量。
 - 用户否定轻量换肤，要求明显改变整体布局与构图、更加惊艳。
+- 当前要求在午夜蓝与铜色主题上加入 Apple 式材质、排版和交互，并替换列表工作台的模板感。选中节点成为主要工作区，图库用于浏览和切换。
 - 交付到同一 GitHub 仓库的 test/UI/worker.js，由用户自行部署测试。
 
 ## Brand Commitments

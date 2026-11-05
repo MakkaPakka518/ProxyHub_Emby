@@ -5,7 +5,7 @@ import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
 
 const read = name => readFileSync(new URL(name, import.meta.url), 'utf8');
-const source = read('../../worker.js');
+const source = read('../../明文/worker.js');
 const context = vm.createContext({ console, URL, URLSearchParams, Request, Response, Headers,
   TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, crypto: webcrypto, atob, btoa });
 const module = new vm.SourceTextModule(source + '\nexport { HTML_UI, LOGIN_UI };', { context });
@@ -27,7 +27,7 @@ function refine(html, login = false) {
     (_, attrs, styles) => '<style' + attrs + '>' + styles.replaceAll('body.dark', ':where(body.dark)') + '</style>');
   html = html.replace(/<div class="dm-layer"[^>]*>[\s\S]*?<\/div>/, '');
   html = html.replace(/<span class="mc-idx"[^>]*>[^<]*<\/span>/g, '');
-  html = html.replace(/NEBULA · v([\d.]+)/, 'v$1 / UI 2');
+  html = html.replace(/NEBULA · v([\d.]+)/, 'v$1 / UI 3');
   html = html.replace('<div class="topbar-title">反代控制台<small>CF Worker</small></div>',
     '<div class="topbar-title">ProxyHub<small>Emby 反代控制台</small></div>');
   html = html.replace('placeholder="搜索备注/后缀/线路地址查找..."',
@@ -47,13 +47,14 @@ function refine(html, login = false) {
   return html.includes('</body>') ? html.replace('</body>', assets + '</body>') : html + assets + '</body></html>';
 }
 
-const loginStart = source.indexOf(',LOGIN_UI=');
-const panelStart = source.indexOf(',HTML_UI=', loginStart);
-const panelEnd = source.indexOf(';async function getCFTraffic(', panelStart);
+const loginStart = source.indexOf('const LOGIN_UI = `');
+const panelStart = source.indexOf('const HTML_UI = `', loginStart);
+const panelEnd = source.indexOf('// ==========================================\n// 2. 后端 Worker', panelStart);
 assert.ok(loginStart > 0 && panelStart > loginStart && panelEnd > panelStart, 'UI template anchors changed');
 const panel = refine(module.namespace.HTML_UI);
 const login = refine(module.namespace.LOGIN_UI, true);
-const output = source.slice(0, loginStart) + ',LOGIN_UI=' + JSON.stringify(login)
-  + ',HTML_UI=' + JSON.stringify(panel) + source.slice(panelEnd);
+const template = html => '`' + html.replace(/^[ \t]+$/gm, '').replaceAll('\\', '\\\\').replaceAll('`', '\\`').replaceAll('${', '\\${') + '`';
+const output = source.slice(0, loginStart) + 'const LOGIN_UI = ' + template(login)
+  + ';\n\nconst HTML_UI = ' + template(panel) + ';\n\n' + source.slice(panelEnd);
 writeFileSync(new URL('worker.js', import.meta.url), output);
-console.log('Built test/UI/worker.js from the published Worker; replaced login and panel templates only.');
+console.log('Built readable test/UI/worker.js from 明文/worker.js; replaced login and panel templates only.');

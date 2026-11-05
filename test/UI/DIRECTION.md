@@ -1,15 +1,15 @@
-# UI v2 direction contract
+# UI v3 direction contract
 
-THESIS: A media workspace whose first screen contains usable routes. The rejected version kept the original tower of cards; v2 replaces it with a side rail, an overview band and a split workspace.
+THESIS: A media-node gallery with a selected-node stage. The user rejects the sidebar / overview / list / inbox template. Browse nodes as a collection and act on the selected node without hunting through an expanded row.
 
-OWN-WORLD: Cinematheque identity: midnight-blue navigation, warm white work surfaces, copper-orange selected actions; system sans for Chinese controls, tabular numerals for measured values. No neon, decorative film frames or invented artwork.
+OWN-WORLD: Refine the incumbent midnight-blue, warm-white and copper palette with Apple-style hierarchy: translucent floating navigation only, solid content, large system-sans node names, rounded controls, immediate press feedback and interruptible selection transitions. Material and typography support focus rather than decorating every surface.
 
-STORY: Read configured route and retention counts, find a route, copy or expand it, and act on a due reminder. Tools stay reachable through familiar navigation.
+STORY: See the selected node, copy its real entry URL or open its existing editor/import flow; select another node from the gallery. Search, filter, reorder and batch operations still work. Retention is shown as text and a real cycle indicator, never fabricated uptime.
 
-FIRST VIEWPORT: Desktop: 216px rail, 72px toolbar, heading, compact real-data overview, route rows on the left and retention inbox on the right. Mobile: 64px header, compact counts, collapsible inbox, full-width route cards and bottom navigation. The first route must appear within a 390×844 viewport.
+FIRST VIEWPORT: Desktop: floating brand/navigation/tool strip, compact title and real counts, a wide solid selected-node stage with identity/actions on the left and retention/usage on the right, then a gallery grid. Mobile: compact header and bottom tab bar, stage stacked with readily reachable actions, gallery below, alerts via a disclosure at the header. No persistent side rail or reminder column.
 
-FORM: Grounded direction 5, cinematheque catalog palette and typographic discipline; seed:6659f503e1b51720. Operate mode: standard controls and navigation. The signature is a five-part mode-distribution strip whose segments and counts use actual routes, alongside the retention inbox. The type-specimen challenger lends precise numeric hierarchy; the star-atlas challenger lends separated semantic states rather than decorative plots. Other catalog forms are declined for product clarity.
+FORM: User-pinned Apple refinement of the existing palette. Operate mode, code-led. Signature: selecting a real node updates the large stage and its original actions, with a short interruptible transition. Reference principles: HIG layout › Visual hierarchy; materials › Liquid Glass; split-views › Best practices; motion › Providing feedback. These are translated to Web controls, not imitation OS chrome.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
-User confirmed: redesign both mobile and desktop; a visibly stronger change than the prior skin. Preserve role restrictions and backend behavior. Code-led; no shipping raster assets added.
+User confirmed: redesign both mobile and desktop; continue the current theme with Apple qualities and a genuinely different composition. Preserve role restrictions and backend behavior. No shipping raster assets added.
