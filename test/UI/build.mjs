@@ -41,10 +41,12 @@ function refine(html, login = false) {
       .replace('placeholder="请输入密钥 TOKEN"', 'aria-label="访问密钥" placeholder="输入访问密钥"')
       .replace('>验 证 登 录</button>', '>登录面板</button>');
   }
-  // Last stylesheet owns presentation; original handlers, IDs and APIs stay intact.
-  const assets = '<style id="proxyhub-ui">' + css + '</style><script>' + script + '</script>';
-  assert.ok(html.includes('class="ui-studio'), 'Expected body element');
-  return html.includes('</body>') ? html.replace('</body>', assets + '</body>') : html + assets + '</body></html>';
+  // Load the override before body parsing so the legacy theme never paints first.
+  const style = '<style id="proxyhub-ui">' + css + '</style>';
+  const scriptTag = '<script>' + script + '</script>';
+  assert.ok(html.includes('class="ui-studio') && html.includes('<body'), 'Expected body element');
+  html = html.replace('<body', style + '<body');
+  return html.includes('</body>') ? html.replace('</body>', scriptTag + '</body>') : html + scriptTag + '</body></html>';
 }
 
 const loginStart = source.indexOf('const LOGIN_UI = `');

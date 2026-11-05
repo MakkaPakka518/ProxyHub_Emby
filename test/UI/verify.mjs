@@ -33,6 +33,7 @@ assert.ok(candidate.source.split('\n').length > 10000, 'The deliverable must rem
 for (const name of ['HTML_UI', 'LOGIN_UI']) {
   const scripts = html => [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match => match[1]);
   assert.deepEqual(scripts(candidate[name]).slice(0, -1), scripts(original[name]), name + ' original scripts');
+  assert.ok(candidate[name].indexOf('id="proxyhub-ui"') < candidate[name].indexOf('<body'), name + ' theme CSS loads before body');
   const ids = html => [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]).sort();
   assert.deepEqual(ids(candidate[name]).filter(id => id !== 'proxyhub-ui' && !id.startsWith('ui-deer-')), ids(original[name]), name + ' DOM hooks');
 }
