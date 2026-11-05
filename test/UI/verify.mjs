@@ -51,6 +51,9 @@ const routes = [
 ].map((item, i) => ({ target: 'https://media' + i + '.example', cache_img: 'on', todayReqs: 2, totalReqs: 18,
   todayBandwidth: '240 MB', icon: '', sort_order: i, owner: '', ...item }));
 const errors = [];
+let currentRoutes = routes;
+let role = 'admin';
+let savedNode;
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   await context.route('**/*', route => {
@@ -59,8 +62,15 @@ try {
     if (url.origin === 'https://panel.test') {
       if (url.pathname === '/') return route.fulfill({ contentType: 'text/html', body: candidate.HTML_UI });
       if (url.pathname === '/login') return route.fulfill({ contentType: 'text/html', body: candidate.LOGIN_UI });
-      if (url.pathname === '/api/routes') return json(req.method() === 'GET' ? routes : { success: true });
-      if (url.pathname === '/api/me') return json({ success: true, role: 'admin' });
+      if (url.pathname === '/api/routes') {
+        if (req.method() === 'POST') {
+          savedNode = req.postDataJSON();
+          currentRoutes = currentRoutes.map(row => row.prefix === savedNode.oldPrefix ? { ...row, remark: savedNode.remark, tg_bot_url: savedNode.tgBotUrl } : row);
+          return json({ success: true });
+        }
+        return json(role === 'sub' ? currentRoutes.map(({ target, ...row }) => row) : currentRoutes);
+      }
+      if (url.pathname === '/api/me') return json({ success: true, role });
       if (url.pathname === '/api/version') return json({ success: true, version: '4.1.2', updateNotify: false });
       if (url.pathname === '/api/ipguard') return json({ success: true, mode: 'off', ips: [], countries: [] });
       if (url.pathname === '/api/proxy-token') return json({ success: true, enabled: false, key: '' });
@@ -81,9 +91,20 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const bounds = async () => page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
   for (const width of [320, 390, 768, 1280, 1920]) {
-    await page.setViewportSize({ width, height: 900 });
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto('https://panel.test', { waitUntil: 'networkidle' });
     await page.waitForFunction(() => document.querySelectorAll('.emby-card').length === 6);
+    await page.waitForFunction(() => document.querySelector('[data-ui-metric="total"]')?.textContent === '6');
+    assert.equal(await page.locator('[data-ui-metric="plays"]').textContent(), '12');
+    assert.equal(await page.locator('.ui-metrics [data-ui-metric="attention"]').textContent(), '3');
+    assert.equal(await page.locator('.ui-mode-segment').count(), 5);
+    assert.equal(await page.locator('#rttValue').isVisible(), true, 'RTT remains reachable at every width');
+    if (width <= 900) assert.equal(await page.locator('#searchNode').evaluate(el => getComputedStyle(el).fontSize), '16px');
+    if (width === 390) {
+      await page.screenshot({ path: join(output, 'mobile-first-route.png') });
+      const first = await page.locator('.emby-card').first().boundingBox();
+      assert.ok(first.y < 720, 'First route belongs in the first mobile viewport: ' + JSON.stringify(first));
+    }
     if (!await page.locator('#list-grid').isVisible()) await page.locator('#nodesHint').click();
     for (const dark of [false, true]) {
       await page.evaluate(dark => { document.body.classList.toggle('dark', dark); document.documentElement.classList.toggle('dark', dark); window.scrollTo(0, 0); }, dark);
@@ -112,7 +133,11 @@ try {
     await mode.focus();
     await page.keyboard.press('Enter');
     assert.equal(await page.locator('.mode-card-menu').isVisible(), true);
-    await page.locator('.mode-card-menu .mm-close').click();
+    await page.locator('#mmFilter').click();
+    assert.equal(await mode.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('.mode-card.mc-all').getAttribute('aria-pressed'), 'false');
+    await page.locator('.mode-card.mc-all').click();
+    assert.equal(await page.locator('.mode-card.mc-all').getAttribute('aria-pressed'), 'true');
     for (const view of ['speed', 'settings']) {
       await page.locator(`.ds-dock-item[onclick*="'${view}'"]`).click();
       assert.equal(await page.locator('#view-' + view).isVisible(), true);
@@ -139,10 +164,50 @@ try {
     await page.locator('#nodeModal .close-x').click();
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.mode-card[data-mode="off"]').click();
+  await page.locator('#mmFilter').click();
+  await page.locator('[data-prefix="main"] button[title="展开详情"]').click();
+  await page.locator('[data-prefix="main"]').getByRole('button', { name: '编辑配置', exact: true }).click();
+  await page.locator('#remark').fill('Updated route');
+  await page.locator('#nodeTgBotUrl').fill('@AnotherBot');
+  await page.locator('#submitBtn').click();
+  await page.waitForFunction(() => document.getElementById('nodeModal').style.display === 'none');
+  assert.equal(savedNode.remark, 'Updated route');
+  assert.equal(savedNode.tgBotUrl, 'https://t.me/AnotherBot');
+  await page.waitForFunction(() => document.querySelector('.mode-card.mc-all').getAttribute('aria-pressed') === 'true');
+  assert.equal(await page.locator('.emby-card:visible').count(), 6, 'Save/reload resets filter and selected chip together');
+  await page.locator('.ui-menu-toggle').click();
+  assert.equal(await page.locator('.topbar-actions').isVisible(), true);
+  const wasDark = await page.locator('body').evaluate(el => el.classList.contains('dark'));
+  await page.locator('#themeToggle').click();
+  assert.notEqual(await page.locator('body').evaluate(el => el.classList.contains('dark')), wasDark);
+  assert.equal(await page.locator('.topbar-actions').isVisible(), false);
+  await page.locator('.ui-menu-toggle').click();
+  await page.waitForFunction(() => document.querySelector('#themeToggle .ui-tool-label')?.textContent.includes('切换'));
+  assert.match(await page.locator('#themeToggle .ui-tool-label').textContent(), /切换(深|浅)色模式/);
+  await page.locator('#themeToggle').click();
+  await page.waitForFunction(() => !!document.querySelector('#themeToggle .ui-tool-label'));
+  role = 'sub';
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => window.ROLE === 'sub');
+  assert.equal(await page.locator('.ui-batch').isVisible(), false);
+  assert.equal(await page.locator('#nodesToolbar').isVisible(), false);
+  role = 'admin'; currentRoutes = [];
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.querySelector('[data-ui-metric="total"]')?.textContent === '0');
+  assert.equal(await page.locator('.ui-inbox').isVisible(), false);
+  assert.equal(await page.locator('.ui-mode-segment').count(), 0);
+  assert.match(await page.locator('#list-grid').textContent(), /暂无/);
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('https://panel.test/login', { waitUntil: 'networkidle' });
   await page.screenshot({ path: join(output, 'login-390.png') });
   assert.equal(await page.getByLabel('访问密钥').count(), 1);
   assert.ok((await bounds()).scroll <= 390);
   assert.deepEqual(errors, []);
+  if (process.env.UI_PUBLISH_PREVIEWS === '1') {
+    for (const [source, target] of [['nodes-1280-light.png', 'preview-desktop.png'], ['nodes-390-light.png', 'preview-mobile.png'], ['nodes-1280-dark.png', 'preview-dark.png']]) {
+      writeFileSync(new URL(target, import.meta.url), readFileSync(join(output, source)));
+    }
+  }
   console.log('UI verified: original backend/scripts/IDs intact; 5 widths, 2 themes, navigation, reachable save action, login.');
 } finally { await browser.close(); }

@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T05:04:16Z",
+  "title": "Design System: ProxyHub Emby 测试工作空间",
+  "extensions": {
+    "colorMeta": {
+      "primary": {"role":"primary","displayName":"Copper action","tonalRamp":["oklch(15% .02 40)","oklch(26% .06 40)","oklch(38% .10 40)","oklch(49% .14 40)","oklch(61% .14 40)","oklch(72% .10 40)","oklch(84% .06 40)","oklch(95% .02 40)"]},
+      "primary-soft": {"role":"primary","displayName":"Copper wash","tonalRamp":["oklch(15% .01 45)","oklch(26% .02 45)","oklch(38% .03 45)","oklch(49% .04 45)","oklch(61% .04 45)","oklch(72% .03 45)","oklch(84% .02 45)","oklch(95% .01 45)"]},
+      "on-primary": {"role":"neutral","displayName":"On copper","tonalRamp":["oklch(15% 0 0)","oklch(26% 0 0)","oklch(38% 0 0)","oklch(49% 0 0)","oklch(61% 0 0)","oklch(72% 0 0)","oklch(84% 0 0)","oklch(95% 0 0)"]},
+      "bg": {"role":"neutral","displayName":"Warm workspace","tonalRamp":["oklch(15% .002 95)","oklch(26% .004 95)","oklch(38% .006 95)","oklch(49% .008 95)","oklch(61% .008 95)","oklch(72% .006 95)","oklch(84% .004 95)","oklch(95% .002 95)"]},
+      "bg-soft": {"role":"neutral","displayName":"Cool secondary plane","tonalRamp":["oklch(15% .002 260)","oklch(26% .004 260)","oklch(38% .006 260)","oklch(49% .008 260)","oklch(61% .008 260)","oklch(72% .006 260)","oklch(84% .004 260)","oklch(95% .002 260)"]},
+      "card": {"role":"neutral","displayName":"White work surface","tonalRamp":["oklch(15% 0 0)","oklch(26% 0 0)","oklch(38% 0 0)","oklch(49% 0 0)","oklch(61% 0 0)","oklch(72% 0 0)","oklch(84% 0 0)","oklch(95% 0 0)"]},
+      "text": {"role":"neutral","displayName":"Ink text","tonalRamp":["oklch(15% .01 260)","oklch(26% .02 260)","oklch(38% .03 260)","oklch(49% .04 260)","oklch(61% .04 260)","oklch(72% .03 260)","oklch(84% .02 260)","oklch(95% .01 260)"]},
+      "text-sec": {"role":"neutral","displayName":"Secondary ink","tonalRamp":["oklch(15% .008 260)","oklch(26% .016 260)","oklch(38% .024 260)","oklch(49% .032 260)","oklch(61% .032 260)","oklch(72% .024 260)","oklch(84% .016 260)","oklch(95% .008 260)"]},
+      "text-faint": {"role":"neutral","displayName":"Placeholder ink","tonalRamp":["oklch(15% .008 260)","oklch(26% .016 260)","oklch(38% .024 260)","oklch(49% .032 260)","oklch(61% .032 260)","oklch(72% .024 260)","oklch(84% .016 260)","oklch(95% .008 260)"]},
+      "border": {"role":"neutral","displayName":"Surface divider","tonalRamp":["oklch(15% .003 260)","oklch(26% .006 260)","oklch(38% .009 260)","oklch(49% .012 260)","oklch(61% .012 260)","oklch(72% .009 260)","oklch(84% .006 260)","oklch(95% .003 260)"]},
+      "border-strong": {"role":"neutral","displayName":"Control stroke","tonalRamp":["oklch(15% .006 260)","oklch(26% .012 260)","oklch(38% .018 260)","oklch(49% .024 260)","oklch(61% .024 260)","oklch(72% .018 260)","oklch(84% .012 260)","oklch(95% .006 260)"]},
+      "success": {"displayName":"Retention healthy","tonalRamp":["oklch(15% .015 155)","oklch(26% .04 155)","oklch(38% .07 155)","oklch(49% .10 155)","oklch(61% .10 155)","oklch(72% .07 155)","oklch(84% .04 155)","oklch(95% .015 155)"]},
+      "warning": {"displayName":"Retention due soon","tonalRamp":["oklch(15% .015 80)","oklch(26% .04 80)","oklch(38% .07 80)","oklch(49% .10 80)","oklch(61% .10 80)","oklch(72% .07 80)","oklch(84% .04 80)","oklch(95% .015 80)"]},
+      "danger": {"displayName":"Overdue and destructive","tonalRamp":["oklch(15% .02 15)","oklch(26% .05 15)","oklch(38% .09 15)","oklch(49% .13 15)","oklch(61% .13 15)","oklch(72% .09 15)","oklch(84% .05 15)","oklch(95% .02 15)"]},
+      "dark-primary": {"role":"primary","displayName":"Dark-theme copper","tonalRamp":["oklch(15% .02 45)","oklch(26% .05 45)","oklch(38% .08 45)","oklch(49% .11 45)","oklch(61% .11 45)","oklch(72% .08 45)","oklch(84% .05 45)","oklch(95% .02 45)"]},
+      "dark-primary-soft": {"role":"primary","displayName":"Dark copper wash","tonalRamp":["oklch(15% .008 35)","oklch(26% .016 35)","oklch(38% .024 35)","oklch(49% .032 35)","oklch(61% .032 35)","oklch(72% .024 35)","oklch(84% .016 35)","oklch(95% .008 35)"]},
+      "dark-on-primary": {"role":"neutral","displayName":"Dark copper label","tonalRamp":["oklch(15% .01 40)","oklch(26% .02 40)","oklch(38% .03 40)","oklch(49% .04 40)","oklch(61% .04 40)","oklch(72% .03 40)","oklch(84% .02 40)","oklch(95% .01 40)"]},
+      "dark-bg": {"role":"neutral","displayName":"Night workspace","tonalRamp":["oklch(15% .01 260)","oklch(26% .02 260)","oklch(38% .03 260)","oklch(49% .04 260)","oklch(61% .04 260)","oklch(72% .03 260)","oklch(84% .02 260)","oklch(95% .01 260)"]},
+      "dark-bg-soft": {"role":"neutral","displayName":"Night secondary plane","tonalRamp":["oklch(15% .015 260)","oklch(26% .025 260)","oklch(38% .035 260)","oklch(49% .045 260)","oklch(61% .045 260)","oklch(72% .035 260)","oklch(84% .025 260)","oklch(95% .015 260)"]},
+      "dark-card": {"role":"neutral","displayName":"Night work surface","tonalRamp":["oklch(15% .015 260)","oklch(26% .025 260)","oklch(38% .035 260)","oklch(49% .045 260)","oklch(61% .045 260)","oklch(72% .035 260)","oklch(84% .025 260)","oklch(95% .015 260)"]},
+      "dark-text": {"role":"neutral","displayName":"Night primary text","tonalRamp":["oklch(15% .003 260)","oklch(26% .006 260)","oklch(38% .009 260)","oklch(49% .012 260)","oklch(61% .012 260)","oklch(72% .009 260)","oklch(84% .006 260)","oklch(95% .003 260)"]},
+      "dark-text-sec": {"role":"neutral","displayName":"Night secondary text","tonalRamp":["oklch(15% .008 260)","oklch(26% .016 260)","oklch(38% .024 260)","oklch(49% .032 260)","oklch(61% .032 260)","oklch(72% .024 260)","oklch(84% .016 260)","oklch(95% .008 260)"]},
+      "dark-text-faint": {"role":"neutral","displayName":"Night placeholder text","tonalRamp":["oklch(15% .01 260)","oklch(26% .02 260)","oklch(38% .03 260)","oklch(49% .04 260)","oklch(61% .04 260)","oklch(72% .03 260)","oklch(84% .02 260)","oklch(95% .01 260)"]},
+      "dark-border": {"role":"neutral","displayName":"Night divider","tonalRamp":["oklch(15% .01 260)","oklch(26% .02 260)","oklch(38% .03 260)","oklch(49% .04 260)","oklch(61% .04 260)","oklch(72% .03 260)","oklch(84% .02 260)","oklch(95% .01 260)"]},
+      "dark-border-strong": {"role":"neutral","displayName":"Night control stroke","tonalRamp":["oklch(15% .01 260)","oklch(26% .02 260)","oklch(38% .03 260)","oklch(49% .04 260)","oklch(61% .04 260)","oklch(72% .03 260)","oklch(84% .02 260)","oklch(95% .01 260)"]},
+      "dark-success": {"displayName":"Night healthy state","tonalRamp":["oklch(15% .01 155)","oklch(26% .03 155)","oklch(38% .05 155)","oklch(49% .07 155)","oklch(61% .07 155)","oklch(72% .05 155)","oklch(84% .03 155)","oklch(95% .01 155)"]},
+      "dark-warning": {"displayName":"Night warning state","tonalRamp":["oklch(15% .015 80)","oklch(26% .035 80)","oklch(38% .06 80)","oklch(49% .085 80)","oklch(61% .085 80)","oklch(72% .06 80)","oklch(84% .035 80)","oklch(95% .015 80)"]},
+      "dark-danger": {"displayName":"Night danger state","tonalRamp":["oklch(15% .015 5)","oklch(26% .04 5)","oklch(38% .065 5)","oklch(49% .09 5)","oklch(61% .09 5)","oklch(72% .065 5)","oklch(84% .04 5)","oklch(95% .015 5)"]},
+      "rail": {"role":"neutral","displayName":"Midnight navy rail","tonalRamp":["oklch(15% .015 260)","oklch(26% .03 260)","oklch(38% .045 260)","oklch(49% .06 260)","oklch(61% .06 260)","oklch(72% .045 260)","oklch(84% .03 260)","oklch(95% .015 260)"]},
+      "rail-text": {"role":"neutral","displayName":"Rail primary text","tonalRamp":["oklch(15% .003 260)","oklch(26% .006 260)","oklch(38% .009 260)","oklch(49% .012 260)","oklch(61% .012 260)","oklch(72% .009 260)","oklch(84% .006 260)","oklch(95% .003 260)"]},
+      "rail-muted": {"role":"neutral","displayName":"Rail secondary text","tonalRamp":["oklch(15% .008 260)","oklch(26% .016 260)","oklch(38% .024 260)","oklch(49% .032 260)","oklch(61% .032 260)","oklch(72% .024 260)","oklch(84% .016 260)","oklch(95% .008 260)"]},
+      "rail-hover": {"role":"neutral","displayName":"Rail hover plane","tonalRamp":["oklch(15% .015 255)","oklch(26% .03 255)","oklch(38% .045 255)","oklch(49% .06 255)","oklch(61% .06 255)","oklch(72% .045 255)","oklch(84% .03 255)","oklch(95% .015 255)"]},
+      "rail-selected": {"role":"primary","displayName":"Cream navigation selection","tonalRamp":["oklch(15% .008 60)","oklch(26% .016 60)","oklch(38% .024 60)","oklch(49% .032 60)","oklch(61% .032 60)","oklch(72% .024 60)","oklch(84% .016 60)","oklch(95% .008 60)"]},
+      "rail-selected-text": {"role":"primary","displayName":"Selected rail copper","tonalRamp":["oklch(15% .02 40)","oklch(26% .05 40)","oklch(38% .08 40)","oklch(49% .11 40)","oklch(61% .11 40)","oklch(72% .08 40)","oklch(84% .05 40)","oklch(95% .02 40)"]},
+      "overview": {"role":"neutral","displayName":"Overview navy","tonalRamp":["oklch(15% .015 260)","oklch(26% .03 260)","oklch(38% .045 260)","oklch(49% .06 260)","oklch(61% .06 260)","oklch(72% .045 260)","oklch(84% .03 260)","oklch(95% .015 260)"]},
+      "overview-text": {"role":"neutral","displayName":"Overview primary text","tonalRamp":["oklch(15% .002 260)","oklch(26% .004 260)","oklch(38% .006 260)","oklch(49% .008 260)","oklch(61% .008 260)","oklch(72% .006 260)","oklch(84% .004 260)","oklch(95% .002 260)"]},
+      "overview-muted": {"role":"neutral","displayName":"Overview labels","tonalRamp":["oklch(15% .008 250)","oklch(26% .016 250)","oklch(38% .024 250)","oklch(49% .032 250)","oklch(61% .032 250)","oklch(72% .024 250)","oklch(84% .016 250)","oklch(95% .008 250)"]},
+      "overview-attention": {"role":"primary","displayName":"Overview attention number","tonalRamp":["oklch(15% .015 55)","oklch(26% .035 55)","oklch(38% .055 55)","oklch(49% .075 55)","oklch(61% .075 55)","oklch(72% .055 55)","oklch(84% .035 55)","oklch(95% .015 55)"]},
+      "mode-off": {"displayName":"保守 / off","tonalRamp":["oklch(15% .02 45)","oklch(26% .045 45)","oklch(38% .075 45)","oklch(49% .105 45)","oklch(61% .105 45)","oklch(72% .075 45)","oklch(84% .045 45)","oklch(95% .02 45)"]},
+      "mode-real": {"displayName":"严格 / realip_only","tonalRamp":["oklch(15% .015 265)","oklch(26% .03 265)","oklch(38% .05 265)","oklch(49% .07 265)","oklch(61% .07 265)","oklch(72% .05 265)","oklch(84% .03 265)","oklch(95% .015 265)"]},
+      "mode-dual": {"displayName":"兼容 / dual","tonalRamp":["oklch(15% .01 180)","oklch(26% .025 180)","oklch(38% .04 180)","oklch(49% .055 180)","oklch(61% .055 180)","oklch(72% .04 180)","oklch(84% .025 180)","oklch(95% .01 180)"]},
+      "mode-strict": {"displayName":"强力 / strict","tonalRamp":["oklch(15% .015 80)","oklch(26% .035 80)","oklch(38% .06 80)","oklch(49% .085 80)","oklch(61% .085 80)","oklch(72% .06 80)","oklch(84% .035 80)","oklch(95% .015 80)"]},
+      "mode-emos": {"displayName":"EMOS / emos","tonalRamp":["oklch(15% .01 310)","oklch(26% .02 310)","oklch(38% .035 310)","oklch(49% .05 310)","oklch(61% .05 310)","oklch(72% .035 310)","oklch(84% .02 310)","oklch(95% .01 310)"]}
+    },
+    "typographyMeta": {
+      "headline": {"displayName":"Page heading","purpose":"Desktop task titles; inherits the system Chinese sans stack."},
+      "headline-mobile": {"displayName":"Mobile heading","purpose":"Page titles at widths up to 900px."},
+      "title": {"displayName":"Panel heading","purpose":"Ordinary settings and content panel titles."},
+      "body": {"displayName":"Chinese UI body","purpose":"Shared system sans stack and default reading rhythm."},
+      "button": {"displayName":"Primary action label","purpose":"Main action buttons."},
+      "label": {"displayName":"Compact label","purpose":"Mode names and toolbar labels."},
+      "metric": {"displayName":"Overview metric","purpose":"Data-derived counts with tabular-nums; no invented telemetry."},
+      "metric-mobile": {"displayName":"Mobile metric","purpose":"Overview counts at widths up to 900px; tabular-nums."},
+      "route-path": {"displayName":"Route path","purpose":"Compact monospace node prefixes."}
+    },
+    "shadows": [
+      {"name":"shadow-sm","value":"0 2px 5px #1a2b4005","purpose":"Light-theme resting cards."},
+      {"name":"shadow","value":"0 5px 20px #1a2b4008","purpose":"Light-theme route hover."},
+      {"name":"shadow-lg","value":"0 20px 65px #07152530","purpose":"Light-theme menus, overlays, login and toast."},
+      {"name":"dark-shadow-sm","value":"0 2px 5px #0000000a","purpose":"Dark-theme resting cards."},
+      {"name":"dark-shadow","value":"0 5px 20px #00000012","purpose":"Dark-theme route hover."},
+      {"name":"dark-shadow-lg","value":"0 20px 65px #00000065","purpose":"Dark-theme menus, overlays, login and toast."}
+    ],
+    "motion": [
+      {"name":"button-state","value":"background-color .18s, color .18s, border-color .18s","purpose":"Color feedback without translation or scaling; focus transitions are disabled."},
+      {"name":"reduced-motion","value":"animation:none; transition:none; scroll-behavior:auto","purpose":"Applied to all UI elements and pseudo-elements under prefers-reduced-motion: reduce."}
+    ],
+    "breakpoints": [
+      {"name":"mobile-max","value":"900px"},
+      {"name":"split-workspace-min","value":"1200px"},
+      {"name":"wide-workspace-min","value":"1500px"}
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Copper action, immediate focus, subdued hover and disabled state. CSS-variable fallbacks render the light theme outside the app.",
+      "html": "<button type=\"button\" class=\"ds-primary\">添加节点</button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 16px;border:1px solid transparent;border-radius:8px;background:var(--primary,#b74424);color:var(--on-primary,#fff);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:13px;font-weight:550;line-height:1;cursor:pointer;box-shadow:none;transform:none;transition:background-color .18s,color .18s,border-color .18s}.ds-primary:hover{filter:brightness(.95)}.ds-primary:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}.ds-primary:disabled{opacity:.5;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-primary{transition:none}}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Bordered secondary action shared by ordinary tools and edit controls.",
+      "html": "<button type=\"button\" class=\"ds-ghost\">编辑配置</button>",
+      "css": ".ds-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border:1px solid var(--border,#e0e3e8);border-radius:8px;background:transparent;color:var(--text-sec,#596579);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:12px;font-weight:600;line-height:1;cursor:pointer;box-shadow:none;transform:none;transition:background-color .18s,color .18s,border-color .18s}.ds-ghost:hover{background:var(--bg-soft,#f0f1f3);color:var(--text,#202d40)}.ds-ghost:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}.ds-ghost:disabled{opacity:.5;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-ghost{transition:none}}"
+    },
+    {
+      "name": "Inline delete",
+      "kind": "button",
+      "refersTo": "button-delete",
+      "description": "Danger-colored text on the secondary-action shape; the cascade keeps its background transparent on hover.",
+      "html": "<button type=\"button\" class=\"ds-delete\">删除</button>",
+      "css": ".ds-delete{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border:1px solid var(--border,#e0e3e8);border-radius:8px;background:transparent;color:var(--danger,#b33242);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:12px;font-weight:600;line-height:1;cursor:pointer;box-shadow:none;transform:none;transition:background-color .18s,color .18s,border-color .18s}.ds-delete:hover{background:transparent}.ds-delete:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}.ds-delete:disabled{opacity:.5;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-delete{transition:none}}"
+    },
+    {
+      "name": "Destructive confirmation",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Solid danger surface. The redesign suppresses inherited hover shadows and press transforms.",
+      "html": "<button type=\"button\" class=\"ds-danger\">确认删除</button>",
+      "css": ".ds-danger{display:inline-flex;align-items:center;justify-content:center;padding:11px 20px;border:0;border-radius:8px;background:var(--danger,#b33242);color:var(--card,#fff);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-weight:600;line-height:1;cursor:pointer;box-shadow:none;transform:none;transition:background-color .18s,color .18s,border-color .18s}.ds-danger:hover,.ds-danger:active{box-shadow:none;transform:none}.ds-danger:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}.ds-danger:disabled{opacity:.5;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-danger{transition:none}}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Strong stroke, visible placeholder and 16px mobile input text.",
+      "html": "<input class=\"ds-input\" type=\"search\" aria-label=\"搜索节点\" placeholder=\"搜索节点、后缀或线路\">",
+      "css": ".ds-input{min-width:0;max-width:100%;min-height:40px;padding:10px 12px;border:1px solid var(--border-strong,#b3bdc9);border-radius:8px;background:var(--card,#fff);color:var(--text,#202d40);caret-color:var(--primary,#b74424);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:14px;box-shadow:none}.ds-input::placeholder{color:var(--text-faint,#657184);opacity:1}.ds-input:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}@media(max-width:900px){.ds-input{font-size:16px}}"
+    },
+    {
+      "name": "Rail navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Desktop selection stays cream in both themes; mobile selection binds to the current copper theme. Icons are omitted in this text-only specimen.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"主导航\"><button type=\"button\" class=\"ds-nav-item\" aria-current=\"page\">节点</button><button type=\"button\" class=\"ds-nav-item\">测速与DNS</button><button type=\"button\" class=\"ds-nav-item\">控制面板</button></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:10px;padding:28px 20px;background:var(--rail,#14233a);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}.ds-nav-item{display:flex;align-items:center;justify-content:flex-start;gap:12px;min-height:48px;padding:12px 16px;border:0;border-radius:10px;background:transparent;color:var(--rail-muted,#b6c3d5);font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background-color .18s,color .18s,border-color .18s}.ds-nav-item:hover{background:var(--rail-hover,#273a54);color:var(--rail-text,#f0f3fa)}.ds-nav-item[aria-current=page]{background:#fff0e5;color:#913b20}.ds-nav-item:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}.ds-nav-item:disabled{opacity:.5;cursor:not-allowed}@media(max-width:900px){.ds-nav{flex-direction:row;gap:6px;padding:8px 16px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--border,#e0e3e8);background:var(--card,#fff)}.ds-nav-item{flex:1;justify-content:center;flex-direction:column;gap:4px;padding:8px 2px;font-size:11px;color:var(--text-sec,#596579)}.ds-nav-item[aria-current=page]{background:var(--primary-soft,#f9ece5);color:var(--primary,#b74424)}}@media(prefers-reduced-motion:reduce){.ds-nav-item{transition:none}}@media(forced-colors:active){.ds-nav-item[aria-current=page]{border:2px solid Highlight}}"
+    },
+    {
+      "name": "Mode filter",
+      "kind": "chip",
+      "refersTo": "mode-filter",
+      "description": "A category stripe plus text and count; pressed state is independent of category color. Count is a specimen fixture.",
+      "html": "<button type=\"button\" class=\"ds-mode\" aria-pressed=\"true\"><span>保守</span><span class=\"ds-mode-count\">2</span></button>",
+      "css": ".ds-mode{display:flex;align-items:center;gap:6px;min-height:36px;padding:7px 10px;border:1px solid var(--border,#e0e3e8);border-radius:7px;background:var(--card,#fff);color:var(--text,#202d40);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:12px;font-weight:500;cursor:pointer;box-shadow:none;transform:none}.ds-mode::before{content:'';width:4px;height:12px;border-radius:2px;background:var(--mode-off,#df825d)}.ds-mode-count{font-size:11px;color:var(--text-sec,#596579)}.ds-mode:hover{background:var(--primary-soft,#f9ece5)}.ds-mode[aria-pressed=true]{background:var(--primary-soft,#f9ece5);border-color:var(--primary,#b74424)}.ds-mode:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}"
+    },
+    {
+      "name": "Route row",
+      "kind": "card",
+      "refersTo": "route-row",
+      "description": "One-column catalog row with a divided retention meter. Text and values here are test-fixture specimens; real rows retain their existing action handlers.",
+      "html": "<article class=\"ds-route\"><div class=\"ds-route-title\"><strong>日常观影</strong><div class=\"ds-route-path\">/main</div></div><div class=\"ds-route-summary\"><span class=\"ds-route-badge\">保守</span><span>42 ms</span><span>240 MB</span></div><div class=\"ds-route-meter\"><div class=\"ds-route-meter-head\">保号周期 <strong>剩余 12 天</strong></div><div class=\"ds-route-track\"><span></span></div><div class=\"ds-route-foot\">2 天前观看 · 观看下限 14 天</div></div></article>",
+      "css": ".ds-route{display:flex;flex-wrap:wrap;gap:12px 16px;min-width:0;padding:18px 20px 14px;border:1px solid var(--border,#e0e3e8);border-radius:12px;background:var(--card,#fff);color:var(--text,#202d40);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:14px;line-height:1.55;box-shadow:var(--shadow-sm,0 2px 5px #1a2b4005)}.ds-route:hover{border-color:var(--border-strong,#b3bdc9);box-shadow:var(--shadow,0 5px 20px #1a2b4008)}.ds-route-title{flex:1 1 230px;min-width:0}.ds-route-title strong{font-size:15px;line-height:1.4;overflow-wrap:anywhere}.ds-route-path{margin-top:4px;font-family:var(--font-mono,ui-monospace,SFMono-Regular,Consolas,monospace);font-size:11px;color:var(--text-sec,#596579)}.ds-route-summary{display:flex;align-items:center;gap:10px;flex:1 1 220px;color:var(--text-sec,#596579);font-size:12px;font-variant-numeric:tabular-nums}.ds-route-badge{padding:4px 7px;border-radius:5px;background:var(--bg-soft,#f0f1f3);font-size:10px}.ds-route-meter{flex:1 1 100%;display:grid;grid-template-columns:minmax(150px,1fr) minmax(60px,.65fr);gap:7px 20px;padding-top:12px;border-top:1px solid var(--border,#e0e3e8);font-size:11px}.ds-route-meter-head{display:flex;justify-content:space-between;gap:8px}.ds-route-meter-head strong{color:var(--success,#247049);font-size:11px}.ds-route-track{height:4px;margin:auto 0;background:var(--border,#e0e3e8)}.ds-route-track span{display:block;width:14.2857%;height:100%;background:var(--success,#247049)}.ds-route-foot{grid-column:1/-1;font-size:10px;color:var(--text-sec,#596579)}@media(max-width:900px){.ds-route{padding:16px;gap:12px}.ds-route-title,.ds-route-summary{flex-basis:100%}.ds-route-meter{grid-template-columns:minmax(140px,1fr) minmax(50px,.5fr)}}"
+    },
+    {
+      "name": "Retention inbox",
+      "kind": "custom",
+      "refersTo": "retention-inbox",
+      "description": "Native details disclosure with count, textual deadline and divided rows. The application opens it at 1200px, collapses it below, and hides it at zero attention; this specimen uses fixture content.",
+      "html": "<details class=\"ds-inbox\" open><summary class=\"ds-inbox-summary\">保号提醒 <span>1</span></summary><div class=\"ds-inbox-body\"><div class=\"ds-inbox-item\"><strong>经典电影收藏</strong><span>/archive · 观看下限 7 天</span><strong class=\"ds-inbox-overdue\">已超 2 天</strong></div></div></details>",
+      "css": ".ds-inbox{overflow:hidden;border:1px solid var(--border,#e0e3e8);border-radius:14px;background:var(--card,#fff);color:var(--text,#202d40);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;line-height:1.55}.ds-inbox-summary{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;font-size:15px;font-weight:600;cursor:pointer;list-style:none}.ds-inbox-summary::-webkit-details-marker{display:none}.ds-inbox-summary>span{padding:2px 8px;border-radius:6px;background:var(--warning-soft,#fcf2df);color:var(--warning,#906112);font-size:12px}.ds-inbox-summary:focus-visible{outline:2px solid var(--primary,#b74424);outline-offset:3px;transition:none}.ds-inbox-body{padding:0 20px 8px}.ds-inbox-item{display:flex;flex-direction:column;gap:12px;padding:16px 0;border-top:1px solid var(--border,#e0e3e8)}.ds-inbox-item>strong{font-size:13px;font-weight:550}.ds-inbox-item>span{font-size:11px;color:var(--text-sec,#596579)}.ds-inbox-item>.ds-inbox-overdue{font-size:11px;color:var(--danger,#b33242)}@media(max-width:1199px){.ds-inbox-summary{padding:12px 18px;font-size:13px}.ds-inbox-summary::after{content:'展开';margin-left:12px;font-size:11px;font-weight:400;color:var(--text-sec,#596579)}.ds-inbox[open]>.ds-inbox-summary::after{content:'收起'}.ds-inbox-summary>span{margin-left:auto}}@media(max-width:900px){.ds-inbox-item{gap:10px;padding:14px 0}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Cinematheque 媒体工作空间",
+    "overview": "午夜蓝导航承托暖白工作面，铜色标记操作和选择；深色主题保留相同结构。界面的辨识度来自目录式排布、清楚的数字和可直接操作的线路，而非装饰图像。系统字体服务中文管理任务。\n\n这是独立构建的 `test/UI` 预览系统。依据 `panel.css`、`panel.js`、构建模板及三张 `preview-*.png` 记录已实现规则；`DIRECTION.md` 保存页面方向与构图约定。用户已否定轻量换肤，当前实现采用侧栏、总览带与分区工作空间。",
+    "keyCharacteristics": [
+      "固定午夜蓝导航，暖色工作面与铜色交互。",
+      "桌面线路行与保号收件箱并列，手机保留完整操作入口。",
+      "总览、模式分布与保号提醒由实际线路数据派生。",
+      "不新增图片资产；用文字、原有 SVG 图标和克制的状态反馈组织任务。"
+    ],
+    "rules": [
+      {"name":"The Semantic Separation Rule","body":"铜色表示交互，模式色表示类别，保号状态同时提供文字；不可仅靠颜色传达状态。","section":"colors"}
+    ],
+    "dos": [
+      "**Do** 沿用主题变量、系统中文字体与统一焦点，保持手机输入文字至少 16px。",
+      "**Do** 让线路、保号文字和实际数据主导层级，同时保留订阅者权限边界。",
+      "**Do** 保留用户已有头像、Logo 和自定义节点图标，使用原有内联 SVG 表达控件。"
+    ],
+    "donts": [
+      "**Don't** 将截图中的 6 / 12 / 3、延迟或 P 头像当作生产数据和新品牌资产。",
+      "**Don't** 为此工作空间添加 sprite、emoji 图标、装饰栅格图、霓虹或电影胶片边框。",
+      "**Don't** 将缺失数据包装成在线率、流量趋势或其它虚构遥测。"
+    ]
+  }
+}

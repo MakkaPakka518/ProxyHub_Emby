@@ -27,7 +27,7 @@ function refine(html, login = false) {
     (_, attrs, styles) => '<style' + attrs + '>' + styles.replaceAll('body.dark', ':where(body.dark)') + '</style>');
   html = html.replace(/<div class="dm-layer"[^>]*>[\s\S]*?<\/div>/, '');
   html = html.replace(/<span class="mc-idx"[^>]*>[^<]*<\/span>/g, '');
-  html = html.replace(/NEBULA · v([\d.]+)/, 'v$1 / UI 预览');
+  html = html.replace(/NEBULA · v([\d.]+)/, 'v$1 / UI 2');
   html = html.replace('<div class="topbar-title">反代控制台<small>CF Worker</small></div>',
     '<div class="topbar-title">ProxyHub<small>Emby 反代控制台</small></div>');
   html = html.replace('placeholder="搜索备注/后缀/线路地址查找..."',
