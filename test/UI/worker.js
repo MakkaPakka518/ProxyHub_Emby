@@ -2212,6 +2212,36 @@ body.ui-studio.dark {
 .ui-studio .hero-chip { font-size:10px; font-weight:400; background:transparent; border:0; padding:0; color:var(--rail-muted); box-shadow:none; -webkit-text-fill-color:currentColor; letter-spacing:0; }
 .ui-holiday-art { pointer-events:none; user-select:none; }
 .ui-holiday-art>svg { width:100%; height:100%; display:block; }
+.ui-holiday-effects { position:fixed; inset:0; z-index:920; pointer-events:none!important; user-select:none; overflow:hidden; contain:layout paint; }
+.ui-holiday-effects * { pointer-events:none!important; }
+.ui-snowfall { position:absolute; inset:0; overflow:hidden; }
+.ui-snowflake { position:absolute; left:var(--snow-left); top:-24px; width:var(--snow-size); height:var(--snow-size); border-radius:50%; background:#b5c8bd; color:#9db6a6; opacity:0; animation:ui-snow-drift var(--snow-time) linear var(--snow-delay) infinite; }
+.ui-snowflake.is-crystal { background:transparent; }
+.ui-snowflake>svg { width:100%; height:100%; display:block; }
+.dark .ui-snowflake { background:#f1f7ef; color:#f1f7ef; }
+.dark .ui-snowflake.is-crystal { background:transparent; }
+.ui-deer-trail { position:absolute; left:0; right:0; bottom:6px; height:108px; overflow:hidden; }
+.ui-reindeer { position:absolute; bottom:0; left:0; width:144px; height:93px; animation:ui-deer-cross 26s linear -6s infinite; }
+.ui-reindeer>svg { width:100%; height:100%; display:block; }
+.ui-deer-bob { animation:ui-deer-bounce .7s ease-in-out infinite; }
+.ui-deer-leg { transform-box:view-box; animation:ui-deer-stride .7s ease-in-out infinite alternate; }
+.ui-deer-leg.back { transform-origin:62px 68px; }
+.ui-deer-leg.front { transform-origin:105px 68px; }
+.ui-deer-leg.back.far,.ui-deer-leg.front.near { animation-direction:alternate-reverse; }
+.ui-holiday-effects.is-paused * { animation-play-state:paused!important; }
+.ui-login-motion { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; margin-top:16px; padding:10px; background:transparent; border:1px solid #c3d1c659; border-radius:10px; color:var(--rail-text); font-size:12px; cursor:pointer; }
+.ui-login-motion>svg { width:18px; height:18px; }
+@keyframes ui-snow-drift {
+  0% { transform:translate3d(0,0,0) rotate(0deg); opacity:0; }
+  8%,85% { opacity:.62; }
+  100% { transform:translate3d(var(--snow-drift),calc(100dvh + 48px),0) rotate(100deg); opacity:0; }
+}
+@keyframes ui-deer-cross {
+  0% { transform:translate3d(-170px,0,0); }
+  80%,100% { transform:translate3d(calc(100vw + 20px),0,0); }
+}
+@keyframes ui-deer-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+@keyframes ui-deer-stride { from { transform:rotate(-22deg); } to { transform:rotate(22deg); } }
 .ui-studio .page-view.active { animation:none; }
 .ui-studio .card,.ui-studio .emby-card,.ui-studio .nodes-toolbar,.ui-studio .table-wrapper { background:var(--card)!important; border-color:var(--border)!important; box-shadow:var(--shadow-sm); backdrop-filter:none; -webkit-backdrop-filter:none; transform:none!important; }
 .ui-studio .card { border-radius:14px; padding:24px; margin-bottom:24px; }
@@ -2404,6 +2434,9 @@ body.ui-studio.dark {
   .ui-studio .watch-alert-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; max-height:260px; }
 }
 @media(max-width:900px) {
+  .ui-snowflake:nth-child(n+17) { display:none; }
+  .ui-deer-trail { bottom:calc(82px + env(safe-area-inset-bottom)); height:86px; }
+  .ui-reindeer { width:108px; height:70px; animation-duration:20s; animation-delay:-4s; }
   body.ui-studio { padding-left:0!important; }
   .ui-studio .container { padding:84px 20px 28px; }
   .ui-rail { display:contents; } .ui-rail-footer { display:none; }
@@ -2472,6 +2505,7 @@ body.ui-studio.dark {
   .ui-login .ui-login-art { width:64px; height:70px; top:20px; right:20px; }
 }
 @media(prefers-reduced-motion:reduce) { .ui-studio *, .ui-studio *::before,.ui-studio *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media(prefers-reduced-motion:reduce) { .ui-holiday-effects { display:none!important; } }
 @media(forced-colors:active) { .ui-studio .ds-dock-item.active { border:2px solid Highlight; } }
 </style><script>(() => {
   const $ = id => document.getElementById(id);
@@ -2490,6 +2524,78 @@ body.ui-studio.dark {
     <path d="M72 99h23v13H72z" fill="#d6b77b"/><path d="M82 99v13" stroke="#fcf2d6" stroke-width="3"/>
     <path d="M13 37v6m-3-3h6m73-20v6m-3-3h6m1 29v4m-2-2h4" stroke="#ecdbb7" stroke-width="1.4" stroke-linecap="round"/>
   </svg>\`;
+
+  function holidayMotion() {
+    const snowIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 3 3-3M9 20l3-3 3 3M4 10l4-1-1-4M17 19l-1-4 4-1M4 14l4 1-1 4M17 5l-1 4 4 1"/></svg>';
+    const effects = create('div', 'ui-holiday-effects');
+    effects.setAttribute('aria-hidden', 'true'); effects.inert = true;
+    const snowfall = create('div', 'ui-snowfall');
+    for (let i = 0; i < 28; i++) {
+      const flake = create('span', 'ui-snowflake' + (i % 4 === 0 ? ' is-crystal' : ''), i % 4 === 0 ? snowIcon : '');
+      flake.style.setProperty('--snow-left', ((i * 37 + 7) % 100) + '%');
+      flake.style.setProperty('--snow-time', (14 + i % 9 * 1.4) + 's');
+      flake.style.setProperty('--snow-delay', -(i * 1.7 % 24) + 's');
+      flake.style.setProperty('--snow-size', (i % 4 === 0 ? 12 : 3 + i % 3) + 'px');
+      flake.style.setProperty('--snow-drift', (-24 + i % 5 * 12) + 'px');
+      snowfall.append(flake);
+    }
+    const trail = create('div', 'ui-deer-trail', \`<div class="ui-reindeer">
+      <svg viewBox="0 0 180 116" fill="none" aria-hidden="true" focusable="false">
+        <g class="ui-deer-bob">
+          <g stroke="#885334" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+            <path class="ui-deer-leg back far" d="M64 67 55 85 65 104"/>
+            <path class="ui-deer-leg front far" d="M104 66 116 86 110 104"/>
+          </g>
+          <path d="m49 53-15-9c-4 9 2 19 18 19" fill="#c48b59"/>
+          <path d="M109 59c7-10 7-23 15-30l13 7c-3 12-4 26-14 35" fill="#b9794b"/>
+          <ellipse cx="81" cy="61" rx="36" ry="20" fill="#c48b59"/>
+          <path d="M55 68c13 14 35 16 53 4-20 3-33-1-53-4Z" fill="#e6b987"/>
+          <path d="m123 29-8-14c9-2 17 3 16 13" fill="#c48b59"/>
+          <path d="m121 24-3-6c6 0 8 3 8 7" fill="#e6b987"/>
+          <path d="M131 24 127 12 121 6m7 9 8-7m-10 4-11 1m24 12 3-12 8-7m-9 10-7-8m9 5 11 2" stroke="#dfc39a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="140" cy="33" rx="21" ry="13" transform="rotate(-10 140 33)" fill="#c48b59"/>
+          <ellipse cx="155" cy="36" rx="12" ry="9" fill="#e6b987"/>
+          <circle cx="140" cy="28" r="2.5" fill="#352b25"/>
+          <circle cx="141" cy="27" r=".8" fill="#fff7e8"/>
+          <ellipse cx="165" cy="33" rx="5.5" ry="5" fill="#bf3b4c"/>
+          <path d="M151 42c3 1 5 0 6-1" stroke="#885334" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="m119 44 15 6-4 8-14-6Z" fill="#b73e51"/>
+          <path d="m117 47-23-3 8 7-6 4 23-3" fill="#cc5c67"/>
+          <circle cx="124" cy="57" r="3" fill="#f2d18a"/>
+          <g stroke="#b9794b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+            <path class="ui-deer-leg back near" d="M61 69 53 87 58 106"/>
+            <path class="ui-deer-leg front near" d="M106 68 102 87 115 104"/>
+          </g>
+        </g>
+      </svg></div>\`);
+    effects.append(snowfall, trail); document.body.append(effects);
+
+    const control = create('button', 'ui-motion-toggle', snowIcon + '<span></span>');
+    control.type = 'button';
+    const tools = document.querySelector('.topbar-actions .tb-group');
+    if (tools) { control.classList.add('tb-icon-btn'); control.querySelector('span').className = 'ui-tool-label'; tools.prepend(control); }
+    else { control.classList.add('ui-login-motion'); document.querySelector('.login-wrap').append(control); }
+    const storageKey = 'proxyhub_holiday_motion';
+    let enabled = true;
+    try { enabled = localStorage.getItem(storageKey) !== 'off'; } catch {}
+    const sync = () => {
+      const active = enabled && !reducedMotion.matches;
+      effects.hidden = !active;
+      effects.classList.toggle('is-paused', document.hidden);
+      control.disabled = reducedMotion.matches;
+      const label = reducedMotion.matches ? '系统已减少动态效果' : enabled ? '暂停圣诞动效' : '开启圣诞动效';
+      control.title = label; control.setAttribute('aria-label', label); control.setAttribute('aria-pressed', String(active));
+      control.querySelector('span').textContent = label;
+    };
+    control.addEventListener('click', () => {
+      enabled = !enabled;
+      try { localStorage.setItem(storageKey, enabled ? 'on' : 'off'); } catch {}
+      sync();
+    });
+    reducedMotion.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+  }
 
   function keyboardButton(el, label) {
     if (!el) return;
@@ -2663,6 +2769,7 @@ body.ui-studio.dark {
   function ready() {
     if (!document.body.classList.contains('ui-login')) { workspace(); manageDialogFocus(); }
     else document.querySelector('.login-box').append(create('div', 'ui-login-art ui-holiday-art', holidayArt));
+    holidayMotion();
     document.querySelectorAll('.mode-card').forEach(el => keyboardButton(el, el.querySelector('.mc-name').textContent));
     keyboardButton(document.querySelector('.topbar-logo'), '账户设置');
     keyboardButton(document.querySelector('.page-footer'), '查看 ProxyHub 公开仓库');
@@ -8143,6 +8250,36 @@ body.ui-studio.dark {
 .ui-studio .hero-chip { font-size:10px; font-weight:400; background:transparent; border:0; padding:0; color:var(--rail-muted); box-shadow:none; -webkit-text-fill-color:currentColor; letter-spacing:0; }
 .ui-holiday-art { pointer-events:none; user-select:none; }
 .ui-holiday-art>svg { width:100%; height:100%; display:block; }
+.ui-holiday-effects { position:fixed; inset:0; z-index:920; pointer-events:none!important; user-select:none; overflow:hidden; contain:layout paint; }
+.ui-holiday-effects * { pointer-events:none!important; }
+.ui-snowfall { position:absolute; inset:0; overflow:hidden; }
+.ui-snowflake { position:absolute; left:var(--snow-left); top:-24px; width:var(--snow-size); height:var(--snow-size); border-radius:50%; background:#b5c8bd; color:#9db6a6; opacity:0; animation:ui-snow-drift var(--snow-time) linear var(--snow-delay) infinite; }
+.ui-snowflake.is-crystal { background:transparent; }
+.ui-snowflake>svg { width:100%; height:100%; display:block; }
+.dark .ui-snowflake { background:#f1f7ef; color:#f1f7ef; }
+.dark .ui-snowflake.is-crystal { background:transparent; }
+.ui-deer-trail { position:absolute; left:0; right:0; bottom:6px; height:108px; overflow:hidden; }
+.ui-reindeer { position:absolute; bottom:0; left:0; width:144px; height:93px; animation:ui-deer-cross 26s linear -6s infinite; }
+.ui-reindeer>svg { width:100%; height:100%; display:block; }
+.ui-deer-bob { animation:ui-deer-bounce .7s ease-in-out infinite; }
+.ui-deer-leg { transform-box:view-box; animation:ui-deer-stride .7s ease-in-out infinite alternate; }
+.ui-deer-leg.back { transform-origin:62px 68px; }
+.ui-deer-leg.front { transform-origin:105px 68px; }
+.ui-deer-leg.back.far,.ui-deer-leg.front.near { animation-direction:alternate-reverse; }
+.ui-holiday-effects.is-paused * { animation-play-state:paused!important; }
+.ui-login-motion { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; margin-top:16px; padding:10px; background:transparent; border:1px solid #c3d1c659; border-radius:10px; color:var(--rail-text); font-size:12px; cursor:pointer; }
+.ui-login-motion>svg { width:18px; height:18px; }
+@keyframes ui-snow-drift {
+  0% { transform:translate3d(0,0,0) rotate(0deg); opacity:0; }
+  8%,85% { opacity:.62; }
+  100% { transform:translate3d(var(--snow-drift),calc(100dvh + 48px),0) rotate(100deg); opacity:0; }
+}
+@keyframes ui-deer-cross {
+  0% { transform:translate3d(-170px,0,0); }
+  80%,100% { transform:translate3d(calc(100vw + 20px),0,0); }
+}
+@keyframes ui-deer-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+@keyframes ui-deer-stride { from { transform:rotate(-22deg); } to { transform:rotate(22deg); } }
 .ui-studio .page-view.active { animation:none; }
 .ui-studio .card,.ui-studio .emby-card,.ui-studio .nodes-toolbar,.ui-studio .table-wrapper { background:var(--card)!important; border-color:var(--border)!important; box-shadow:var(--shadow-sm); backdrop-filter:none; -webkit-backdrop-filter:none; transform:none!important; }
 .ui-studio .card { border-radius:14px; padding:24px; margin-bottom:24px; }
@@ -8335,6 +8472,9 @@ body.ui-studio.dark {
   .ui-studio .watch-alert-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; max-height:260px; }
 }
 @media(max-width:900px) {
+  .ui-snowflake:nth-child(n+17) { display:none; }
+  .ui-deer-trail { bottom:calc(82px + env(safe-area-inset-bottom)); height:86px; }
+  .ui-reindeer { width:108px; height:70px; animation-duration:20s; animation-delay:-4s; }
   body.ui-studio { padding-left:0!important; }
   .ui-studio .container { padding:84px 20px 28px; }
   .ui-rail { display:contents; } .ui-rail-footer { display:none; }
@@ -8403,6 +8543,7 @@ body.ui-studio.dark {
   .ui-login .ui-login-art { width:64px; height:70px; top:20px; right:20px; }
 }
 @media(prefers-reduced-motion:reduce) { .ui-studio *, .ui-studio *::before,.ui-studio *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media(prefers-reduced-motion:reduce) { .ui-holiday-effects { display:none!important; } }
 @media(forced-colors:active) { .ui-studio .ds-dock-item.active { border:2px solid Highlight; } }
 </style><script>(() => {
   const $ = id => document.getElementById(id);
@@ -8421,6 +8562,78 @@ body.ui-studio.dark {
     <path d="M72 99h23v13H72z" fill="#d6b77b"/><path d="M82 99v13" stroke="#fcf2d6" stroke-width="3"/>
     <path d="M13 37v6m-3-3h6m73-20v6m-3-3h6m1 29v4m-2-2h4" stroke="#ecdbb7" stroke-width="1.4" stroke-linecap="round"/>
   </svg>\`;
+
+  function holidayMotion() {
+    const snowIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 3 3-3M9 20l3-3 3 3M4 10l4-1-1-4M17 19l-1-4 4-1M4 14l4 1-1 4M17 5l-1 4 4 1"/></svg>';
+    const effects = create('div', 'ui-holiday-effects');
+    effects.setAttribute('aria-hidden', 'true'); effects.inert = true;
+    const snowfall = create('div', 'ui-snowfall');
+    for (let i = 0; i < 28; i++) {
+      const flake = create('span', 'ui-snowflake' + (i % 4 === 0 ? ' is-crystal' : ''), i % 4 === 0 ? snowIcon : '');
+      flake.style.setProperty('--snow-left', ((i * 37 + 7) % 100) + '%');
+      flake.style.setProperty('--snow-time', (14 + i % 9 * 1.4) + 's');
+      flake.style.setProperty('--snow-delay', -(i * 1.7 % 24) + 's');
+      flake.style.setProperty('--snow-size', (i % 4 === 0 ? 12 : 3 + i % 3) + 'px');
+      flake.style.setProperty('--snow-drift', (-24 + i % 5 * 12) + 'px');
+      snowfall.append(flake);
+    }
+    const trail = create('div', 'ui-deer-trail', \`<div class="ui-reindeer">
+      <svg viewBox="0 0 180 116" fill="none" aria-hidden="true" focusable="false">
+        <g class="ui-deer-bob">
+          <g stroke="#885334" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+            <path class="ui-deer-leg back far" d="M64 67 55 85 65 104"/>
+            <path class="ui-deer-leg front far" d="M104 66 116 86 110 104"/>
+          </g>
+          <path d="m49 53-15-9c-4 9 2 19 18 19" fill="#c48b59"/>
+          <path d="M109 59c7-10 7-23 15-30l13 7c-3 12-4 26-14 35" fill="#b9794b"/>
+          <ellipse cx="81" cy="61" rx="36" ry="20" fill="#c48b59"/>
+          <path d="M55 68c13 14 35 16 53 4-20 3-33-1-53-4Z" fill="#e6b987"/>
+          <path d="m123 29-8-14c9-2 17 3 16 13" fill="#c48b59"/>
+          <path d="m121 24-3-6c6 0 8 3 8 7" fill="#e6b987"/>
+          <path d="M131 24 127 12 121 6m7 9 8-7m-10 4-11 1m24 12 3-12 8-7m-9 10-7-8m9 5 11 2" stroke="#dfc39a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="140" cy="33" rx="21" ry="13" transform="rotate(-10 140 33)" fill="#c48b59"/>
+          <ellipse cx="155" cy="36" rx="12" ry="9" fill="#e6b987"/>
+          <circle cx="140" cy="28" r="2.5" fill="#352b25"/>
+          <circle cx="141" cy="27" r=".8" fill="#fff7e8"/>
+          <ellipse cx="165" cy="33" rx="5.5" ry="5" fill="#bf3b4c"/>
+          <path d="M151 42c3 1 5 0 6-1" stroke="#885334" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="m119 44 15 6-4 8-14-6Z" fill="#b73e51"/>
+          <path d="m117 47-23-3 8 7-6 4 23-3" fill="#cc5c67"/>
+          <circle cx="124" cy="57" r="3" fill="#f2d18a"/>
+          <g stroke="#b9794b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+            <path class="ui-deer-leg back near" d="M61 69 53 87 58 106"/>
+            <path class="ui-deer-leg front near" d="M106 68 102 87 115 104"/>
+          </g>
+        </g>
+      </svg></div>\`);
+    effects.append(snowfall, trail); document.body.append(effects);
+
+    const control = create('button', 'ui-motion-toggle', snowIcon + '<span></span>');
+    control.type = 'button';
+    const tools = document.querySelector('.topbar-actions .tb-group');
+    if (tools) { control.classList.add('tb-icon-btn'); control.querySelector('span').className = 'ui-tool-label'; tools.prepend(control); }
+    else { control.classList.add('ui-login-motion'); document.querySelector('.login-wrap').append(control); }
+    const storageKey = 'proxyhub_holiday_motion';
+    let enabled = true;
+    try { enabled = localStorage.getItem(storageKey) !== 'off'; } catch {}
+    const sync = () => {
+      const active = enabled && !reducedMotion.matches;
+      effects.hidden = !active;
+      effects.classList.toggle('is-paused', document.hidden);
+      control.disabled = reducedMotion.matches;
+      const label = reducedMotion.matches ? '系统已减少动态效果' : enabled ? '暂停圣诞动效' : '开启圣诞动效';
+      control.title = label; control.setAttribute('aria-label', label); control.setAttribute('aria-pressed', String(active));
+      control.querySelector('span').textContent = label;
+    };
+    control.addEventListener('click', () => {
+      enabled = !enabled;
+      try { localStorage.setItem(storageKey, enabled ? 'on' : 'off'); } catch {}
+      sync();
+    });
+    reducedMotion.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+  }
 
   function keyboardButton(el, label) {
     if (!el) return;
@@ -8594,6 +8807,7 @@ body.ui-studio.dark {
   function ready() {
     if (!document.body.classList.contains('ui-login')) { workspace(); manageDialogFocus(); }
     else document.querySelector('.login-box').append(create('div', 'ui-login-art ui-holiday-art', holidayArt));
+    holidayMotion();
     document.querySelectorAll('.mode-card').forEach(el => keyboardButton(el, el.querySelector('.mc-name').textContent));
     keyboardButton(document.querySelector('.topbar-logo'), '账户设置');
     keyboardButton(document.querySelector('.page-footer'), '查看 ProxyHub 公开仓库');

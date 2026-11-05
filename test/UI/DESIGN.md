@@ -76,7 +76,7 @@ components:
 
 ## Elevation & Depth
 
-实色背景、细边框与柔和阴影沿用 UI 2。没有新增持续动画；减少动态效果时过渡关闭。装饰 SVG 使用 aria-hidden 与 pointer-events:none，不成为操作或朗读目标。
+实色背景、细边框与柔和阴影沿用 UI 2。用户要求的雪花在固定装饰层缓慢飘落，驯鹿沿下边缘经过。桌面28片雪、手机16片；使用transform与opacity动画，不加入JS逐帧循环。减少动态效果时隐藏整层，后台标签页暂停动画。装饰层使用aria-hidden、inert与pointer-events:none。
 
 ## Shapes
 
@@ -88,12 +88,13 @@ components:
 - **总览：** 节日标题和小树与真实统计并排，手机堆叠。无倒计时或虚构统计。
 - **节点行：** 保留名称、路径、模式、延迟、流量、保号进度及原有操作。共享保号函数仍负责小数、临期和无效记录。
 - **弹窗：** 原处理器保持不变，初始焦点、Tab循环、Escape与焦点返回继续可用；全局状态区域在弹窗打开时移入，避免错误提示落入inert背景。
+- **动效开关：** 桌面雪花按钮、手机工具菜单与登录页可暂停动效，aria-pressed同步状态；localStorage记录proxyhub_holiday_motion。系统减少动态设置优先。
 
 ## Do's and Don'ts
 
 ### Do:
 - **Do** 保留 UI 2 的结构，使用真实接口数据。
-- **Do** 将圣诞艺术保留在边缘和标题区域，避让控件。
+- **Do** 让装饰层点击穿透、不取得焦点，并提供暂停入口。
 - **Do** 同时维护浅色、深色与手机布局。
 
 ### Don't:
@@ -101,4 +102,4 @@ components:
 - **Don't** 用装饰色代替状态文字。
 - **Don't** 将截图中的数据和 P 头像作为生产默认值。
 
-艺术源为 panel.js 的 holidayArt；预览 PNG 使用模拟数据。worker.js 为明文版本，真实服务行为由测试部署验证。
+艺术源为 panel.js 的 holidayArt 和 holidayMotion 内联SVG；动效预览为真实CSS动画暂停在固定时刻的截图，使用模拟数据。worker.js 为明文版本，真实服务行为由测试部署验证。

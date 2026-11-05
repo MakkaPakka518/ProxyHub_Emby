@@ -67,6 +67,36 @@ body.ui-studio.dark {
 .ui-studio .hero-chip { font-size:10px; font-weight:400; background:transparent; border:0; padding:0; color:var(--rail-muted); box-shadow:none; -webkit-text-fill-color:currentColor; letter-spacing:0; }
 .ui-holiday-art { pointer-events:none; user-select:none; }
 .ui-holiday-art>svg { width:100%; height:100%; display:block; }
+.ui-holiday-effects { position:fixed; inset:0; z-index:920; pointer-events:none!important; user-select:none; overflow:hidden; contain:layout paint; }
+.ui-holiday-effects * { pointer-events:none!important; }
+.ui-snowfall { position:absolute; inset:0; overflow:hidden; }
+.ui-snowflake { position:absolute; left:var(--snow-left); top:-24px; width:var(--snow-size); height:var(--snow-size); border-radius:50%; background:#b5c8bd; color:#9db6a6; opacity:0; animation:ui-snow-drift var(--snow-time) linear var(--snow-delay) infinite; }
+.ui-snowflake.is-crystal { background:transparent; }
+.ui-snowflake>svg { width:100%; height:100%; display:block; }
+.dark .ui-snowflake { background:#f1f7ef; color:#f1f7ef; }
+.dark .ui-snowflake.is-crystal { background:transparent; }
+.ui-deer-trail { position:absolute; left:0; right:0; bottom:6px; height:108px; overflow:hidden; }
+.ui-reindeer { position:absolute; bottom:0; left:0; width:144px; height:93px; animation:ui-deer-cross 26s linear -6s infinite; }
+.ui-reindeer>svg { width:100%; height:100%; display:block; }
+.ui-deer-bob { animation:ui-deer-bounce .7s ease-in-out infinite; }
+.ui-deer-leg { transform-box:view-box; animation:ui-deer-stride .7s ease-in-out infinite alternate; }
+.ui-deer-leg.back { transform-origin:62px 68px; }
+.ui-deer-leg.front { transform-origin:105px 68px; }
+.ui-deer-leg.back.far,.ui-deer-leg.front.near { animation-direction:alternate-reverse; }
+.ui-holiday-effects.is-paused * { animation-play-state:paused!important; }
+.ui-login-motion { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; margin-top:16px; padding:10px; background:transparent; border:1px solid #c3d1c659; border-radius:10px; color:var(--rail-text); font-size:12px; cursor:pointer; }
+.ui-login-motion>svg { width:18px; height:18px; }
+@keyframes ui-snow-drift {
+  0% { transform:translate3d(0,0,0) rotate(0deg); opacity:0; }
+  8%,85% { opacity:.62; }
+  100% { transform:translate3d(var(--snow-drift),calc(100dvh + 48px),0) rotate(100deg); opacity:0; }
+}
+@keyframes ui-deer-cross {
+  0% { transform:translate3d(-170px,0,0); }
+  80%,100% { transform:translate3d(calc(100vw + 20px),0,0); }
+}
+@keyframes ui-deer-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+@keyframes ui-deer-stride { from { transform:rotate(-22deg); } to { transform:rotate(22deg); } }
 .ui-studio .page-view.active { animation:none; }
 .ui-studio .card,.ui-studio .emby-card,.ui-studio .nodes-toolbar,.ui-studio .table-wrapper { background:var(--card)!important; border-color:var(--border)!important; box-shadow:var(--shadow-sm); backdrop-filter:none; -webkit-backdrop-filter:none; transform:none!important; }
 .ui-studio .card { border-radius:14px; padding:24px; margin-bottom:24px; }
@@ -259,6 +289,9 @@ body.ui-studio.dark {
   .ui-studio .watch-alert-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; max-height:260px; }
 }
 @media(max-width:900px) {
+  .ui-snowflake:nth-child(n+17) { display:none; }
+  .ui-deer-trail { bottom:calc(82px + env(safe-area-inset-bottom)); height:86px; }
+  .ui-reindeer { width:108px; height:70px; animation-duration:20s; animation-delay:-4s; }
   body.ui-studio { padding-left:0!important; }
   .ui-studio .container { padding:84px 20px 28px; }
   .ui-rail { display:contents; } .ui-rail-footer { display:none; }
@@ -327,4 +360,5 @@ body.ui-studio.dark {
   .ui-login .ui-login-art { width:64px; height:70px; top:20px; right:20px; }
 }
 @media(prefers-reduced-motion:reduce) { .ui-studio *, .ui-studio *::before,.ui-studio *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media(prefers-reduced-motion:reduce) { .ui-holiday-effects { display:none!important; } }
 @media(forced-colors:active) { .ui-studio .ds-dock-item.active { border:2px solid Highlight; } }

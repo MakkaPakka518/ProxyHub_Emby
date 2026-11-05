@@ -108,6 +108,7 @@ try {
     assert.equal(await page.locator('.ui-mode-segment').count(), 5);
     assert.match(await page.locator('.ui-overview-title').textContent(), /圣诞放映季/);
     assert.equal(await page.locator('.ui-overview .ui-holiday-art svg').getAttribute('aria-hidden'), 'true');
+    assert.equal(await page.locator('.ui-holiday-effects').isVisible(), false, 'Reduced motion suppresses decorative movement');
     assert.equal(await page.locator('#rttValue').isVisible(), true, 'RTT remains reachable at every width');
     if (width <= 900) assert.equal(await page.locator('#searchNode').evaluate(el => getComputedStyle(el).fontSize), '16px');
     if (width === 390) {
@@ -274,11 +275,74 @@ try {
   await page.screenshot({ path: join(output, 'login-390.png') });
   assert.equal(await page.getByLabel('访问密钥').count(), 1);
   assert.ok((await bounds()).scroll <= 390);
+
+  // Exercise the real CSS animations separately from the reduced-motion UI suite.
+  role = 'admin'; currentRoutes = routes;
+  const motionPage = await context.newPage();
+  motionPage.on('pageerror', error => errors.push(error.message));
+  await motionPage.emulateMedia({ reducedMotion: 'no-preference' });
+  await motionPage.bringToFront();
+  await motionPage.goto('https://panel.test', { waitUntil: 'networkidle' });
+  await motionPage.waitForFunction(() => document.querySelectorAll('.emby-card').length === 6);
+  assert.equal(await motionPage.locator('.ui-holiday-effects').isVisible(), true);
+  assert.equal(await motionPage.locator('.ui-holiday-effects').getAttribute('aria-hidden'), 'true');
+  assert.equal(await motionPage.locator('.ui-holiday-effects').evaluate(el => el.inert), true);
+  assert.equal(await motionPage.locator('.ui-snowflake').count(), 28);
+  const startTransforms = await motionPage.evaluate(() => ['.ui-snowflake', '.ui-reindeer', '.ui-deer-leg'].map(selector => getComputedStyle(document.querySelector(selector)).transform));
+  await motionPage.waitForFunction(previous => ['.ui-snowflake', '.ui-reindeer', '.ui-deer-leg'].every((selector, i) => getComputedStyle(document.querySelector(selector)).transform !== previous[i]), startTransforms);
+  assert.equal(await motionPage.locator('.ui-holiday-effects').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
+  await motionPage.locator('#searchNode').fill('backup');
+  await motionPage.waitForFunction(() => document.querySelector('[data-prefix="main"]').style.display === 'none');
+  await motionPage.locator('.mode-card.mc-all').click();
+
+  for (const width of [1280, 390]) {
+    await motionPage.setViewportSize({ width, height: width === 390 ? 844 : 900 });
+    for (const dark of [false, true]) {
+      await motionPage.evaluate(dark => {
+        document.body.classList.toggle('dark', dark); document.documentElement.classList.toggle('dark', dark);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        for (const animation of document.querySelector('.ui-holiday-effects').getAnimations({ subtree: true })) {
+          animation.pause();
+          const timing = animation.effect.getTiming();
+          animation.currentTime = animation.effect.target.classList.contains('ui-reindeer') ? Number(timing.duration) * .4 + timing.delay : 4000;
+        }
+      }, dark);
+      await motionPage.evaluate(() => Promise.all(document.getAnimations().filter(animation => 'transitionProperty' in animation).map(animation => animation.finished.catch(() => {}))));
+      await motionPage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await motionPage.waitForFunction(() => !document.getElementById('toast').classList.contains('show'));
+      assert.equal(await motionPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      if (width === 390) {
+        assert.equal(await motionPage.locator('.ui-snowflake:visible').count(), 16);
+        const deer = await motionPage.locator('.ui-deer-trail').boundingBox();
+        const nav = await motionPage.locator('.ds-dock').boundingBox();
+        assert.ok(deer.y + deer.height <= nav.y + 1, 'Reindeer route stays above mobile navigation');
+      }
+      await motionPage.screenshot({ path: join(output, `motion-${width}-${dark ? 'dark' : 'light'}.png`) });
+    }
+  }
+  await motionPage.locator('.ui-menu-toggle').click();
+  await motionPage.getByRole('button', { name: '暂停圣诞动效', exact: true }).click();
+  assert.equal(await motionPage.locator('.ui-holiday-effects').isVisible(), false);
+  await motionPage.reload({ waitUntil: 'networkidle' });
+  assert.equal(await motionPage.locator('.ui-motion-toggle').getAttribute('aria-pressed'), 'false', 'Pause preference survives reload');
+  await motionPage.locator('.ui-menu-toggle').click();
+  await motionPage.getByRole('button', { name: '开启圣诞动效', exact: true }).click();
+  assert.equal(await motionPage.locator('.ui-holiday-effects').isVisible(), true);
+  await motionPage.emulateMedia({ reducedMotion: 'reduce' });
+  await motionPage.waitForFunction(() => document.querySelector('.ui-motion-toggle').disabled);
+  assert.equal(await motionPage.locator('.ui-holiday-effects').isVisible(), false);
+  await motionPage.emulateMedia({ reducedMotion: 'no-preference' });
+  await motionPage.waitForFunction(() => !document.querySelector('.ui-holiday-effects').hidden);
+  await motionPage.goto('https://panel.test/login', { waitUntil: 'networkidle' });
+  assert.equal(await motionPage.locator('.ui-login-motion').isVisible(), true);
+  await motionPage.locator('.ui-login-motion').click();
+  assert.equal(await motionPage.locator('.ui-holiday-effects').isVisible(), false);
+  await motionPage.close();
   assert.deepEqual(errors, []);
   if (process.env.UI_PUBLISH_PREVIEWS === '1') {
-    for (const [source, target] of [['nodes-1280-light.png', 'preview-desktop.png'], ['nodes-390-light.png', 'preview-mobile.png'], ['nodes-1280-dark.png', 'preview-dark.png']]) {
+    for (const [source, target] of [['motion-1280-light.png', 'preview-desktop.png'], ['motion-390-light.png', 'preview-mobile.png'], ['motion-1280-dark.png', 'preview-dark.png']]) {
       writeFileSync(new URL(target, import.meta.url), readFileSync(join(output, source)));
     }
   }
-  console.log('UI verified: original backend/scripts/IDs intact; 5 widths, 2 themes, navigation, reachable save action, login.');
+  console.log('UI verified: plaintext baseline intact; responsive UI, real snow/reindeer animation, click-through, saved toggle, reduced motion and login.');
 } finally { await browser.close(); }

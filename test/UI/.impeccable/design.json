@@ -14,7 +14,11 @@
       {"name":"hover","value":"0 5px 20px #1833280c","purpose":"Hovered routes."},
       {"name":"overlay","value":"0 20px 65px #12281e30","purpose":"Dialogs and menus."}
     ],
-    "motion": [{"name":"control-feedback","value":"background-color .16s, color .16s, border-color .16s","purpose":"Brief state feedback; disabled under reduced motion."}],
+    "motion": [
+      {"name":"control-feedback","value":"background-color .16s, color .16s, border-color .16s","purpose":"Brief state feedback; disabled under reduced motion."},
+      {"name":"snowfall","value":"transform + opacity; 14–25.2s linear","purpose":"28 desktop / 16 mobile particles, negative starting delays; pause switch and reduced-motion suppression."},
+      {"name":"reindeer","value":"26s desktop / 20s mobile translation; .7s stride and bob","purpose":"Inline SVG reindeer crosses the lower edge, above mobile navigation; no pointer or focus interaction."}
+    ],
     "breakpoints": [{"name":"mobile","value":"900px"},{"name":"split","value":"1200px"},{"name":"wide","value":"1500px"}]
   },
   "components": [
@@ -29,7 +33,7 @@
     "overview":"以 UI 2 的熟悉工作台承载节日配色和小幅矢量装饰。松绿用于导航与总览，酒红突出操作，暖白保持内容清晰，浅金用于节日点缀。",
     "keyCharacteristics":["UI 2 侧栏、总览、列表和保号提醒布局。","节日艺术集中于总览、侧栏底部与登录页。","控件、数据和权限保持原工作流。"],
     "rules":[],
-    "dos":["Do 保留 UI 2 的结构，使用真实接口数据。","Do 将圣诞艺术保留在边缘和标题区域，避让控件。","Do 同时维护浅色、深色与手机布局。"],
+    "dos":["Do 保留 UI 2 的结构，使用真实接口数据。","Do 让装饰层点击穿透、不取得焦点，并提供暂停入口。","Do 同时维护浅色、深色与手机布局。"],
     "donts":["Don't 恢复节点展台或图库交互。","Don't 用装饰色代替状态文字。","Don't 将截图中的数据和 P 头像作为生产默认值。"]
   }
 }
