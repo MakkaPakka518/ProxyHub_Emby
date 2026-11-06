@@ -3886,17 +3886,24 @@ function toSvg(s){
                 }
             } finally { bwLoading = false; }
         }
-        async function load() {
-            const routesFetch = fetch('/api/routes');   // 与下面的设置读取并行发出,不再排在它们后面
-            try {
+        let nodeSaveFlow = null;
+        let nodeListRevision = 0;
+        async function load(preloaded) {
+            if (!preloaded && nodeSaveFlow && nodeSaveFlow.pending) return;
+            const revision = ++nodeListRevision;
+            const restoreSaveFocus = !!(nodeSaveFlow && nodeSaveFlow.card && nodeSaveFlow.card.contains(document.activeElement));
+            const routesFetch = preloaded ? Promise.resolve({ ok: true, json: async () => preloaded }) : fetch('/api/routes');
+            if (!preloaded) try {
                 await Promise.all([loadPtState(), loadIpGuard()]);
             } catch (e) {}
-            if (window.ROLE && window.ROLE !== 'sub') { loadNodeReqs().catch(() => {}); }
+            if (!preloaded && window.ROLE && window.ROLE !== 'sub') { loadNodeReqs().catch(() => {}); }
             try {
                 const res = await routesFetch;
                 if (!res.ok) throw new Error('请求失败，请检查环境配置');
                 let data = await res.json();
+                if (revision !== nodeListRevision) return;
                 if (data.error) throw new Error(data.error);
+                if (!Array.isArray(data)) throw new Error('节点列表格式不正确');
                 if (Array.isArray(data) && window.ROLE !== 'user') data = data.filter(r => !r.owner);
 
                 //  新增：把节点流量数据存进全局内存，供大屏瞬间读取！
@@ -4029,7 +4036,7 @@ function toSvg(s){
                 container.innerHTML = htmlParts.join('');
                 if (window.ROLE === 'sub' || window.ROLE === 'subadmin') container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
                 // 自动测速:6 路并发的队列(原先每个节点错开 500ms,110 个节点最后一个要等近一分钟才开始测)
-                (function () { const q = proxyNodesForPing.filter(n => n.url); function next() { const n = q.shift(); if (!n) return; Promise.resolve(pingTarget(n.idx, n.url)).then(next, next); } for (let i = 0; i < 6; i++) next(); })();
+                if (!nodeSaveFlow || !nodeSaveFlow.pending || nodeSaveFlow.saved) (function () { const q = proxyNodesForPing.filter(n => n.url); function next() { const n = q.shift(); if (!n) return; Promise.resolve(pingTarget(n.idx, n.url)).then(next, next); } for (let i = 0; i < 6; i++) next(); })();
                 if (data.some(r => r.todayBandwidth === '统计中…')) loadBandwidth();
 
                 filterNodesList();
@@ -4052,8 +4059,10 @@ function toSvg(s){
                         } catch(e) { showToast(' 排序保存失败'); }
                     }
                 });
+                syncNodeSaveCard(restoreSaveFocus);
 
             } catch (err) {
+                if (revision !== nodeListRevision) return;
                 document.getElementById('list-grid').innerHTML = \`<div style="text-align:center; color:#ff3b30; font-weight:600; grid-column: 1 / -1; padding: 20px;">${I.warn} 读取失败: \${err.message}</div>\`;
             }
         }
@@ -4065,6 +4074,7 @@ function toSvg(s){
             emosEl.style.display = (modeEl.value === 'emos') ? 'flex' : 'none';
         }
         function editNode(prefix, targetStr, mode, remark, icon, cacheImg, customIp, watchLimit, nodeUser, nodePass, redirectDirect, redirectRulesRaw, emosId, emosName, emosAggregate, strmOpt, forceDirect) {
+            if (nodeSaveFlow && nodeSaveFlow.pending) return showToast('节点正在保存，请稍候');
             document.getElementById('oldPrefix').value = prefix;
             document.getElementById('remark').value = remark;
             document.getElementById('prefix').value = prefix;
@@ -4328,6 +4338,7 @@ function toSvg(s){
         })();
 
         function openNodeModal() {
+            if (nodeSaveFlow && nodeSaveFlow.pending) return showToast('节点正在保存，请稍候');
             const f = document.getElementById('addForm');
             f.reset();
             updateNodeBotPreview();
@@ -5170,6 +5181,7 @@ function toSvg(s){
 
         document.getElementById('addForm').onsubmit = async (e) => {
             e.preventDefault();
+            if (nodeSaveFlow && nodeSaveFlow.pending) return;
             const oldPrefix = document.getElementById('oldPrefix').value;
             const remark = document.getElementById('remark').value.trim();
             const prefix = document.getElementById('prefix').value.trim().replace(/^\\/+/g, '');
@@ -5202,36 +5214,11 @@ function toSvg(s){
 
             if (!target) return showToast(' 请至少填写一个主线路地址');
 
-            try {
-                const res = await fetch('/api/routes', {
-                    method: 'POST',
-                    body: JSON.stringify({oldPrefix, prefix, target, mode, remark, icon, cache_img, fakeIp, watchLimit, tgBotUrl, nodeUser, nodePass, redirect_direct, redirect_rules, emosId, emosName, emosAggregate, strmOpt, forceDirect})
-                });
-                const data = await res.json();
-                if(!data.success) throw new Error(data.error || '部署失败');
-
-                document.getElementById('addForm').reset();
-                updateNodeBotPreview();
-                document.getElementById('oldPrefix').value = '';
-                selectIcon('', '默认');
-                document.getElementById('nodeCache').checked = true;
-                document.getElementById('nodeRedirectDirect').checked = false;
-                document.getElementById('nodeStrmOpt').checked = false;
-                document.getElementById('nodeRulesEnable').checked = false;
-                renderRulesList([]);
-                document.getElementById('submitBtn').textContent = '保存部署';
-                resetTargetInputs();
-
-                showToast(' 节点部署成功');
-                // 保存成功后自动关窗（编辑与新增一致）
-                document.getElementById('nodeModal').style.display = 'none';
-                load();
-            } catch(err) {
-                showToast(' 保存失败: ' + err.message);
-            }
+            await saveNodeWithGlow({oldPrefix, prefix, target, mode, remark, icon, cache_img, fakeIp, watchLimit, tgBotUrl, nodeUser, nodePass, redirect_direct, redirect_rules, emosId, emosName, emosAggregate, strmOpt, forceDirect});
         };
 
         async function del(prefix) {
+            if (nodeSaveFlow && nodeSaveFlow.pending && [nodeSaveFlow.payload.oldPrefix, nodeSaveFlow.payload.prefix].includes(prefix)) return showToast('节点正在保存，完成后再删除');
             if(confirm('确定删除节点 /' + prefix + ' ?')) {
                 await fetch('/api/routes?prefix=' + prefix, { method: 'DELETE' });
                 showToast(' 节点已移除');
@@ -6638,7 +6625,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     let animate = false;
     for (const card of cards) {
       sample(card, now);
-      if (!card.visible) continue;
+      if (!card.visible || card.el.classList.contains('ng-card')) continue;
       const rect = card.el.getBoundingClientRect();
       if (!rect.width || !rect.height || rect.bottom <= 0 || rect.top >= win.innerHeight || rect.right <= 0 || rect.left >= win.innerWidth) continue;
       // A pointer event can arrive after this frame's timestamp: keep its zero-progress first frame alive.
@@ -6653,7 +6640,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
   }
   function invalidate() {
     if (destroyed) return;
-    if (doc.hidden || !cards.some(c => c.visible && (c.target || c.progress))) { stop(); clear(); return; }
+    if (doc.hidden || !cards.some(c => c.visible && (c.target || c.progress))) { stop(); clear(); canvas.style.width = canvas.style.height = '0px'; return; }
     if (!raf) raf = win.requestAnimationFrame(frame);
   }
   function applyOptions() {
@@ -6825,7 +6812,7 @@ function createTactilePushButton(host, initialOptions = {}, binding = null) {
   }
   scene.append(style);
   function enhance(button) {
-    if (button.matches('.sf-toggle') || (binding && button.closest('.topbar,.ds-dock,.mode-cards-card,.mode-card-menu,.watch-alert-panel,.watch-meter'))) return;
+    if (button.matches('.sf-toggle,.ng-ui') || (binding && button.closest('.topbar,.ds-dock,.mode-cards-card,.mode-card-menu,.watch-alert-panel,.watch-meter'))) return;
     if (button.childNodes.length !== 1 || !button.firstElementChild?.classList.contains('tp-label')) {
       const label = doc.createElement('span');
       label.className = 'tp-label';
@@ -6900,6 +6887,497 @@ function createTactilePushButton(host, initialOptions = {}, binding = null) {
 })();
 </script>
 <!-- TACTILE_PUSH_END -->
+<!-- NODE_SAVE_GLOW_START -->
+<style>
+#view-nodes .node-save-revealed .info-row:has(.dynamic-url){flex-direction:column;gap:6px}
+#view-nodes .node-save-revealed .action-group:has(.dynamic-url){margin-left:0!important;width:100%;min-width:0}
+#view-nodes .node-save-revealed .dynamic-url{flex:1 1 100%;min-width:0;overflow-wrap:anywhere}
+#view-nodes .node-save-revealed .actual-text .url-list-item{padding:0;margin:0;background:transparent;border:0}
+#view-nodes .emby-card.ng-card .action-group{--text:#131627;--text-sec:#5d6480;--border:#e3e7f4;--card:#f6f7fd;background:var(--card);border-color:var(--border)}
+body.dark #view-nodes .emby-card.ng-card .action-group{--text:#e8eefc;--text-sec:#9aa5c2;--border:#243350;--card:#0b1220}
+.node-save-note{margin:0 0 12px;font-size:13px;color:var(--text-sec);line-height:1.5}
+</style>
+<script>
+/** Independent Canvas2D glow implementation, adapted to node-save confirmation.
+ * Visual reference: Gabriel, discovered through LeiBox / transfer-glow.
+ */
+function createTransferGlow(target, initial = {}, binding = false) {
+  const doc = target.ownerDocument, win = doc.defaultView;
+  const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
+  const smooth = (a, b, p) => { const x = clamp((p - a) / (b - a)); return x * x * (3 - 2 * x); };
+  const fract = n => n - Math.floor(n);
+  const hash = n => fract(Math.sin(n * 127.1 + 311.7) * 43758.5453);
+  let options = { open: true, duration: 5200, height: 840, reducedMotion: null, autoStart: false, awaitResult: false,
+    name: '示例节点', source: 'https://origin.example', direct: 'https://proxy.example/demo', ...initial };
+  function validate(next) {
+    if (!Number.isFinite(next.duration) || !Number.isFinite(next.height) || next.height < 0) throw new TypeError('Invalid duration or height');
+    if (next.reducedMotion != null && typeof next.reducedMotion !== 'boolean') throw new TypeError('Invalid reducedMotion');
+    next.duration = clamp(next.duration, 1200, 15000);
+    return next;
+  }
+  validate(options);
+  const css = \`
+    .ng-scene{box-sizing:border-box;min-width:0;width:100%;min-height:var(--ng-height,840px);padding:24px;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;background:#f4f4f2;font-family:Arial,Helvetica,sans-serif}
+    .ng-demo{box-sizing:border-box;min-width:0;width:100%;max-width:530px;border:1px solid #e4e4e0;border-radius:28px;padding:24px;background:#fff;color:#141416}
+    .ng-demo dl{margin:20px 0;display:grid;gap:16px}.ng-demo dt{font-size:13px;color:#71717a}.ng-demo dd{margin:5px 0 0;overflow-wrap:anywhere;font-size:15px;line-height:1.5}
+    .ng-card{position:relative;isolation:isolate;z-index:3;overflow:hidden!important;--ng-veil-rgb:255,255,255;--ng-status-color:#48484b;--ng-success:#13a019;--ng-head-blur:0px;--ng-detail-blur:0px;--ng-button-blur:0px;--ng-veil:0;--ng-mist:0;--ng-status-opacity:0;--ng-status-blur:0px;scroll-margin-top:84px}
+    #view-nodes .emby-card.ng-card{--text:#131627;--text-sec:#5d6480;--border:#e3e7f4;background:#fff!important}
+    body.dark .ng-card{--ng-veil-rgb:13,21,38;--ng-status-color:#e8eefc;--ng-success:#61d96c}
+    body.dark #view-nodes .emby-card.ng-card{--text:#e8eefc;--text-sec:#9aa5c2;--border:#243350;background:#0d1526!important}
+    .ng-blur-head{filter:blur(var(--ng-head-blur))}.ng-blur-detail{filter:blur(var(--ng-detail-blur))}.ng-blur-buttons{filter:blur(var(--ng-button-blur))}
+    .ng-card>.ng-feedback{position:relative;z-index:4;margin:0 0 8px;padding-right:42px;filter:blur(var(--ng-head-blur))}
+    .ng-feedback h3{margin:0;font:600 17px/24px Arial,Helvetica,sans-serif;color:var(--text,#141416)}
+    .ng-feedback p{margin:4px 0 0;font:13px/20px Arial,Helvetica,sans-serif;color:var(--text-sec,#515154);overflow-wrap:anywhere}
+    .ng-card[data-ng-revealed=true]>.ng-feedback h3{color:var(--ng-success)}
+    .ng-card[data-ng-state=error]>.ng-feedback h3{color:#d94a56}
+    .ng-card>.ng-veil,.ng-card>.ng-canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;pointer-events:none;z-index:5}
+    .ng-card>.ng-veil{background:rgb(var(--ng-veil-rgb));opacity:var(--ng-veil)}
+    .ng-card>.ng-canvas{z-index:6;opacity:var(--ng-mist)}
+    .ng-card>.ng-status{position:absolute;z-index:7;left:12px;right:12px;top:46%;display:flex;align-items:center;justify-content:center;gap:11px;pointer-events:none;opacity:var(--ng-status-opacity);filter:blur(var(--ng-status-blur));color:var(--ng-status-color);font:17px/25px Arial,Helvetica,sans-serif}
+    .ng-spinner{width:17px;height:17px;box-sizing:border-box;border:1.3px solid #a3a3a1;border-radius:50%;position:relative;flex:none}
+    .ng-spinner::before{content:'';position:absolute;inset:-1.3px;border:1.3px solid transparent;border-top-color:var(--ng-status-color);border-left-color:var(--ng-status-color);border-radius:inherit}
+    .ng-messages{position:relative;min-width:0;max-width:calc(100% - 28px)}
+    .ng-message{display:block;background:linear-gradient(100deg,var(--ng-status-color) 0%,var(--ng-status-color) 37%,#fafafa 49%,var(--ng-status-color) 61%,var(--ng-status-color) 100%);background-size:250% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;white-space:normal;text-align:center}
+    .ng-message.ng-old{position:absolute;inset:0;animation:ng-label-out 280ms both}
+    .ng-card[data-ng-state=processing]:not([data-ng-reduced=true]) .ng-spinner::before{animation:ng-spin 1050ms linear infinite}
+    .ng-card[data-ng-state=processing]:not([data-ng-reduced=true]) .ng-message:not(.ng-old){animation:ng-label-in 280ms both,ng-shine 2400ms linear infinite}
+    .ng-card[data-ng-paused=true] .ng-spinner::before,.ng-card[data-ng-paused=true] .ng-message{animation-play-state:paused!important}
+    .ng-card>.ng-close{position:absolute;top:14px;right:14px;z-index:9;display:grid;place-items:center;width:32px;height:32px;padding:0;background:var(--bg-soft,#f1f1f1);border:1px solid var(--border,#d9d9d9);border-radius:50%;color:var(--text,#141416);cursor:pointer}
+    .ng-close svg{width:18px;height:18px}
+    .ng-card>.ng-controls{position:relative;z-index:4;display:flex;gap:9px;margin-top:12px;filter:blur(var(--ng-button-blur))}
+    .ng-controls button,.ng-launch{min-height:44px;flex:1;min-width:0;padding:10px 14px;border:1px solid var(--border,#dededb);border-radius:999px;background:var(--bg-soft,#f0f0f0);color:var(--text,#141416);font:14px/22px Arial,Helvetica,sans-serif;cursor:pointer}
+    .ng-controls button:last-child{background:#161618;color:#fff;border-color:transparent}.ng-controls button:disabled{cursor:wait;opacity:.6}
+    .ng-controls button:hover:not(:disabled),.ng-close:hover{filter:brightness(.94)}
+    .ng-card .ng-ui:focus-visible,.ng-launch:focus-visible{outline:2px solid #167b40;outline-offset:4px}
+    .ng-card[data-ng-reduced=true] .ng-spinner{display:none}.ng-card[data-ng-reduced=true] .ng-message{background:none;color:var(--ng-status-color);animation:none!important}
+    .ng-card[data-ng-state=success]>.ng-status,.ng-card[data-ng-state=error]>.ng-status,.ng-card[data-ng-state=confirm]>.ng-status{display:none}
+    @keyframes ng-spin{to{transform:rotate(360deg)}}@keyframes ng-shine{from{background-position:100% 0}to{background-position:-60% 0}}
+    @keyframes ng-label-in{from{transform:translateY(4px);filter:blur(3px);opacity:0}to{transform:none;filter:blur(0);opacity:1}}
+    @keyframes ng-label-out{from{transform:none;filter:blur(0);opacity:1}to{transform:translateY(-5px);filter:blur(3px);opacity:0}}
+    @media(max-width:390px){.ng-demo{padding:18px}.ng-status{font-size:14px}.ng-controls button{padding:10px 8px;font-size:13px}}
+  \`;
+  function element(tag, className, text) { const el = doc.createElement(tag); el.className = className; if (text != null) el.textContent = text; return el; }
+  const style = element('style', 'ng-style'); style.textContent = css;
+  let scene, host = target, sourceValue, directValue, nameValue, launch;
+  if (!binding) {
+    scene = element('section', 'ng-scene'); scene.style.setProperty('--ng-height', options.height + 'px');
+    host = element('article', 'ng-demo');
+    const header = element('header', 'card-header'); nameValue = element('strong', '', options.name); header.append(nameValue);
+    const details = element('dl', 'node-detail');
+    for (const [label, key] of [['源站链接', 'source'], ['直达链接', 'direct']]) {
+      const row = element('div', ''), dt = element('dt', '', label), dd = element('dd', '', '••••••••'); row.append(dt, dd); details.append(row);
+      if (key === 'source') sourceValue = dd; else directValue = dd;
+    }
+    host.append(header, details); launch = element('button', 'ng-launch ng-ui', '查看节点'); launch.type = 'button';
+    scene.append(host, launch); target.append(scene);
+  }
+  doc.head.append(style);
+  const feedback = element('header', 'ng-feedback ng-owned');
+  feedback.setAttribute('aria-live', 'polite');
+  const title = element('h3', ''), subtitle = element('p', ''); feedback.append(title, subtitle);
+  const close = element('button', 'ng-close ng-ui ng-owned'); close.type = 'button'; close.setAttribute('aria-label', '收起保存进度');
+  close.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  const veil = element('div', 'ng-veil ng-owned'), canvas = element('canvas', 'ng-canvas ng-owned');
+  veil.setAttribute('aria-hidden', 'true'); canvas.setAttribute('aria-hidden', 'true');
+  const ctx = canvas.getContext('2d'), soft = doc.createElement('canvas'), glow = soft.getContext('2d');
+  const status = element('div', 'ng-status ng-owned'), spinner = element('span', 'ng-spinner'), messages = element('span', 'ng-messages');
+  spinner.setAttribute('aria-hidden', 'true'); messages.setAttribute('aria-live', 'polite'); messages.setAttribute('role', 'status'); status.append(spinner, messages);
+  const controls = element('div', 'ng-controls ng-owned');
+  const back = element('button', 'ng-ui', '返回编辑'), done = element('button', 'ng-ui', '保存节点'); back.type = done.type = 'button'; controls.append(back, done);
+  const owned = [feedback, close, veil, canvas, status, controls];
+  let state = 'confirm', elapsed = 0, mistTime = 0, stamp = null, deadline = 0, raf = 0, timers = [], frames = 0;
+  let ready = !options.awaitResult, visible = false, destroyed = false, revealed = false, completed = false, phase = 0;
+  let content = [], blurred = [], hostAttrs = {}, previousFocus = null;
+  const media = win.matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced = () => options.reducedMotion ?? media.matches;
+  const dust = Array.from({ length: 240 }, (_, i) => ({ x: hash(i + 2), phase: hash(i + 20), speed: .16 + hash(i + 600) * .13, size: .25 + hash(i + 100) ** 3 * 1.5, light: .35 + hash(i + 80) * .6, twinkle: 2 + hash(i + 700) * 4 }));
+  function busy(value) {
+    host.setAttribute('aria-busy', String(value));
+    content.forEach(([el, inert]) => { el.inert = value || inert; });
+  }
+  function releaseHost() {
+    content.forEach(([el, inert]) => { el.inert = inert; });
+    blurred.forEach(el => el.classList.remove('ng-blur-head', 'ng-blur-detail', 'ng-blur-buttons'));
+    host.classList.remove('ng-card');
+    for (const name of ['role', 'aria-label', 'aria-busy']) hostAttrs[name] == null ? host.removeAttribute(name) : host.setAttribute(name, hostAttrs[name]);
+    for (const key of ['ngState', 'ngRevealed', 'ngPaused', 'ngReduced']) delete host.dataset[key];
+    for (const key of ['head-blur', 'detail-blur', 'button-blur', 'veil', 'mist', 'status-opacity', 'status-blur']) host.style.removeProperty('--ng-' + key);
+    owned.forEach(el => el.remove());
+  }
+  function tag(el, cls) { el.classList.add(cls); blurred.push(el); }
+  function attach(nextHost) {
+    host = nextHost;
+    hostAttrs = Object.fromEntries(['role', 'aria-label', 'aria-busy'].map(name => [name, host.getAttribute(name)]));
+    content = [...host.children].filter(el => !el.classList.contains('ng-owned')).map(el => [el, el.inert]); blurred = [];
+    for (const [el] of content) {
+      if (el.matches('.card-header')) tag(el, 'ng-blur-head');
+      else if (el.matches('.node-detail,.node-summary')) [...el.children].forEach(child => tag(child, child.matches('.card-footer') || child.querySelector('button') ? 'ng-blur-buttons' : 'ng-blur-detail'));
+      else if (!el.matches('style,.sf-toggle')) tag(el, 'ng-blur-detail');
+    }
+    host.classList.add('ng-card'); host.setAttribute('role', 'region'); host.setAttribute('aria-label', '节点保存进度');
+    host.prepend(feedback); host.append(close, veil, canvas, status, controls);
+    resize.observe(host); intersection.observe(host); busy(state === 'processing');
+    if (binding && state === 'error') content.forEach(([el]) => { el.inert = true; });
+    resizeCanvas(); paint(elapsed / options.duration);
+  }
+  function resizeCanvas() {
+    const r = host.getBoundingClientRect();
+    const w = Math.max(1, Math.min(650, Math.round(r.width * Math.min(win.devicePixelRatio || 1, 1.5))));
+    const h = Math.max(1, Math.round(w * r.height / Math.max(1, r.width)));
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; soft.width = Math.min(320, w); soft.height = Math.max(1, Math.round(soft.width * h / w)); }
+  }
+  function draw(p) {
+    if (!ctx || !glow || reduced()) return;
+    frames++;
+    const w = canvas.width, h = canvas.height, sw = soft.width, sh = soft.height, t = mistTime / options.duration * 5.2;
+    const rise = smooth(.085, .20, p), sweep = smooth(.79, .92, p);
+    const base = 1.19 - .20 * rise + .04 * Math.sin(t * 1.55 + 1.7) - 1.29 * sweep;
+    const breath = 1 + .20 * Math.sin(t * 2.2 - .6);
+    glow.clearRect(0, 0, sw, sh); ctx.clearRect(0, 0, w, h);
+    function wash(x, y, rx, ry, color, alpha) {
+      glow.save(); glow.translate(x * sw, y * sh); glow.scale(rx * sw, ry * sh * breath);
+      const g = glow.createRadialGradient(0, 0, 0, 0, 0, 1.6), rgb = color.join(',');
+      g.addColorStop(0, 'rgba(' + rgb + ',' + alpha + ')'); g.addColorStop(.38, 'rgba(' + rgb + ',' + alpha * .7 + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+      glow.fillStyle = g; glow.fillRect(-1.6, -1.6, 3.2, 3.2); glow.restore();
+    }
+    wash(.42 + .04 * Math.sin(t * .8), base + .025, .72, .16, [246,104,235], .72);
+    wash(.34 + .06 * Math.sin(t * 1.1), base - .035, .39, .21, [255,162,150], .40);
+    wash(.13 + .035 * Math.cos(t * 1.5), base + .07, .29, .14, [244,98,235], .62);
+    wash(.84 + .035 * Math.sin(t * 1.1), base - .10, .38, .23, [244,112,236], .48);
+    wash(.88 + .035 * Math.sin(t * 1.2), base + .025, .20, .075, [199,60,236], .83);
+    wash(.51 + .055 * Math.sin(t * .95), base + .09, .35, .16, [248,207,68], .98);
+    const colors = [[255,116,217], [255,170,153], [255,214,119], [232,123,241]];
+    for (let i = 0; i < 12; i++) {
+      const life = fract(t * (.17 + hash(i + 70) * .1) + hash(i + 30));
+      wash(hash(i + 12) + Math.sin(life * 4 + i) * .07, base + .16 - life * .36, .10 + hash(i + 22) * .11, .065 + hash(i + 52) * .07, colors[i % 4], Math.sin(life * Math.PI) * .19);
+    }
+    ctx.save(); ctx.beginPath(); ctx.roundRect(0, 0, w, h, parseFloat(win.getComputedStyle(host).borderTopLeftRadius) * w / Math.max(1, host.clientWidth)); ctx.clip();
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.filter = 'blur(1.2px)'; ctx.drawImage(soft, 0, 0, w, h); ctx.filter = 'none';
+    const opacity = smooth(.12, .30, p) * (1 - smooth(.90, .96, p));
+    dust.forEach((m, i) => {
+      const life = fract(t * m.speed + m.phase), alpha = Math.sin(life * Math.PI) * m.light * (.72 + .28 * Math.sin(t * m.twinkle + i)) * opacity;
+      ctx.fillStyle = 'rgba(255,255,255,' + alpha + ')'; ctx.beginPath(); ctx.arc((m.x + Math.sin(t * .9 + i) * .012) * w, (base + .22 - life * .34) * h, m.size * w / 530, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+  }
+  function setPhase(next) {
+    if (phase === next) return;
+    phase = next;
+    const old = messages.lastElementChild;
+    messages.replaceChildren();
+    if (old && !reduced()) { old.className = 'ng-message ng-old'; old.setAttribute('aria-hidden', 'true'); messages.append(old); }
+    messages.append(element('span', 'ng-message', next === 1 ? '正在保存节点配置…' : '正在确认保存结果…'));
+  }
+  function reveal() {
+    if (revealed) return;
+    revealed = true; host.dataset.ngRevealed = 'true';
+    title.textContent = '节点已保存'; subtitle.textContent = '源站链接和直达链接已更新';
+    back.hidden = true; done.textContent = '完成';
+    if (!binding) { sourceValue.textContent = options.source; directValue.textContent = options.direct; }
+    options.onReveal?.();
+  }
+  function paint(p) {
+    host.dataset.ngState = state; host.dataset.ngReduced = String(reduced()); host.dataset.ngRevealed = String(revealed);
+    if (state !== 'processing') p = state === 'success' ? 1 : 0;
+    const blur = smooth(0, .09, p) * (1 - smooth(.80, .98, p));
+    const values = {
+      'head-blur': (reduced() ? 0 : blur * 9) + 'px', 'detail-blur': (reduced() ? 0 : blur * 7.2) + 'px',
+      'button-blur': (reduced() ? 0 : smooth(.04, .16, p) * (1 - smooth(.76, .92, p)) * 9) + 'px',
+      veil: reduced() ? blur * .88 : smooth(0, .09, p) * (1 - smooth(.81, .95, p)) * .64,
+      mist: reduced() ? 0 : smooth(.085, .19, p) * (1 - smooth(.88, .96, p)),
+      'status-opacity': reduced() && state === 'processing' ? 1 : smooth(.09, .18, p) * (1 - smooth(.82, .89, p)),
+      'status-blur': (reduced() ? 0 : 6 * (1 - smooth(.11, .22, p)) + 5 * smooth(.81, .88, p)) + 'px',
+    };
+    for (const [key, value] of Object.entries(values)) host.style.setProperty('--ng-' + key, String(value));
+    if (state === 'processing') {
+      setPhase(p < .48 ? 1 : 2);
+      if (p >= .765 && ready) reveal();
+      draw(p);
+    }
+  }
+  function sync(now = win.performance.now()) {
+    if (stamp != null && state === 'processing') {
+      const dt = Math.max(0, now - stamp); mistTime += dt;
+      elapsed = Math.min(ready ? options.duration : options.duration * .74, elapsed + dt);
+    }
+    stamp = now;
+  }
+  function stop() {
+    if (raf) win.cancelAnimationFrame(raf); raf = 0;
+    timers.forEach(id => win.clearTimeout(id)); timers = []; stamp = null;
+  }
+  function finish() {
+    reveal(); state = 'success'; stop(); busy(false); done.disabled = false; back.hidden = true; paint(1); ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    if (host.contains(doc.activeElement)) done.focus({ preventScroll: true });
+    if (!completed) { completed = true; options.onComplete?.(); }
+  }
+  function frame(now) {
+    raf = 0;
+    if (destroyed || state !== 'processing' || doc.hidden || !visible) { stamp = null; return; }
+    sync(now);
+    if (now >= deadline) {
+      paint(elapsed / options.duration);
+      deadline += (Math.floor(Math.max(0, now - deadline) / (1000 / 60)) + 1) * (1000 / 60);
+    }
+    if (ready && elapsed >= options.duration) finish();
+    else raf = win.requestAnimationFrame(frame);
+  }
+  function schedule() {
+    const paused = doc.hidden || !visible;
+    host.dataset.ngPaused = String(paused);
+    if (destroyed || state !== 'processing' || !options.open || paused) { if (stamp != null) sync(); stop(); return; }
+    if (raf || timers.length) return;
+    stamp = win.performance.now(); deadline = stamp;
+    if (!reduced()) raf = win.requestAnimationFrame(frame);
+    else {
+      paint(elapsed ? elapsed / options.duration : .2);
+      if (phase < 2 && elapsed < options.duration * .48) timers.push(win.setTimeout(() => { sync(); setPhase(2); }, options.duration * .48 - elapsed));
+      timers.push(win.setTimeout(() => { sync(); timers = []; if (ready) finish(); else { elapsed = options.duration * .74; stamp = null; paint(.74); } }, Math.max(0, options.duration - elapsed)));
+    }
+  }
+  function reset() {
+    stop(); state = 'confirm'; elapsed = mistTime = 0; ready = !options.awaitResult; revealed = completed = false; phase = 0;
+    title.textContent = '保存节点'; subtitle.textContent = '确认节点配置后保存'; done.textContent = '保存节点'; done.disabled = false; back.hidden = false; back.disabled = false;
+    back.textContent = binding ? '返回编辑' : '取消'; busy(false); messages.replaceChildren(); paint(0);
+    if (!binding) { sourceValue.textContent = directValue.textContent = '••••••••'; }
+  }
+  function start() {
+    if (destroyed || state === 'processing' || !options.open) return;
+    reset(); state = 'processing'; previousFocus = doc.activeElement;
+    title.textContent = '正在保存节点'; subtitle.textContent = '正在提交配置，请稍候'; done.textContent = '保存中…'; done.disabled = back.disabled = true;
+    busy(true); setPhase(1); close.focus({ preventScroll: true }); paint(0); schedule();
+  }
+  function setOpen(value, user = false) {
+    options.open = value;
+    if (!value) { if (stamp != null) sync(); stop(); busy(false); state = 'closed'; owned.forEach(el => { el.hidden = true; }); paint(0); }
+    else { owned.forEach(el => { el.hidden = false; }); reset(); if (options.autoStart) start(); }
+    if (!binding) { host.hidden = !value; launch.hidden = value; }
+    if (user) options.onOpenChange?.(value);
+    if (!value && !binding) launch.focus({ preventScroll: true });
+    else if (!value && previousFocus?.isConnected && previousFocus.getClientRects().length) previousFocus.focus({ preventScroll: true });
+  }
+  const resize = new win.ResizeObserver(() => { resizeCanvas(); if (state === 'processing' && !doc.hidden && visible) paint(elapsed / options.duration); });
+  const intersection = new win.IntersectionObserver(entries => { if (stamp != null) sync(); visible = entries.some(e => e.isIntersecting); stop(); schedule(); });
+  const onVisibility = () => { if (stamp != null) sync(); stop(); schedule(); };
+  const onPreference = () => { if (stamp != null) sync(); stop(); paint(elapsed / options.duration); schedule(); };
+  const onKey = event => { if (event.key === 'Escape' && options.open && host.contains(event.target)) { event.preventDefault(); setOpen(false, true); } };
+  const onClose = () => setOpen(false, true);
+  const onDone = () => { if (state === 'success') setOpen(false, true); else if (state === 'error') options.onRetry?.(); else start(); };
+  const onBack = () => { if (state === 'error' && options.onEdit) options.onEdit(); else setOpen(false, true); };
+  const onLaunch = () => setOpen(true, true);
+  close.addEventListener('click', onClose); done.addEventListener('click', onDone); back.addEventListener('click', onBack); launch?.addEventListener('click', onLaunch);
+  doc.addEventListener('keydown', onKey); doc.addEventListener('visibilitychange', onVisibility); media.addEventListener('change', onPreference);
+  attach(host); reset(); setOpen(options.open);
+  return {
+    start,
+    resolve() { if (destroyed || state !== 'processing') return; if (stamp != null) sync(); ready = true; stop(); schedule(); },
+    fail(message, retryLabel = '重试保存') {
+      if (destroyed) return; stop(); state = 'error'; revealed = false; busy(false); title.textContent = '保存未完成'; subtitle.textContent = String(message);
+      if (binding) content.forEach(([el]) => { el.inert = true; });
+      done.textContent = retryLabel; done.disabled = false; back.hidden = false; back.disabled = false; back.textContent = '返回编辑'; paint(0); ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      if (host.contains(doc.activeElement)) done.focus({ preventScroll: true });
+    },
+    retarget(nextHost, restoreFocus = false) {
+      if (destroyed || nextHost === host) return;
+      if (stamp != null) sync(); stop(); resize.disconnect(); intersection.disconnect(); releaseHost(); visible = false; attach(nextHost);
+      if (revealed) options.onReveal?.();
+      if (restoreFocus) (state === 'processing' ? close : done).focus({ preventScroll: true });
+      schedule();
+    },
+    update(patch = {}) {
+      if (destroyed) return;
+      const next = validate({ ...options, ...patch });
+      if (stamp != null) sync(); stop();
+      elapsed = elapsed / options.duration * next.duration;
+      mistTime = mistTime / options.duration * next.duration;
+      const wasOpen = options.open; options = next;
+      if (!binding) { scene.style.setProperty('--ng-height', options.height + 'px'); nameValue.textContent = options.name; if (revealed) { sourceValue.textContent = options.source; directValue.textContent = options.direct; } }
+      if (wasOpen !== options.open) setOpen(options.open); else { paint(elapsed / options.duration); schedule(); }
+    },
+    getState() { return { state, progress: elapsed / options.duration, revealed, ready, frames, running: !!raf, timers: timers.length, paused: doc.hidden || !visible, destroyed }; },
+    destroy() {
+      if (destroyed) return; destroyed = true; stop(); resize.disconnect(); intersection.disconnect();
+      close.removeEventListener('click', onClose); done.removeEventListener('click', onDone); back.removeEventListener('click', onBack); launch?.removeEventListener('click', onLaunch);
+      doc.removeEventListener('keydown', onKey); doc.removeEventListener('visibilitychange', onVisibility); media.removeEventListener('change', onPreference);
+      releaseHost(); style.remove(); scene?.remove(); canvas.width = canvas.height = soft.width = soft.height = 0; content = []; blurred = [];
+    },
+  };
+}
+
+function findSavedNodeCard(prefix) {
+  return Array.from(document.querySelectorAll('#list-grid .emby-card')).find(card => card.dataset.prefix === prefix);
+}
+
+function expandSavedNodeCard(card, reveal = false) {
+  if (!card) return;
+  const detail = card.querySelector('.node-detail');
+  if (detail) detail.style.display = 'flex';
+  const toggle = card.querySelector('[onclick="toggleNodeDetail(this)"]');
+  if (toggle) { toggle.classList.add('rotated'); toggle.title = '收起'; }
+  if (!reveal) return;
+  card.classList.add('node-save-revealed');
+  for (const el of card.querySelectorAll('.dynamic-url')) {
+    if (!el.classList.contains('secret-text')) continue;
+    el.classList.remove('secret-text'); el.classList.add('actual-text');
+    if (el.id.startsWith('t-')) {
+      const urls = JSON.parse(decodeURIComponent(el.dataset.val));
+      el.replaceChildren(...urls.map((url, index) => {
+        const row = document.createElement('div'); row.className = 'url-list-item';
+        row.textContent = (index ? '[备] ' : '[主] ') + url;
+        return row;
+      }));
+    } else el.textContent = el.dataset.val;
+  }
+}
+
+function syncNodeSaveCard(restoreFocus = false) {
+  const flow = nodeSaveFlow;
+  if (!flow) return;
+  const card = findSavedNodeCard(flow.payload.prefix);
+  if (!card) { flow.glow?.destroy(); flow.glow = null; return; }
+  flow.card = card;
+  expandSavedNodeCard(card, flow.revealed);
+  flow.glow?.retarget(card, restoreFocus);
+}
+
+function focusSavedNode(flow) {
+  const button = flow.card?.querySelector('[onclick^="editNode("]') || document.querySelector('.hero-card button');
+  button?.focus({ preventScroll: true });
+}
+
+function restoreNodeSaveDraft(flow) {
+  if (flow.pending) return;
+  flow.glow?.destroy(); flow.glow = null;
+  const p = flow.payload;
+  if (nodeSaveFlow === flow) nodeSaveFlow = null;
+  if (!flow.saved) load(flow.previous);
+  editNode(p.prefix, p.target, p.mode, p.remark, p.icon, p.cache_img, p.fakeIp, p.watchLimit,
+    p.nodeUser, p.nodePass, p.redirect_direct, p.redirect_rules, p.emosId, p.emosName, p.emosAggregate, p.strmOpt, p.forceDirect);
+  document.getElementById('oldPrefix').value = flow.saved ? p.prefix : p.oldPrefix;
+  document.getElementById('nodeTgBotUrl').value = p.tgBotUrl;
+  updateNodeBotPreview();
+  document.getElementById('nodeModalTitle').textContent = p.oldPrefix || flow.saved ? '编辑节点' : '添加节点';
+  document.getElementById('submitBtn').textContent = p.oldPrefix || flow.saved ? '保存修改' : '保存部署';
+  document.getElementById('remark').focus();
+}
+
+function resetSavedNodeForm() {
+  document.getElementById('addForm').reset();
+  document.getElementById('oldPrefix').value = '';
+  updateNodeBotPreview(); selectIcon('', '默认'); resetTargetInputs(); renderRulesList([]);
+  document.getElementById('submitBtn').textContent = '保存部署';
+}
+
+function mountNodeSaveGlow(flow, autoStart = true) {
+  flow.glow = createTransferGlow(flow.card, {
+    autoStart, awaitResult: true, duration: 5200,
+    onReveal() { flow.revealed = true; expandSavedNodeCard(flow.card, true); },
+    onComplete() { if (nodeSaveFlow === flow) showToast('节点已保存，源站和直达链接已展开'); },
+    onRetry() { if (!flow.pending) persistNodeWithGlow(flow); },
+    onEdit() { restoreNodeSaveDraft(flow); },
+    onOpenChange(open) {
+      if (open) return;
+      flow.dismissed = true; flow.glow?.destroy(); flow.glow = null;
+      if (flow.pending) {
+        const note = document.createElement('p'); note.className = 'node-save-note'; note.setAttribute('role', 'status');
+        note.textContent = '正在后台保存节点…'; flow.card.prepend(note);
+        showToast('已收起进度，保存仍在继续');
+      } else {
+        if (nodeSaveFlow === flow) nodeSaveFlow = null;
+        if (!flow.saved) load(flow.previous);
+      }
+      focusSavedNode(flow);
+    },
+  }, true);
+}
+
+async function persistNodeWithGlow(flow) {
+  if (flow.pending || flow.disposed) return;
+  flow.pending = true; flow.dismissed = false;
+  document.getElementById('submitBtn').disabled = true;
+  flow.controller = new AbortController();
+  if (flow.glow?.getState().state === 'error') flow.glow.start();
+  try {
+    if (!flow.saved) {
+      const response = await fetch('/api/routes', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(flow.payload), signal: flow.controller.signal });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || '保存失败，请检查配置后重试');
+      flow.saved = true;
+    }
+    const response = await fetch('/api/routes', { signal: flow.controller.signal });
+    const routes = await response.json();
+    if (!response.ok || !Array.isArray(routes)) throw new Error(routes?.error || '读取节点列表失败');
+    if (!routes.some(route => route.prefix === flow.payload.prefix)) throw new Error('列表中尚未找到保存后的节点');
+    if (flow.disposed) return;
+    await load(routes);
+    if (!flow.card?.isConnected) throw new Error('节点列表未能显示，请刷新重试');
+    resetSavedNodeForm();
+    flow.pending = false;
+    if (flow.dismissed) {
+      expandSavedNodeCard(flow.card, true); flow.revealed = true;
+      showToast('节点已保存，源站和直达链接已展开');
+    } else flow.glow?.resolve();
+  } catch (error) {
+    if (flow.disposed) return;
+    flow.pending = false;
+    const message = flow.saved ? '配置已保存，但列表刷新失败：' + error.message :
+      error instanceof TypeError ? '网络连接中断，保存结果未确认；可重试或返回编辑。' : error.message;
+    if (!flow.glow && flow.card?.isConnected) mountNodeSaveGlow(flow, false);
+    flow.glow?.fail(message, flow.saved ? '重试刷新' : '重试保存');
+    showToast(message);
+  } finally {
+    flow.pending = false;
+    if (nodeSaveFlow === flow) document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+async function saveNodeWithGlow(payload) {
+  if (nodeSaveFlow?.pending) return;
+  const previous = (window.globalRoutesData || []).slice();
+  if (previous.some(route => route.prefix === payload.prefix && route.prefix !== payload.oldPrefix)) {
+    showToast('该节点后缀已存在，请换一个后缀'); return;
+  }
+  nodeSaveFlow?.glow?.destroy();
+  const old = previous.find(route => route.prefix === payload.oldPrefix);
+  const draft = { todayBandwidth: '0 B', todayReqs: 0, totalReqs: 0, ...old,
+    prefix: payload.prefix, target: payload.target, mode: payload.mode, remark: payload.remark, icon: payload.icon,
+    cache_img: payload.cache_img, custom_ip: payload.fakeIp, watch_limit: payload.watchLimit, tg_bot_url: payload.tgBotUrl,
+    node_user: payload.nodeUser, node_pass: payload.nodePass, redirect_direct: payload.redirect_direct, redirect_rules: payload.redirect_rules,
+    emos_id: payload.emosId, emos_name: payload.emosName, emos_aggregate: payload.emosAggregate,
+    strm_opt: payload.strmOpt, force_direct: payload.forceDirect };
+  const preview = old ? previous.map(route => route === old ? draft : route) : previous.concat(draft);
+  const flow = { payload, previous, saved: false, pending: true, revealed: false, dismissed: false, disposed: false, glow: null, card: null };
+  nodeSaveFlow = flow;
+  document.getElementById('submitBtn').disabled = true;
+  closeNodeModal();
+  activeModeFilter = ''; document.getElementById('searchNode').value = '';
+  switchDsView('nodes', document.querySelector('.ds-dock-item'));
+  if (document.getElementById('list-grid').style.display === 'none') toggleNodesCollapse();
+  await load(preview);
+  flow.card = findSavedNodeCard(payload.prefix);
+  if (!flow.card) {
+    nodeSaveFlow = null; document.getElementById('submitBtn').disabled = false;
+    document.getElementById('nodeModal').style.display = 'block'; showToast('无法显示节点预览，请重试'); return;
+  }
+  expandSavedNodeCard(flow.card);
+  flow.card.scrollIntoView({ block: 'start', behavior: 'instant' });
+  mountNodeSaveGlow(flow);
+  flow.pending = false;
+  await persistNodeWithGlow(flow);
+}
+
+window.addEventListener('pagehide', () => {
+  if (!nodeSaveFlow) return;
+  nodeSaveFlow.disposed = true; nodeSaveFlow.controller?.abort(); nodeSaveFlow.glow?.destroy();
+  document.getElementById('submitBtn').disabled = false;
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted && nodeSaveFlow?.disposed) { nodeSaveFlow = null; load(); }
+});
+
+</script>
+<!-- NODE_SAVE_GLOW_END -->
 `;
 
 // ==========================================
