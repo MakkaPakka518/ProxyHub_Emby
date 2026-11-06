@@ -1,5 +1,5 @@
-// VERSION: 4.1.2
-const CURRENT_VERSION = "4.1.2";
+// VERSION: 4.1.3
+const CURRENT_VERSION = "4.1.3";
 
 import { connect as __cfSocketConnect } from "cloudflare:sockets";
 globalThis.__cfConnect = __cfSocketConnect;
@@ -1022,6 +1022,54 @@ const CSS_COMMON = `
     .modal-head .close-x:hover{color:var(--danger);background:var(--danger-soft)}
     .modal-head .close-x svg{width:19px;height:19px}
     @keyframes dsModalIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+    /* 节点长表单：桌面侧边抽屉，手机全屏底部展开。 */
+    .node-drawer{--drawer-inset:24px;position:fixed;inset:var(--drawer-top,0px) 0 auto auto;width:min(720px,100%);height:var(--drawer-height,100dvh);max-width:none;max-height:none;margin:0;padding:0;border:0;border-left:1px solid var(--border);border-radius:20px 0 0 20px;background:var(--card);color:var(--text);box-shadow:var(--shadow-lg);overflow:hidden;transform:translateX(100%);transition:transform .24s cubic-bezier(.16,1,.3,1),display .24s allow-discrete,overlay .24s allow-discrete}
+    .node-drawer[open]{display:flex;flex-direction:column;transform:translateX(0)}
+    .node-drawer::backdrop{background:rgba(4,8,16,.48);opacity:0;transition:opacity .24s,display .24s allow-discrete,overlay .24s allow-discrete}
+    .node-drawer[open]::backdrop{opacity:1}
+    body:has(.node-drawer[open]){overflow:hidden}
+    .node-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:none;padding:max(16px,env(safe-area-inset-top)) var(--drawer-inset) 16px;border-bottom:1px solid var(--border)}
+    .node-drawer-head h2{display:flex;align-items:center;gap:10px;margin:0;font-size:20px;font-weight:700;line-height:1.4}
+    .node-drawer-head .close-x{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:1px solid var(--border);border-radius:12px;background:var(--bg-soft);color:var(--text-sec);cursor:pointer}
+    .node-drawer-head .close-x svg{width:20px;height:20px}
+    .node-drawer #addForm{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;margin:0}
+    .node-drawer-scroll{display:flex;flex-direction:column;gap:20px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:24px var(--drawer-inset);scroll-padding-block:20px;scrollbar-color:var(--border-strong) transparent}
+    .node-drawer .form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
+    .node-drawer .form-row .field{min-width:0;justify-content:flex-end}
+    .node-drawer-basics>.field:last-child{grid-column:1/-1}
+    .node-drawer-section-title{margin:0;font-size:14px;font-weight:700;line-height:1.5}
+    .node-drawer-scroll>h3:not(:first-of-type){border-top:1px solid var(--border);padding-top:20px}
+    .node-drawer input:not([type=checkbox]),.node-drawer select{min-height:44px}
+    .node-drawer .target-input{width:100%;padding:11px 14px!important;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-soft)!important;color:var(--text);font-size:14px}
+    .node-drawer-section{display:flex;flex-direction:column;gap:12px}
+    .node-drawer-section p{margin:0;font-size:12px;line-height:1.6;color:var(--text-sec)}
+    .node-drawer-preferences{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+    .node-drawer-icon{position:relative;min-width:0}
+    .node-drawer #iconSelectBtn{width:100%;min-height:44px;text-align:left}
+    .node-drawer #iconPickerPanel{position:static!important;width:100%;box-sizing:border-box;box-shadow:none!important}
+    .node-drawer #iconPickerPanel>div:first-child{flex-wrap:wrap}
+    .node-drawer #customIconUrlInput{flex-basis:100%!important;min-width:0}
+    .node-drawer #emosFields>.field~label,.node-drawer #emosFields>div:not(.field){grid-column:1/-1}
+    .node-drawer-footer{flex:none;display:flex;flex-direction:column;gap:12px;padding:16px var(--drawer-inset) max(16px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--card)}
+    .node-drawer-feedback:not(:has(.show)){display:none}
+    .node-drawer-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}
+    .node-drawer-actions>button{min-height:44px;min-width:112px;justify-content:center;padding:12px 20px}
+    .node-drawer #toast{position:static;display:none;transform:none;max-width:none;width:100%;padding:10px 12px;border-radius:10px;text-align:left;font-size:13px;line-height:1.6;box-shadow:none;backdrop-filter:none;transition:none}
+    .node-drawer #toast.show{display:block}
+    .node-drawer :focus-visible{outline:2px solid var(--primary);outline-offset:3px;box-shadow:none!important}
+    @starting-style{.node-drawer[open]{transform:translateX(100%)}.node-drawer[open]::backdrop{opacity:0}}
+    @media(max-width:640px),(max-width:900px) and (pointer:coarse){
+        .node-drawer{--drawer-inset:20px;inset:var(--drawer-top,0px) 0 auto;width:100%;border:0;border-radius:0;transform:translateY(100%)}
+        .node-drawer[open]{transform:translateY(0)}
+        .node-drawer-head{padding-left:max(var(--drawer-inset),env(safe-area-inset-left));padding-right:max(var(--drawer-inset),env(safe-area-inset-right))}
+        .node-drawer-scroll{padding:20px max(var(--drawer-inset),env(safe-area-inset-right)) 20px max(var(--drawer-inset),env(safe-area-inset-left))}
+        .node-drawer .form-row,.node-drawer-preferences{grid-template-columns:minmax(0,1fr)}
+        .node-drawer input:not([type=checkbox]),.node-drawer select{font-size:16px!important;min-width:0;max-width:100%}
+        .node-drawer-actions>button{flex:1;min-width:0}
+        @starting-style{.node-drawer[open]{transform:translateY(100%)}}
+    }
+    @media(prefers-reduced-motion:reduce){.node-drawer,.node-drawer::backdrop{transition:none}}
 
     /* ============ 视图切换 ============ */
     .page-view{display:none}
@@ -2123,18 +2171,19 @@ function toSvg(s){
         </div>
     </div>
 
-    <div id="nodeModal" class="modal-mask" style="padding:max(64px, calc(env(safe-area-inset-top) + 48px)) 16px 150px;">
-        <div class="modal-box">
-            <div class="modal-head">
+    <dialog id="nodeModal" class="node-drawer" aria-labelledby="nodeModalTitle">
+            <div class="node-drawer-head">
                 <h2 id="nodeModalTitle">${I.pencil} 添加节点</h2>
-                <button class="close-x" onclick="closeNodeModal()" title="关闭">${I.xmark}</button>
+                <button class="close-x" type="button" onclick="closeNodeModal()" title="关闭" aria-label="关闭节点配置">${I.xmark}</button>
             </div>
-            <form id="addForm" style="display:flex; flex-direction:column; gap:16px;">
+            <form id="addForm">
+              <div class="node-drawer-scroll">
                 <input type="hidden" id="oldPrefix" value="">
-                <div class="form-row">
-                    <div class="field"><label>节点备注</label><input type="text" id="remark" placeholder="如: Misaka服" required></div>
-                    <div class="field"><label>短路径后缀</label><input type="text" id="prefix" placeholder="如: misaka" required></div>
-                    <div class="field sub-lite"><label>反代模式</label>
+                <h3 class="node-drawer-section-title">基本信息</h3>
+                <div class="form-row node-drawer-basics">
+                    <div class="field"><label for="remark">节点备注</label><input type="text" id="remark" placeholder="如: Misaka服" required autofocus></div>
+                    <div class="field"><label for="prefix">短路径后缀</label><input type="text" id="prefix" placeholder="如: misaka" required></div>
+                    <div class="field sub-lite"><label for="mode">反代模式</label>
                         <select id="mode" onchange="toggleEmosFields()">
                             <option value="off">保守 (抹除IP)</option>
                             <option value="realip_only">严格 (透传IP)</option>
@@ -2144,34 +2193,36 @@ function toSvg(s){
                         </select>
                     </div>
                 </div>
-                <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:14px; padding:16px;">
-                    <div style="font-size:14px; font-weight:600; color:var(--text-sec); margin-bottom:12px;">服务器线路配置 (支持魔改分离版推流，支持无限条备用线路)</div>
+                <div class="node-drawer-section">
+                    <h3 class="node-drawer-section-title">服务器线路</h3>
+                    <p>支持魔改分离版推流，可添加多条备用线路。</p>
                     <div id="targetInputs" style="display:flex; flex-direction:column; gap:10px;">
-                        <input type="url" class="target-input" placeholder="主线路地址 (如: http://1.1.1.1:8096)" required oninput="handleTargetInputs()">
-                        <input type="url" class="target-input" placeholder="备用线路 1 (选填，主源挂掉时触发)" oninput="handleTargetInputs()">
+                        <input type="url" class="target-input" aria-label="主线路地址" placeholder="主线路地址 (如: http://1.1.1.1:8096)" required oninput="handleTargetInputs()">
+                        <input type="url" class="target-input" aria-label="备用线路 1" placeholder="备用线路 1 (选填，主源挂掉时触发)" oninput="handleTargetInputs()">
                     </div>
                 </div>
-                <div class="sub-lite" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start;">
-                    <div style="position:relative; flex:2; min-width:240px;">
-                        <div style="display:flex; gap:10px; align-items:center; background:var(--bg); padding:10px 14px; border-radius:12px; border:1px solid var(--border); flex:1; cursor:pointer; transition:border-color .2s;" onclick="toggleIconPicker(event)" id="iconSelectBtn">
+                <h3 class="node-drawer-section-title sub-lite">播放与转发</h3>
+                <div class="sub-lite node-drawer-preferences">
+                    <div class="node-drawer-icon">
+                        <button type="button" style="display:flex; gap:10px; align-items:center; background:var(--bg); padding:10px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer; transition:border-color .2s;" onclick="toggleIconPicker(event)" id="iconSelectBtn" aria-controls="iconPickerPanel">
                             <img id="iconPreview" src="" style="width:24px; height:24px; display:none; border-radius:4px; object-fit:cover;">
                             <span id="iconDefault" style="font-size:20px; line-height:1;">${I.film}</span>
                             <span id="iconSelectText" style="flex:1; color:var(--text-sec); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">点击选择图标 (默认)</span>
                             <input type="hidden" id="iconUrl" value="">
-                        </div>
+                        </button>
                         <div id="iconPickerPanel" style="display:none; position:absolute; top:100%; left:0; width:100%; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; box-shadow:var(--shadow-lg); z-index:100; margin-top:8px; flex-direction:column; gap:10px;">
                             <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
-                                <input type="text" id="customIconUrlInput" placeholder="输入自定义 JSON 图标库链接..." style="flex:1; font-size:13px;">
+                                <input type="text" id="customIconUrlInput" aria-label="自定义图标库链接" placeholder="输入自定义 JSON 图标库链接..." style="flex:1; font-size:13px;">
                                 <button type="button" onclick="setCustomIconLibrary()" class="btn-submit" style="padding:8px 12px; font-size:13px; white-space:nowrap;">加载</button>
                                 <button type="button" onclick="resetIconLibrary()" class="btn-ghost" style="font-size:13px;">默认库</button>
                             </div>
-                            <input type="text" id="iconSearch" placeholder="搜索图标名称..." style="width:100%; font-size:14px;" onkeyup="filterIcons()">
+                            <input type="text" id="iconSearch" aria-label="搜索图标" placeholder="搜索图标名称..." style="width:100%; font-size:14px;" onkeyup="filterIcons()">
                             <div id="iconGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(44px,1fr)); gap:8px; overflow-y:auto; max-height:240px; padding-right:4px;">
                                 <div style="text-align:center; color:var(--text-sec); grid-column:1/-1; font-size:13px;">加载图标库中...</div>
                             </div>
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:10px; flex:1; min-width:220px;">
+                    <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
                         <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; cursor:pointer;">
                             <input type="checkbox" id="nodeCache" class="ip-checkbox" checked>
                             开启海报及静态资源缓存
@@ -2197,9 +2248,10 @@ function toSvg(s){
                     <div id="rulesList" style="display:flex; flex-direction:column; gap:8px;"></div>
                     <span style="font-size:12px; color:var(--text-sec);">直连=不走反代；代理=走反代。支持子域名自动匹配；与「外部跳转直连」互斥，同一时间只能开启一个。</span>
                 </div>
+                <h3 class="node-drawer-section-title sub-lite">保号与账号</h3>
                 <div class="form-row sub-lite">
-                    <div class="field"><label>模拟 IP（可选，抹除真实 IP 只传此 IP）</label><input type="text" id="nodeFakeIp" placeholder="如 1.2.3.4"></div>
-                    <div class="field"><label>观看下限（天）</label><input type="number" id="watchLimit" placeholder="如 7 / 14 / 21；0 = 不限制" step="0.1" min="0"></div>
+                    <div class="field"><label for="nodeFakeIp">模拟 IP（可选，抹除真实 IP 只传此 IP）</label><input type="text" id="nodeFakeIp" placeholder="如 1.2.3.4"></div>
+                    <div class="field"><label for="watchLimit">观看下限（天）</label><input type="number" id="watchLimit" placeholder="如 7 / 14 / 21；0 = 不限制" step="0.1" min="0"></div>
                 </div>
                 <div class="node-bot-field sub-lite">
                     <label for="nodeTgBotUrl">TG Bot 打卡入口（可选）</label>
@@ -2210,21 +2262,27 @@ function toSvg(s){
                     <span id="nodeBotHint" style="font-size:12px; color:var(--text-sec);">填写后，节点卡片和保号提醒中显示「TG 打卡」按钮，点击打开对应机器人。</span>
                 </div>
                 <div class="form-row sub-lite" id="emosFields" style="display:none;">
-                    <div class="field"><label>EMOS-PROXY-ID（必填）</label><input type="text" id="nodeEmosId" value="eK3QYG29Ms" placeholder="你的用户ID，形如 eABCDEFGHs"></div>
-                    <div class="field"><label>EMOS-PROXY-NAME（必填）</label><input type="text" id="nodeEmosName" value="玛卡巴卡的反代面板" placeholder="你的称号，如 @xx的反代"></div>
+                    <div class="field"><label for="nodeEmosId">EMOS-PROXY-ID（必填）</label><input type="text" id="nodeEmosId" value="eK3QYG29Ms" placeholder="你的用户ID，形如 eABCDEFGHs"></div>
+                    <div class="field"><label for="nodeEmosName">EMOS-PROXY-NAME（必填）</label><input type="text" id="nodeEmosName" value="玛卡巴卡的反代面板" placeholder="你的称号，如 @xx的反代"></div>
                     <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; cursor:pointer; flex-basis:100%;" title="开启后，聚合播放器(SenPlayer 等)按 TMDB 编号跨服查询时，会把本节点列为播放源(EMOS 聚合显示)">
                         <input type="checkbox" id="nodeEmosAggregate" class="ip-checkbox"> 开启 EMOS 聚合（让聚合播放器把本节点列为播放源）
                     </label>
                     <div style="flex-basis:100%; font-size:12px; color:var(--text-sec);">EMOS 模式按 emos.dpdns.org/proxy 要求：自动透传真实 IP(X-Forwarded-For) + 携带两枚 EMOS 头；默认已内置你的 EMOS 身份，可直接使用也可修改；目标地址填 EMOS 源站（建议 https://video.emos.best，对外路径 /emby）</div>
                 </div>
                 <div class="form-row sub-lite">
-                    <div class="field"><label>节点账号（可选，一键导入用）</label><input type="text" id="nodeUser" placeholder="如: admin"></div>
-                    <div class="field"><label>节点密码（可选）</label><input type="password" id="nodePass" placeholder="节点密码"></div>
+                    <div class="field"><label for="nodeUser">节点账号（可选，一键导入用）</label><input type="text" id="nodeUser" placeholder="如: admin"></div>
+                    <div class="field"><label for="nodePass">节点密码（可选）</label><input type="password" id="nodePass" placeholder="节点密码"></div>
                 </div>
-                <button type="submit" id="submitBtn" class="btn-submit" style="width:100%; padding:14px;">保存部署</button>
+              </div>
+              <footer class="node-drawer-footer">
+                <div class="node-drawer-feedback"></div>
+                <div class="node-drawer-actions">
+                  <button type="button" class="btn-ghost" onclick="closeNodeModal()">取消</button>
+                  <button type="submit" id="submitBtn" class="btn-submit">保存部署</button>
+                </div>
+              </footer>
             </form>
-        </div>
-    </div>
+    </dialog>
 
     <div id="importModal" style="display:none; position:fixed; inset:0; z-index:11030; background:rgba(0,0,0,.5); backdrop-filter:blur(5px); overflow-y:auto; padding:16px;">
         <div style="max-width:540px; margin:24px auto; background:var(--card); border-radius:18px; padding:22px; box-shadow:0 10px 40px rgba(0,0,0,.2);">
@@ -3791,14 +3849,15 @@ function toSvg(s){
             }
             container.querySelectorAll('.target-input').forEach((inp, idx) => {
                 inp.placeholder = idx === 0 ? "主线路地址 (如: http://1.1.1.1:8096)" : \`备用线路 \${idx} (选填，主源挂掉时触发)\`;
+                inp.setAttribute('aria-label', idx === 0 ? '主线路地址' : '备用线路 ' + idx);
             });
         }
 
         function resetTargetInputs() {
             const container = document.getElementById('targetInputs');
             container.innerHTML = \`
-                <input type="url" class="target-input" placeholder="主线路地址 (如: http://1.1.1.1:8096)" style="padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background:var(--card); width: 100%;" required oninput="handleTargetInputs()">
-                <input type="url" class="target-input" placeholder="备用线路 1 (选填)" style="padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background:var(--card); width: 100%;" oninput="handleTargetInputs()">
+                <input type="url" class="target-input" aria-label="主线路地址" placeholder="主线路地址 (如: http://1.1.1.1:8096)" style="padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background:var(--card); width: 100%;" required oninput="handleTargetInputs()">
+                <input type="url" class="target-input" aria-label="备用线路 1" placeholder="备用线路 1 (选填)" style="padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background:var(--card); width: 100%;" oninput="handleTargetInputs()">
             \`;
         }
 
@@ -4071,7 +4130,7 @@ function toSvg(s){
             const modeEl = document.getElementById('mode');
             const emosEl = document.getElementById('emosFields');
             if (!modeEl || !emosEl) return;
-            emosEl.style.display = (modeEl.value === 'emos') ? 'flex' : 'none';
+            emosEl.style.display = (modeEl.value === 'emos') ? '' : 'none';
         }
         function editNode(prefix, targetStr, mode, remark, icon, cacheImg, customIp, watchLimit, nodeUser, nodePass, redirectDirect, redirectRulesRaw, emosId, emosName, emosAggregate, strmOpt, forceDirect) {
             if (nodeSaveFlow && nodeSaveFlow.pending) return showToast('节点正在保存，请稍候');
@@ -4129,7 +4188,7 @@ function toSvg(s){
 
             handleTargetInputs();
             document.getElementById('nodeModalTitle').textContent='编辑节点';
-            document.getElementById('nodeModal').style.display='block';
+            openNodeDrawer();
         }
         // ============ 302/307 域名规则（动态条目） ============
         function parseRedirectRulesLocal(text) {
@@ -4353,10 +4412,55 @@ function toSvg(s){
             toggleEmosFields();
             document.getElementById('submitBtn').textContent='保存部署';
             document.getElementById('nodeModalTitle').textContent='添加节点';
-            document.getElementById('nodeModal').style.display='block';
+            openNodeDrawer();
+        }
+        function openNodeDrawer() {
+            const drawer = document.getElementById('nodeModal');
+            const toast = document.getElementById('toast');
+            toast.classList.remove('show');
+            drawer.querySelector('.node-drawer-feedback').append(toast);
+            document.getElementById('iconPickerPanel').style.display = 'none';
+            drawer.showModal();
+            drawer.querySelector('.node-drawer-scroll').scrollTop = 0;
+            resizeNodeDrawer();
         }
         function closeNodeModal() {
-            document.getElementById('nodeModal').style.display='none';
+            document.getElementById('nodeModal').close();
+        }
+        function resizeNodeDrawer() {
+            const drawer = document.getElementById('nodeModal'), viewport = window.visualViewport;
+            if (!drawer.open) return;
+            const mobile = matchMedia('(max-width:640px),(max-width:900px) and (pointer:coarse)').matches && viewport && viewport.scale === 1;
+            drawer.style.setProperty('--drawer-height', mobile ? viewport.height + 'px' : '100dvh');
+            drawer.style.setProperty('--drawer-top', mobile ? viewport.offsetTop + 'px' : '0px');
+        }
+        {
+            const drawer = document.getElementById('nodeModal'), toast = document.getElementById('toast');
+            toast.setAttribute('role', 'status'); toast.setAttribute('aria-live', 'polite');
+            drawer.addEventListener('close', () => { if (!drawer.open) document.body.prepend(toast); });
+            drawer.addEventListener('cancel', event => {
+                const picker = document.getElementById('iconPickerPanel');
+                if (picker.style.display !== 'none') {
+                    event.preventDefault(); picker.style.display = 'none'; document.getElementById('iconSelectBtn').focus();
+                }
+            });
+            drawer.addEventListener('keydown', event => {
+                if (event.key !== 'Tab') return;
+                const controls = [...drawer.querySelectorAll('button,input:not([type=hidden]),select,textarea,a[href],[tabindex]')]
+                    .filter(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+                const edge = event.shiftKey ? controls[0] : controls.at(-1);
+                if (document.activeElement === edge) { event.preventDefault(); (event.shiftKey ? controls.at(-1) : controls[0]).focus(); }
+            });
+            const outside = event => {
+                const box = drawer.getBoundingClientRect();
+                return event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom;
+            };
+            let pressedOutside = false;
+            drawer.addEventListener('pointerdown', event => { pressedOutside = outside(event); });
+            drawer.addEventListener('click', event => { if (pressedOutside && outside(event)) closeNodeModal(); });
+            window.addEventListener('resize', resizeNodeDrawer);
+            window.visualViewport?.addEventListener('resize', resizeNodeDrawer);
+            window.visualViewport?.addEventListener('scroll', resizeNodeDrawer);
         }
 
         function openImportModal(prefix) {
@@ -7355,7 +7459,7 @@ async function saveNodeWithGlow(payload) {
   flow.card = findSavedNodeCard(payload.prefix);
   if (!flow.card) {
     nodeSaveFlow = null; document.getElementById('submitBtn').disabled = false;
-    document.getElementById('nodeModal').style.display = 'block'; showToast('无法显示节点预览，请重试'); return;
+    openNodeDrawer(); showToast('无法显示节点预览，请重试'); return;
   }
   expandSavedNodeCard(flow.card);
   flow.card.scrollIntoView({ block: 'start', behavior: 'instant' });
