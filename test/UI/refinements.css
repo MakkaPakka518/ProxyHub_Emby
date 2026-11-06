@@ -1,0 +1,159 @@
+/* Shared visual rules for the complete UI test Worker. */
+:root {
+  --surface-0:hsl(220 10% 94%); --surface-1:hsl(220 10% 96%); --surface-2:hsl(220 10% 98%);
+  --ink:hsl(220 12% 23%); --ink-muted:hsl(220 8% 42%); --ink-quiet:hsl(220 6% 46%);
+  --accent:hsl(214 35% 37%); --positive:hsl(153 35% 32%); --negative:hsl(353 42% 42%); --caution:hsl(32 54% 35%);
+  --weight-body:400; --weight-medium:500; --weight-strong:600;
+  --focus-inner:hsl(220 14% 26% / .22); --focus-outer:hsl(220 14% 26% / .13); --focus-keyboard:hsl(220 10% 45%);
+  --floating-shadow:0 12px 36px hsl(220 15% 20% / .12);
+}
+:root.dark, body.dark {
+  --surface-0:hsl(220 12% 13%); --surface-1:hsl(220 12% 15%); --surface-2:hsl(220 12% 17%);
+  --ink:hsl(220 10% 89%); --ink-muted:hsl(220 8% 72%); --ink-quiet:hsl(220 6% 66%);
+  --accent:hsl(214 38% 74%); --positive:hsl(153 31% 70%); --negative:hsl(353 48% 75%); --caution:hsl(32 48% 71%);
+  --weight-body:300; --weight-medium:400; --weight-strong:500;
+  --focus-inner:hsl(220 12% 5% / .55); --focus-outer:hsl(220 12% 80% / .15); --focus-keyboard:hsl(220 10% 62%);
+  --floating-shadow:0 12px 36px hsl(220 15% 5% / .3);
+}
+html:has(.ph-ui) { background:var(--surface-0); scrollbar-gutter:stable; }
+html body.ph-ui {
+  --bg:var(--surface-0); --bg-soft:var(--surface-2); --bg-2:var(--surface-1); --card:var(--surface-1); --card-glass:var(--surface-2);
+  --text:var(--ink); --text-sec:var(--ink-muted); --text-faint:var(--ink-quiet);
+  --primary:var(--accent); --primary-2:var(--accent); --primary-hover:var(--accent); --primary-soft:var(--surface-2); --primary-grad:none; --primary-grad-2:none;
+  --success:var(--positive); --warning:var(--caution); --danger:var(--negative); --border:transparent; --border-strong:hsl(220 10% 50% / .22);
+  --shadow:none; --shadow-sm:none; --shadow-lg:var(--floating-shadow); --glow:none; --input-surface:var(--surface-0);
+  background:var(--surface-0); color:var(--ink); color-scheme:light; overflow-x:clip;
+  font:var(--weight-body) 14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-variant-numeric:tabular-nums; letter-spacing:0; text-wrap:pretty;
+}
+html.dark body.ph-ui, html body.ph-ui.dark { color-scheme:dark; }
+.ph-ui :where(*) { font-size:inherit !important; font-weight:inherit !important; font-variant-numeric:inherit; }
+html body.ph-ui * { transition-property:color,background-color,box-shadow,transform,opacity !important; }
+.ph-ui :is(button,label,th,summary,.badge,.topbar-title,.ds-dock-item,.mc-name) { font-weight:var(--weight-medium) !important; }
+.ph-ui :is(h1,h2,h3,strong,b,.node-name,.ch-title) { font-weight:var(--weight-strong) !important; }
+.ph-ui :is(h1,.node-drawer-head h2,.login-box h2) { font-size:20px !important; }
+.ph-ui :is(h2,h3,.node-name,.topbar-title,.cfv-value) { font-size:16px !important; }
+.ph-ui :is(small,.card-sub,.mc-desc,.mc-count,.hero-chip,.watch-meter,.watch-meter-foot,.watch-alert-summary,.info-label,.bw-val,.dynamic-url,.ds-dock-item,.field>label,.node-drawer-section p,.topbar-title small,.hero-sub,.ch-hint) { font-size:12px !important; }
+.ph-ui :is(.tp-label,.tp-label span,button svg) { font-size:inherit !important; font-weight:inherit !important; }
+.ph-ui :is(h1,h2,h3,.node-name,.ch-title) { text-wrap:balance; }
+.ph-ui :is(p,label,.mc-desc,.watch-alert-summary,.node-drawer-section,.info-row) { text-wrap:pretty; }
+.ph-ui :is(p,label,.node-name,.card-sub,.mc-desc) { line-height:1.6; }
+.ph-ui :is(.rtt-pill,.ping-badge,.mc-count,.bw-val,.stat-pill,td,time) { font-family:inherit; font-variant-numeric:tabular-nums; }
+html body.ph-ui::before, html body.ph-ui::after { display:none !important; }
+.ph-ui :is(.dm-layer,.hero-sub,.hero-chip) { display:none !important; }
+.ph-ui :is(.hero-card,.login-box)::before,.ph-ui :is(.hero-card,.login-box)::after,.ph-ui .section-head::before { display:none !important; }
+.ph-ui .emby-card::before,.ph-ui .emby-card::after { display:none !important; }
+.ph-ui :is(.glow-h,.hero-card h1) { background:none !important; -webkit-text-fill-color:currentColor !important; filter:none !important; color:var(--ink) !important; text-shadow:none !important; }
+.ph-ui .login-box h2 { background:none; -webkit-text-fill-color:currentColor; filter:none; color:var(--ink); }
+.ph-ui .login-sub { color:var(--ink-muted); }
+.ph-ui .login-box button { letter-spacing:0; }
+.ph-ui .login-logo { background:var(--surface-2); border:0; border-radius:12px; box-shadow:none; }
+.ph-ui :where(div,section,header,footer,article,form,nav,table,th,td,span) { border-color:transparent !important; }
+html body.ph-ui :is(.card,.emby-card,.mode-card,.nodes-toolbar,.collapse-sec,.watch-alert-item,.table-wrapper,.chart-panel) { background:var(--surface-1) !important; box-shadow:none !important; border:0 !important; transform:none; }
+.ph-ui .card { border-radius:16px; padding:24px; margin-bottom:20px; }
+.ph-ui .card .emby-card { background:var(--surface-2) !important; border-radius:12px !important; padding:20px; }
+.ph-ui .card :is(.mode-card,.collapse-sec,.watch-alert-item) { background:var(--surface-2) !important; border-radius:8px; }
+.ph-ui .emby-card :is(.watch-meter,.node-detail,.action-group,.url-list-item) { background:var(--surface-1) !important; box-shadow:none !important; }
+.ph-ui .emby-card .card-header { padding-bottom:0; }
+.ph-ui .emby-card .card-title-group>div:last-child { min-width:0; }
+.ph-ui .emby-card .node-name { overflow-wrap:anywhere; }
+.ph-ui :is(.watch-meter,.watch-alert-item,.nodes-toolbar) { border-radius:8px; }
+.ph-ui :is(.watch-track,.cfv-track) { background:var(--surface-0); }
+.ph-ui :is(.badge,.rtt-pill,.ping-badge,.sf-icon,.emby-icon) { background:var(--surface-2) !important; border:0; box-shadow:none !important; }
+.ph-ui .badge::before,.ph-ui .rtt-dot { box-shadow:none; }
+.ph-ui .mode-cards { gap:8px; }
+body.ph-ui #view-nodes .mode-card { border:0 !important; }
+.ph-ui .mode-card .sf-icon { display:inline-grid; place-items:center; width:20px; height:20px; color:var(--ink-muted); }
+.ph-ui .mode-card .sf-icon svg { width:16px; height:16px; }
+.ph-ui .mode-card .mc-count { color:var(--ink-muted); background:var(--surface-0); }
+.ph-ui .mode-card:hover { background:var(--surface-0) !important; }
+.ph-ui .topbar { background:var(--surface-1) !important; box-shadow:none !important; backdrop-filter:none; border:0; }
+.ph-ui .topbar-title small { color:var(--ink-muted) !important; letter-spacing:0; margin-top:4px; }
+.ph-ui :is(.topbar-logo,.topbar-actions .tb-group) { box-shadow:none !important; border:0; }
+.ph-ui .topbar-logo { width:44px; height:44px; }
+.ph-ui .topbar-actions .tb-group { gap:8px; background:transparent !important; padding:0; }
+.ph-ui .topbar-actions { gap:8px; }
+.ph-ui .ph-tool-label { display:none; }
+.ph-ui .ph-tools[hidden] { display:none; }
+.ph-ui .ph-tools:not([open]) .topbar-actions { display:none; }
+.ph-ui .page-footer, .ph-ui .page-footer * { color:var(--ink-muted) !important; background:none !important; -webkit-text-fill-color:currentColor !important; text-shadow:none !important; letter-spacing:0 !important; }
+.ph-ui .page-footer::before { display:none; }
+.ph-ui .mode-cards-card .card-sub { display:none; }
+.ph-ui .ds-dock { background:var(--surface-2) !important; border:0; box-shadow:var(--floating-shadow) !important; padding:6px; }
+.ph-ui .ds-dock-item { min-height:48px; line-height:1.5; border-radius:12px; }
+.ph-ui .ds-dock-item.active { background:var(--surface-0) !important; color:var(--accent) !important; box-shadow:none !important; }
+.ph-ui .ds-dock-item.active :is(svg,span) { color:inherit !important; fill:currentColor; }
+.ph-ui :is(.modal-box,.node-drawer,.mode-card-menu,.login-box) { --input-surface:var(--surface-1); background:var(--surface-2) !important; border:0; box-shadow:var(--floating-shadow) !important; backdrop-filter:none !important; }
+.ph-ui .login-box { --input-surface:var(--surface-0); background:var(--surface-1) !important; box-shadow:0 8px 16px hsl(220 15% 20% / .1) !important; }
+.ph-ui :is(.node-drawer-footer,.node-drawer-scroll) { background:var(--surface-2); }
+.ph-ui .node-drawer { right:calc(100% - 100vw); width:min(720px,100vw); }
+.ph-ui .node-drawer { transition-property:transform,display,overlay !important; }
+.ph-ui :is(.node-drawer-head,.node-drawer-footer) { border:0; }
+.ph-ui :is(.modal-mask,#importModal) { background:hsl(220 12% 10% / .42) !important; backdrop-filter:none !important; }
+.ph-ui .node-drawer::backdrop { background:hsl(220 12% 10% / .42); }
+.ph-ui #importModal>div { --input-surface:var(--surface-1); background:var(--surface-2) !important; box-shadow:var(--floating-shadow) !important; }
+html body.ph-ui :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea) {
+  background:var(--input-surface) !important; color:var(--ink) !important; border:0 !important; border-radius:10px; min-height:44px; line-height:1.5;
+  box-shadow:inset 0 0 0 1px hsl(220 10% 50% / .06),0 0 0 2px transparent !important; transition:background-color 140ms,box-shadow 140ms;
+}
+html body.ph-ui :is(input,textarea)::placeholder { color:var(--ink-quiet) !important; opacity:1; }
+html body.ph-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus { outline:none !important; background:var(--surface-0) !important; box-shadow:inset 0 1px 3px var(--focus-inner),0 0 2px 3px var(--focus-outer) !important; }
+html[data-ph-input=keyboard] body.ph-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible { box-shadow:inset 0 1px 3px var(--focus-inner),0 0 1px 2px var(--focus-keyboard) !important; }
+html body.ph-ui :is(button,.btn-ghost,.node-tg-link) { color:var(--ink) !important; background:var(--surface-2) !important; border:0 !important; border-radius:10px !important; text-shadow:none !important; box-shadow:none !important; min-height:44px; line-height:1.4; transition:background-color 140ms,box-shadow 140ms !important; }
+html body.ph-ui :is(button,.btn-ghost):hover:not(:disabled) { background:var(--surface-0) !important; box-shadow:none !important; filter:none; }
+html body.ph-ui :is(button,.btn-ghost):active:not(:disabled) { box-shadow:inset 0 1px 4px var(--focus-inner) !important; }
+html body.ph-ui button::before,html body.ph-ui button::after { display:none !important; }
+html body.ph-ui button.tp-button>.tp-label { transition:transform 120ms !important; }
+html body.ph-ui :is(.btn-submit,.geo-mode-btn.active,.mm-primary) { color:var(--accent) !important; background:var(--surface-0) !important; }
+html body.ph-ui :is(.btn-danger,.btn-del,.danger,.pill-close) { color:var(--negative) !important; }
+html body.ph-ui :is(button,a,summary,[role=button]):focus-visible { outline:2px solid var(--focus-keyboard) !important; outline-offset:3px; }
+.ph-ui :is(.tb-icon-btn,.icon-btn,.close-x,.ng-close) { min-width:44px; min-height:44px; }
+.ph-ui :is(.btn-submit,.btn-edit,.btn-del,.btn-ghost,.purge-mini) { padding:10px 16px; }
+.ph-ui .node-drawer-actions>button { padding:12px 20px; }
+.ph-ui :is([style*="#34c759"],[style*="rgb(52, 199, 89)"]) { color:var(--positive) !important; }
+.ph-ui :is([style*="#ff9500"],[style*="rgb(255, 149, 0)"],[style*="#ff9f0a"]) { color:var(--caution) !important; }
+.ph-ui :is([style*="#ff3b30"],[style*="rgb(255, 59, 48)"]) { color:var(--negative) !important; }
+.ph-ui :is(.watch-warning strong,.watch-warning .watch-alert-name) { color:var(--caution); }
+.ph-ui .node-list-toggle { background:transparent !important; padding:0; text-align:left; font-size:16px !important; font-weight:var(--weight-strong) !important; }
+.ph-ui .ipguard-toggle>.tp-label { width:100%; justify-content:space-between; }
+.ph-ui .card-header { gap:16px; }.ph-ui .card-tools { gap:8px; }.ph-ui .node-grid { align-items:start; }.ph-ui #nodesHint { width:100%; }
+.ph-ui .rtt-pill { min-width:9ch; justify-content:center; }
+.ph-ui #toast { background:var(--surface-2); color:var(--ink); border:0; box-shadow:var(--floating-shadow); backdrop-filter:none; border-radius:12px; }
+.ph-ui #view-nodes .emby-card.ng-card { --text:var(--ink); --text-sec:var(--ink-muted); background:var(--surface-2) !important; }
+.ph-ui #view-nodes .emby-card.ng-card .action-group { --card:var(--surface-1); --text:var(--ink); --text-sec:var(--ink-muted); }
+.ph-ui .ng-card { --ng-head-blur:0px !important; --ng-detail-blur:0px !important; --ng-button-blur:0px !important; }
+.ph-ui .ng-card>.ng-veil,.ph-ui .ng-card>.ng-canvas { display:none; }
+.ph-ui .ng-card>.ng-status { position:relative; inset:auto; padding:12px 0; color:var(--ink-muted); }
+.ph-ui .ng-message { background:none; color:inherit; animation:none !important; }
+.ph-ui .ng-controls button:last-child { color:var(--accent) !important; }
+.ph-ui .ui-fold { display:grid; grid-template-rows:0fr; visibility:hidden; transition:grid-template-rows 260ms cubic-bezier(.16,1,.3,1),visibility 0s 260ms !important; }
+.ph-ui .ui-fold[data-open=true] { grid-template-rows:1fr; visibility:visible; transition-delay:0s !important; }
+.ph-ui .ui-fold-inner { min-height:0; overflow:hidden; }
+.ph-ui .emby-card>.ui-fold { margin-top:-12px; }.ph-ui .emby-card>.ui-fold .node-detail { margin:12px 0 0; border-radius:8px; }
+.ph-ui .collapse-head { min-height:44px; }
+.ph-ui .copy-confirm-host { position:relative; }
+.ph-ui .copy-confirm { position:absolute; inset:0; display:grid; place-items:center; background:var(--surface-2); color:var(--positive); border-radius:inherit; pointer-events:none; }
+.ph-ui .copy-confirm svg { width:18px; height:18px; }
+@media(max-width:768px) {
+  .ph-ui .container { padding:24px 16px 112px; }.ph-ui .card { padding:20px 16px; }.ph-ui .card .emby-card { padding:16px; }
+  .ph-ui .topbar { position:sticky; height:auto; min-height:64px; flex-wrap:wrap; padding:max(8px,env(safe-area-inset-top)) 16px 8px; gap:8px; }
+  .ph-ui .topbar-center:empty { display:none; }.ph-ui .topbar-actions { flex-wrap:wrap; margin-left:auto; }.ph-ui .topbar-actions .tb-group { gap:8px; }
+  .ph-ui .ph-tools { position:relative; margin-left:auto; }
+  .ph-ui .ph-tools>summary { min-width:48px; min-height:48px; display:flex; align-items:center; justify-content:center; list-style:none; cursor:pointer; padding:8px 12px; border-radius:10px; background:var(--surface-2); }
+  .ph-ui .ph-tools>summary::-webkit-details-marker { display:none; }
+  .ph-ui .ph-tools .topbar-actions { position:absolute; right:0; top:calc(100% + 8px); width:224px; max-width:calc(100vw - 32px); display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:12px; background:var(--surface-2); border-radius:12px; box-shadow:0 8px 12px hsl(220 15% 10% / .16); }
+  .ph-ui .ph-tools .tb-group { display:flex; flex-direction:column; align-items:stretch; }
+  .ph-ui .ph-tools .tb-icon-btn { width:100%; height:auto; min-height:48px; justify-content:flex-start; padding:10px 12px; gap:12px; }
+  .ph-ui .ph-tools .ph-tool-label { display:inline; }
+  .ph-ui .topbar-logo { width:48px; height:48px; }
+  .ph-ui .card-tools { width:100%; margin-left:0; }.ph-ui .card-tools .search-input { width:100%; }
+  .ph-ui .mode-cards { grid-template-columns:repeat(2,minmax(0,1fr)); }.ph-ui .form-row .field { min-width:0; flex-basis:100%; }
+  .ph-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { font-size:16px !important; }
+  .ph-ui :is(button,.node-tg-link,.btn-ghost) { min-height:48px; }.ph-ui :is(.tb-icon-btn,.icon-btn,.close-x) { min-width:48px; }
+  .ph-ui .ds-dock { bottom:0; width:100%; max-width:none; border-radius:0 !important; padding:8px 16px max(8px,env(safe-area-inset-bottom)); box-shadow:none !important; }
+  .ph-ui .node-drawer-head { padding-top:max(12px,env(safe-area-inset-top)); }.ph-ui .node-drawer-actions>button { min-height:48px; }
+}
+@media(prefers-reduced-motion:reduce) { html body.ph-ui *, html body.ph-ui *::before, html body.ph-ui *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+@media(prefers-reduced-motion:reduce) { html body.ph-ui :is(.ui-fold,.node-drawer) { transition-duration:.01ms !important; transition-delay:0s !important; } }
+@media(max-width:640px),(max-width:900px) and (pointer:coarse) { .ph-ui .node-drawer { width:100vw; }.ph-ui :is(button,.node-tg-link,.btn-ghost) { min-height:48px; } }
+@media(forced-colors:active) { .ph-ui :is(button,input,select,textarea) { border:1px solid ButtonText !important; }.ph-ui .copy-confirm { color:Highlight; background:Canvas; } }

@@ -618,6 +618,169 @@ function toSvg(s){
 }
 
 
+// REFINEMENT_CSS_START
+const REFINEMENT_CSS = `/* Shared visual rules for the complete UI test Worker. */
+:root {
+  --surface-0:hsl(220 10% 94%); --surface-1:hsl(220 10% 96%); --surface-2:hsl(220 10% 98%);
+  --ink:hsl(220 12% 23%); --ink-muted:hsl(220 8% 42%); --ink-quiet:hsl(220 6% 46%);
+  --accent:hsl(214 35% 37%); --positive:hsl(153 35% 32%); --negative:hsl(353 42% 42%); --caution:hsl(32 54% 35%);
+  --weight-body:400; --weight-medium:500; --weight-strong:600;
+  --focus-inner:hsl(220 14% 26% / .22); --focus-outer:hsl(220 14% 26% / .13); --focus-keyboard:hsl(220 10% 45%);
+  --floating-shadow:0 12px 36px hsl(220 15% 20% / .12);
+}
+:root.dark, body.dark {
+  --surface-0:hsl(220 12% 13%); --surface-1:hsl(220 12% 15%); --surface-2:hsl(220 12% 17%);
+  --ink:hsl(220 10% 89%); --ink-muted:hsl(220 8% 72%); --ink-quiet:hsl(220 6% 66%);
+  --accent:hsl(214 38% 74%); --positive:hsl(153 31% 70%); --negative:hsl(353 48% 75%); --caution:hsl(32 48% 71%);
+  --weight-body:300; --weight-medium:400; --weight-strong:500;
+  --focus-inner:hsl(220 12% 5% / .55); --focus-outer:hsl(220 12% 80% / .15); --focus-keyboard:hsl(220 10% 62%);
+  --floating-shadow:0 12px 36px hsl(220 15% 5% / .3);
+}
+html:has(.ph-ui) { background:var(--surface-0); scrollbar-gutter:stable; }
+html body.ph-ui {
+  --bg:var(--surface-0); --bg-soft:var(--surface-2); --bg-2:var(--surface-1); --card:var(--surface-1); --card-glass:var(--surface-2);
+  --text:var(--ink); --text-sec:var(--ink-muted); --text-faint:var(--ink-quiet);
+  --primary:var(--accent); --primary-2:var(--accent); --primary-hover:var(--accent); --primary-soft:var(--surface-2); --primary-grad:none; --primary-grad-2:none;
+  --success:var(--positive); --warning:var(--caution); --danger:var(--negative); --border:transparent; --border-strong:hsl(220 10% 50% / .22);
+  --shadow:none; --shadow-sm:none; --shadow-lg:var(--floating-shadow); --glow:none; --input-surface:var(--surface-0);
+  background:var(--surface-0); color:var(--ink); color-scheme:light; overflow-x:clip;
+  font:var(--weight-body) 14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-variant-numeric:tabular-nums; letter-spacing:0; text-wrap:pretty;
+}
+html.dark body.ph-ui, html body.ph-ui.dark { color-scheme:dark; }
+.ph-ui :where(*) { font-size:inherit !important; font-weight:inherit !important; font-variant-numeric:inherit; }
+html body.ph-ui * { transition-property:color,background-color,box-shadow,transform,opacity !important; }
+.ph-ui :is(button,label,th,summary,.badge,.topbar-title,.ds-dock-item,.mc-name) { font-weight:var(--weight-medium) !important; }
+.ph-ui :is(h1,h2,h3,strong,b,.node-name,.ch-title) { font-weight:var(--weight-strong) !important; }
+.ph-ui :is(h1,.node-drawer-head h2,.login-box h2) { font-size:20px !important; }
+.ph-ui :is(h2,h3,.node-name,.topbar-title,.cfv-value) { font-size:16px !important; }
+.ph-ui :is(small,.card-sub,.mc-desc,.mc-count,.hero-chip,.watch-meter,.watch-meter-foot,.watch-alert-summary,.info-label,.bw-val,.dynamic-url,.ds-dock-item,.field>label,.node-drawer-section p,.topbar-title small,.hero-sub,.ch-hint) { font-size:12px !important; }
+.ph-ui :is(.tp-label,.tp-label span,button svg) { font-size:inherit !important; font-weight:inherit !important; }
+.ph-ui :is(h1,h2,h3,.node-name,.ch-title) { text-wrap:balance; }
+.ph-ui :is(p,label,.mc-desc,.watch-alert-summary,.node-drawer-section,.info-row) { text-wrap:pretty; }
+.ph-ui :is(p,label,.node-name,.card-sub,.mc-desc) { line-height:1.6; }
+.ph-ui :is(.rtt-pill,.ping-badge,.mc-count,.bw-val,.stat-pill,td,time) { font-family:inherit; font-variant-numeric:tabular-nums; }
+html body.ph-ui::before, html body.ph-ui::after { display:none !important; }
+.ph-ui :is(.dm-layer,.hero-sub,.hero-chip) { display:none !important; }
+.ph-ui :is(.hero-card,.login-box)::before,.ph-ui :is(.hero-card,.login-box)::after,.ph-ui .section-head::before { display:none !important; }
+.ph-ui .emby-card::before,.ph-ui .emby-card::after { display:none !important; }
+.ph-ui :is(.glow-h,.hero-card h1) { background:none !important; -webkit-text-fill-color:currentColor !important; filter:none !important; color:var(--ink) !important; text-shadow:none !important; }
+.ph-ui .login-box h2 { background:none; -webkit-text-fill-color:currentColor; filter:none; color:var(--ink); }
+.ph-ui .login-sub { color:var(--ink-muted); }
+.ph-ui .login-box button { letter-spacing:0; }
+.ph-ui .login-logo { background:var(--surface-2); border:0; border-radius:12px; box-shadow:none; }
+.ph-ui :where(div,section,header,footer,article,form,nav,table,th,td,span) { border-color:transparent !important; }
+html body.ph-ui :is(.card,.emby-card,.mode-card,.nodes-toolbar,.collapse-sec,.watch-alert-item,.table-wrapper,.chart-panel) { background:var(--surface-1) !important; box-shadow:none !important; border:0 !important; transform:none; }
+.ph-ui .card { border-radius:16px; padding:24px; margin-bottom:20px; }
+.ph-ui .card .emby-card { background:var(--surface-2) !important; border-radius:12px !important; padding:20px; }
+.ph-ui .card :is(.mode-card,.collapse-sec,.watch-alert-item) { background:var(--surface-2) !important; border-radius:8px; }
+.ph-ui .emby-card :is(.watch-meter,.node-detail,.action-group,.url-list-item) { background:var(--surface-1) !important; box-shadow:none !important; }
+.ph-ui .emby-card .card-header { padding-bottom:0; }
+.ph-ui .emby-card .card-title-group>div:last-child { min-width:0; }
+.ph-ui .emby-card .node-name { overflow-wrap:anywhere; }
+.ph-ui :is(.watch-meter,.watch-alert-item,.nodes-toolbar) { border-radius:8px; }
+.ph-ui :is(.watch-track,.cfv-track) { background:var(--surface-0); }
+.ph-ui :is(.badge,.rtt-pill,.ping-badge,.sf-icon,.emby-icon) { background:var(--surface-2) !important; border:0; box-shadow:none !important; }
+.ph-ui .badge::before,.ph-ui .rtt-dot { box-shadow:none; }
+.ph-ui .mode-cards { gap:8px; }
+body.ph-ui #view-nodes .mode-card { border:0 !important; }
+.ph-ui .mode-card .sf-icon { display:inline-grid; place-items:center; width:20px; height:20px; color:var(--ink-muted); }
+.ph-ui .mode-card .sf-icon svg { width:16px; height:16px; }
+.ph-ui .mode-card .mc-count { color:var(--ink-muted); background:var(--surface-0); }
+.ph-ui .mode-card:hover { background:var(--surface-0) !important; }
+.ph-ui .topbar { background:var(--surface-1) !important; box-shadow:none !important; backdrop-filter:none; border:0; }
+.ph-ui .topbar-title small { color:var(--ink-muted) !important; letter-spacing:0; margin-top:4px; }
+.ph-ui :is(.topbar-logo,.topbar-actions .tb-group) { box-shadow:none !important; border:0; }
+.ph-ui .topbar-logo { width:44px; height:44px; }
+.ph-ui .topbar-actions .tb-group { gap:8px; background:transparent !important; padding:0; }
+.ph-ui .topbar-actions { gap:8px; }
+.ph-ui .ph-tool-label { display:none; }
+.ph-ui .ph-tools[hidden] { display:none; }
+.ph-ui .ph-tools:not([open]) .topbar-actions { display:none; }
+.ph-ui .page-footer, .ph-ui .page-footer * { color:var(--ink-muted) !important; background:none !important; -webkit-text-fill-color:currentColor !important; text-shadow:none !important; letter-spacing:0 !important; }
+.ph-ui .page-footer::before { display:none; }
+.ph-ui .mode-cards-card .card-sub { display:none; }
+.ph-ui .ds-dock { background:var(--surface-2) !important; border:0; box-shadow:var(--floating-shadow) !important; padding:6px; }
+.ph-ui .ds-dock-item { min-height:48px; line-height:1.5; border-radius:12px; }
+.ph-ui .ds-dock-item.active { background:var(--surface-0) !important; color:var(--accent) !important; box-shadow:none !important; }
+.ph-ui .ds-dock-item.active :is(svg,span) { color:inherit !important; fill:currentColor; }
+.ph-ui :is(.modal-box,.node-drawer,.mode-card-menu,.login-box) { --input-surface:var(--surface-1); background:var(--surface-2) !important; border:0; box-shadow:var(--floating-shadow) !important; backdrop-filter:none !important; }
+.ph-ui .login-box { --input-surface:var(--surface-0); background:var(--surface-1) !important; box-shadow:0 8px 16px hsl(220 15% 20% / .1) !important; }
+.ph-ui :is(.node-drawer-footer,.node-drawer-scroll) { background:var(--surface-2); }
+.ph-ui .node-drawer { right:calc(100% - 100vw); width:min(720px,100vw); }
+.ph-ui .node-drawer { transition-property:transform,display,overlay !important; }
+.ph-ui :is(.node-drawer-head,.node-drawer-footer) { border:0; }
+.ph-ui :is(.modal-mask,#importModal) { background:hsl(220 12% 10% / .42) !important; backdrop-filter:none !important; }
+.ph-ui .node-drawer::backdrop { background:hsl(220 12% 10% / .42); }
+.ph-ui #importModal>div { --input-surface:var(--surface-1); background:var(--surface-2) !important; box-shadow:var(--floating-shadow) !important; }
+html body.ph-ui :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea) {
+  background:var(--input-surface) !important; color:var(--ink) !important; border:0 !important; border-radius:10px; min-height:44px; line-height:1.5;
+  box-shadow:inset 0 0 0 1px hsl(220 10% 50% / .06),0 0 0 2px transparent !important; transition:background-color 140ms,box-shadow 140ms;
+}
+html body.ph-ui :is(input,textarea)::placeholder { color:var(--ink-quiet) !important; opacity:1; }
+html body.ph-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus { outline:none !important; background:var(--surface-0) !important; box-shadow:inset 0 1px 3px var(--focus-inner),0 0 2px 3px var(--focus-outer) !important; }
+html[data-ph-input=keyboard] body.ph-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible { box-shadow:inset 0 1px 3px var(--focus-inner),0 0 1px 2px var(--focus-keyboard) !important; }
+html body.ph-ui :is(button,.btn-ghost,.node-tg-link) { color:var(--ink) !important; background:var(--surface-2) !important; border:0 !important; border-radius:10px !important; text-shadow:none !important; box-shadow:none !important; min-height:44px; line-height:1.4; transition:background-color 140ms,box-shadow 140ms !important; }
+html body.ph-ui :is(button,.btn-ghost):hover:not(:disabled) { background:var(--surface-0) !important; box-shadow:none !important; filter:none; }
+html body.ph-ui :is(button,.btn-ghost):active:not(:disabled) { box-shadow:inset 0 1px 4px var(--focus-inner) !important; }
+html body.ph-ui button::before,html body.ph-ui button::after { display:none !important; }
+html body.ph-ui button.tp-button>.tp-label { transition:transform 120ms !important; }
+html body.ph-ui :is(.btn-submit,.geo-mode-btn.active,.mm-primary) { color:var(--accent) !important; background:var(--surface-0) !important; }
+html body.ph-ui :is(.btn-danger,.btn-del,.danger,.pill-close) { color:var(--negative) !important; }
+html body.ph-ui :is(button,a,summary,[role=button]):focus-visible { outline:2px solid var(--focus-keyboard) !important; outline-offset:3px; }
+.ph-ui :is(.tb-icon-btn,.icon-btn,.close-x,.ng-close) { min-width:44px; min-height:44px; }
+.ph-ui :is(.btn-submit,.btn-edit,.btn-del,.btn-ghost,.purge-mini) { padding:10px 16px; }
+.ph-ui .node-drawer-actions>button { padding:12px 20px; }
+.ph-ui :is([style*="#34c759"],[style*="rgb(52, 199, 89)"]) { color:var(--positive) !important; }
+.ph-ui :is([style*="#ff9500"],[style*="rgb(255, 149, 0)"],[style*="#ff9f0a"]) { color:var(--caution) !important; }
+.ph-ui :is([style*="#ff3b30"],[style*="rgb(255, 59, 48)"]) { color:var(--negative) !important; }
+.ph-ui :is(.watch-warning strong,.watch-warning .watch-alert-name) { color:var(--caution); }
+.ph-ui .node-list-toggle { background:transparent !important; padding:0; text-align:left; font-size:16px !important; font-weight:var(--weight-strong) !important; }
+.ph-ui .ipguard-toggle>.tp-label { width:100%; justify-content:space-between; }
+.ph-ui .card-header { gap:16px; }.ph-ui .card-tools { gap:8px; }.ph-ui .node-grid { align-items:start; }.ph-ui #nodesHint { width:100%; }
+.ph-ui .rtt-pill { min-width:9ch; justify-content:center; }
+.ph-ui #toast { background:var(--surface-2); color:var(--ink); border:0; box-shadow:var(--floating-shadow); backdrop-filter:none; border-radius:12px; }
+.ph-ui #view-nodes .emby-card.ng-card { --text:var(--ink); --text-sec:var(--ink-muted); background:var(--surface-2) !important; }
+.ph-ui #view-nodes .emby-card.ng-card .action-group { --card:var(--surface-1); --text:var(--ink); --text-sec:var(--ink-muted); }
+.ph-ui .ng-card { --ng-head-blur:0px !important; --ng-detail-blur:0px !important; --ng-button-blur:0px !important; }
+.ph-ui .ng-card>.ng-veil,.ph-ui .ng-card>.ng-canvas { display:none; }
+.ph-ui .ng-card>.ng-status { position:relative; inset:auto; padding:12px 0; color:var(--ink-muted); }
+.ph-ui .ng-message { background:none; color:inherit; animation:none !important; }
+.ph-ui .ng-controls button:last-child { color:var(--accent) !important; }
+.ph-ui .ui-fold { display:grid; grid-template-rows:0fr; visibility:hidden; transition:grid-template-rows 260ms cubic-bezier(.16,1,.3,1),visibility 0s 260ms !important; }
+.ph-ui .ui-fold[data-open=true] { grid-template-rows:1fr; visibility:visible; transition-delay:0s !important; }
+.ph-ui .ui-fold-inner { min-height:0; overflow:hidden; }
+.ph-ui .emby-card>.ui-fold { margin-top:-12px; }.ph-ui .emby-card>.ui-fold .node-detail { margin:12px 0 0; border-radius:8px; }
+.ph-ui .collapse-head { min-height:44px; }
+.ph-ui .copy-confirm-host { position:relative; }
+.ph-ui .copy-confirm { position:absolute; inset:0; display:grid; place-items:center; background:var(--surface-2); color:var(--positive); border-radius:inherit; pointer-events:none; }
+.ph-ui .copy-confirm svg { width:18px; height:18px; }
+@media(max-width:768px) {
+  .ph-ui .container { padding:24px 16px 112px; }.ph-ui .card { padding:20px 16px; }.ph-ui .card .emby-card { padding:16px; }
+  .ph-ui .topbar { position:sticky; height:auto; min-height:64px; flex-wrap:wrap; padding:max(8px,env(safe-area-inset-top)) 16px 8px; gap:8px; }
+  .ph-ui .topbar-center:empty { display:none; }.ph-ui .topbar-actions { flex-wrap:wrap; margin-left:auto; }.ph-ui .topbar-actions .tb-group { gap:8px; }
+  .ph-ui .ph-tools { position:relative; margin-left:auto; }
+  .ph-ui .ph-tools>summary { min-width:48px; min-height:48px; display:flex; align-items:center; justify-content:center; list-style:none; cursor:pointer; padding:8px 12px; border-radius:10px; background:var(--surface-2); }
+  .ph-ui .ph-tools>summary::-webkit-details-marker { display:none; }
+  .ph-ui .ph-tools .topbar-actions { position:absolute; right:0; top:calc(100% + 8px); width:224px; max-width:calc(100vw - 32px); display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:12px; background:var(--surface-2); border-radius:12px; box-shadow:0 8px 12px hsl(220 15% 10% / .16); }
+  .ph-ui .ph-tools .tb-group { display:flex; flex-direction:column; align-items:stretch; }
+  .ph-ui .ph-tools .tb-icon-btn { width:100%; height:auto; min-height:48px; justify-content:flex-start; padding:10px 12px; gap:12px; }
+  .ph-ui .ph-tools .ph-tool-label { display:inline; }
+  .ph-ui .topbar-logo { width:48px; height:48px; }
+  .ph-ui .card-tools { width:100%; margin-left:0; }.ph-ui .card-tools .search-input { width:100%; }
+  .ph-ui .mode-cards { grid-template-columns:repeat(2,minmax(0,1fr)); }.ph-ui .form-row .field { min-width:0; flex-basis:100%; }
+  .ph-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { font-size:16px !important; }
+  .ph-ui :is(button,.node-tg-link,.btn-ghost) { min-height:48px; }.ph-ui :is(.tb-icon-btn,.icon-btn,.close-x) { min-width:48px; }
+  .ph-ui .ds-dock { bottom:0; width:100%; max-width:none; border-radius:0 !important; padding:8px 16px max(8px,env(safe-area-inset-bottom)); box-shadow:none !important; }
+  .ph-ui .node-drawer-head { padding-top:max(12px,env(safe-area-inset-top)); }.ph-ui .node-drawer-actions>button { min-height:48px; }
+}
+@media(prefers-reduced-motion:reduce) { html body.ph-ui *, html body.ph-ui *::before, html body.ph-ui *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+@media(prefers-reduced-motion:reduce) { html body.ph-ui :is(.ui-fold,.node-drawer) { transition-duration:.01ms !important; transition-delay:0s !important; } }
+@media(max-width:640px),(max-width:900px) and (pointer:coarse) { .ph-ui .node-drawer { width:100vw; }.ph-ui :is(button,.node-tg-link,.btn-ghost) { min-height:48px; } }
+@media(forced-colors:active) { .ph-ui :is(button,input,select,textarea) { border:1px solid ButtonText !important; }.ph-ui .copy-confirm { color:Highlight; background:Canvas; } }
+`;
+// REFINEMENT_CSS_END
+
 const CSS_COMMON = `
     /* =====================================================
        NEBULA 星云 —— 深空科幻设计系统
@@ -1370,8 +1533,10 @@ const LANDING_UI = "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"ut
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#060a13">
     <title>系统授权</title>
+    <script>try{document.documentElement.classList.toggle('dark',localStorage.getItem('emby_proxy_dark')!=='0')}catch{}</script>
     <style>
         ${CSS_COMMON}
+        ${REFINEMENT_CSS}
         body { display:flex; justify-content:center; align-items:center; min-height:100vh; padding:16px; margin:0; background:linear-gradient(160deg,#0b0e1a 0%,#0f1730 48%,#060a13 100%) fixed; color:#e8eefc; }
         /* 星云极光背景 */
         body::before { content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; background:
@@ -1468,7 +1633,7 @@ function toSvg(s){
     </script>
 
 </head>
-<body>
+<body class="ph-ui">
     <div id="toast"></div>
     <div class="dm-layer" aria-hidden="true">
         <span class="dm dm-a" style="top:9%;--dm-dur:26s;">反代就绪 · 播放继续 · 正在连接上</span>
@@ -1521,7 +1686,8 @@ const HTML_UI = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>玛卡巴卡的反代面板</title>
-    <style>${CSS_COMMON}</style>
+    <script>try{document.documentElement.classList.toggle('dark',localStorage.getItem('emby_proxy_dark')!=='0')}catch{}</script>
+    <style>${CSS_COMMON}${REFINEMENT_CSS}</style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" type="image/jpeg" href="${EMBY_LOGO}">
@@ -1582,7 +1748,7 @@ function toSvg(s){
 }
     </script>
 </head>
-<body>
+<body class="ph-ui">
     <div id="toast"></div>
     <div class="dm-layer" aria-hidden="true">
         <span class="dm dm-a" style="top:8%;--dm-dur:26s;">节点在线 · 边缘缓存 · 播放继续</span>
@@ -1881,8 +2047,8 @@ function toSvg(s){
             </div>
 
             <div class="card">
-                <div class="card-header" style="margin-bottom:16px; cursor:pointer;" onclick="toggleNodesCollapse()">
-                    <h2><span id="nodesArrow" class="collapse-arrow"></span> 已反代的媒体库 <span class="card-sub">拖拽卡片可排序</span></h2>
+                <div class="card-header" style="margin-bottom:16px;">
+                    <h2><button type="button" class="node-list-toggle" onclick="toggleNodesCollapse()" aria-expanded="false"><span id="nodesArrow" class="collapse-arrow"></span> 已反代的媒体库</button></h2>
                     <button id="btnPurge" class="purge-mini admin-only" onclick="event.stopPropagation(); purgeCache()" title="刷新全站海报缓存">${I.refresh}<span>刷新海报</span></button>
                     <div class="card-tools" onclick="event.stopPropagation()">
                         <button class="btn-submit admin-only" onclick="pingAllNodes()" style="padding:9px 14px; font-size:13px;">${I.bolt} 全局测速</button>
@@ -1905,7 +2071,7 @@ function toSvg(s){
                 <div id="list-grid" class="node-grid" style="display:none;">
                     <div style="text-align:center; color:var(--text-sec); grid-column:1/-1; padding:44px;">读取数据中...</div>
                 </div>
-                <div id="nodesHint" style="text-align:center; color:var(--text-sec); font-size:13px; padding:18px 12px; cursor:pointer; user-select:none;" onclick="toggleNodesCollapse()">已收起全部节点 · 点击展开查看</div>
+                <button type="button" id="nodesHint" style="text-align:center; color:var(--text-sec); font-size:13px; padding:18px 12px;" onclick="toggleNodesCollapse()">展开节点列表</button>
             </div>
 
         </div>
@@ -2110,7 +2276,7 @@ function toSvg(s){
             </div>
 
             <div class="card admin-only" id="ipguard-card">
-                <h2 style="margin:0; font-size:18px; margin-bottom:14px; cursor:pointer; display:flex; align-items:center; justify-content:space-between;" onclick="toggleIpGuardCard()">${I.spy} IP 访问控制 <span id="ipguardCardArrow" style="font-size:12px; color:var(--text-sec); font-weight:400;"> 展开</span></h2>
+                <h2 style="margin:0 0 14px;"><button type="button" class="node-list-toggle ipguard-toggle" style="width:100%;justify-content:space-between;" onclick="toggleIpGuardCard()" aria-expanded="false"><span style="display:inline-flex;gap:9px;align-items:center;">${I.spy} IP 访问控制</span><span id="ipguardCardArrow" style="font-size:12px;color:var(--text-sec);">展开</span></button></h2>
                 <div id="ipguardCardBody" style="display:none;">
                     <div style="display:flex; flex-direction:column; gap:12px;">
                     <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; font-size:13px;">
@@ -2766,7 +2932,7 @@ function toSvg(s){
             document.getElementById('searchNode').value = '';
             closeModeMenu();
             document.querySelectorAll('.emby-card').forEach(el => el.style.display = 'flex');
-            if (document.getElementById('list-grid').style.display === 'none') toggleNodesCollapse();
+            if (!isFoldOpen(document.getElementById('list-grid'))) toggleNodesCollapse();
             if (window.ROLE === 'sub' || window.ROLE === 'subadmin') document.getElementById('nodesToolbar').style.display = 'none';
             const detail = card.querySelector('.node-detail');
             const toggle = card.querySelector('[onclick="toggleNodeDetail(this)"]');
@@ -2812,16 +2978,65 @@ function toSvg(s){
         window.addEventListener('focus', refreshWatchOnReturn);
         setInterval(refreshWatchOnReturn, 60000);
 
-        // ===== 折叠交互(v3.4.32)=====
+        // Grid owns the animated height; the inner wrapper clips only folded content.
+        function ensureFold(body, display = 'block') {
+            if (body.parentElement.classList.contains('ui-fold-inner')) return body.parentElement.parentElement;
+            const fold = document.createElement('div'), inner = document.createElement('div');
+            fold.className = 'ui-fold'; inner.className = 'ui-fold-inner';
+            fold.dataset.open = 'false'; fold.inert = true; fold.setAttribute('aria-hidden', 'true');
+            body.before(fold); inner.append(body); fold.append(inner); body.style.display = display;
+            return fold;
+        }
+        function isFoldOpen(body) {
+            return body.parentElement.classList.contains('ui-fold-inner')
+                ? body.parentElement.parentElement.dataset.open === 'true' : getComputedStyle(body).display !== 'none';
+        }
+        function setFold(body, open, trigger) {
+            const fold = ensureFold(body, body.classList.contains('node-detail') ? 'flex' : body.id === 'list-grid' ? 'grid' : 'block');
+            if (!open && fold.contains(document.activeElement)) trigger?.focus({ preventScroll: true });
+            fold.dataset.open = String(open); fold.inert = !open; fold.setAttribute('aria-hidden', String(!open));
+            trigger?.setAttribute('aria-expanded', String(open));
+        }
+        function foldKeyboard(event) {
+            if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); event.currentTarget.click(); }
+        }
+        document.addEventListener('keydown', event => { if (event.key === 'Tab') document.documentElement.dataset.phInput = 'keyboard'; });
+        document.addEventListener('pointerdown', () => { document.documentElement.dataset.phInput = 'pointer'; }, { passive: true });
+        {
+            const bar = document.querySelector('.topbar'), tools = bar.querySelector('.topbar-actions');
+            const account = bar.querySelector('.topbar-logo');
+            account.tabIndex = 0; account.setAttribute('role', 'button'); account.setAttribute('aria-label', '账户设置'); account.addEventListener('keydown', foldKeyboard);
+            const menu = document.createElement('details'), summary = document.createElement('summary');
+            menu.className = 'ph-tools'; summary.textContent = '工具'; menu.append(summary); bar.append(menu);
+            tools.querySelectorAll('button[title]').forEach(button => {
+                const label = document.createElement('span'); label.className = 'ph-tool-label'; label.textContent = button.title; button.append(label);
+            });
+            const mobile = matchMedia('(max-width:768px)');
+            const positionTools = () => { (mobile.matches ? menu : bar).append(tools); menu.hidden = !mobile.matches; menu.open = false; };
+            mobile.addEventListener('change', positionTools); positionTools();
+            tools.addEventListener('click', event => { if (event.target.closest('button')) menu.open = false; });
+            document.addEventListener('click', event => { if (!menu.contains(event.target)) menu.open = false; });
+            menu.addEventListener('keydown', event => { if (event.key === 'Escape') { menu.open = false; summary.focus(); } });
+        }
+        {
+            const grid = document.getElementById('list-grid'), toolbar = document.getElementById('nodesToolbar');
+            const listFold = ensureFold(grid, 'grid');
+            toolbar.style.display = 'flex'; listFold.firstElementChild.prepend(toolbar);
+            document.querySelectorAll('.collapse-body,[id^="setSec-"],#ipguardCardBody').forEach(body => {
+                const open = getComputedStyle(body).display !== 'none'; ensureFold(body); setFold(body, open);
+            });
+            document.querySelectorAll('.collapse-head,[onclick^="tgSetSec("]').forEach(head => {
+                head.tabIndex = 0; head.setAttribute('role', 'button'); head.setAttribute('aria-expanded', 'false'); head.addEventListener('keydown', foldKeyboard);
+            });
+        }
+        // ===== 折叠交互 =====
         function toggleNodesCollapse(){
             const grid = document.getElementById('list-grid');
-            const tb = document.getElementById('nodesToolbar');
             const hint = document.getElementById('nodesHint');
             const ar = document.getElementById('nodesArrow');
             if(!grid) return;
-            const open = grid.style.display !== 'none';
-            grid.style.display = open ? 'none' : 'grid';
-            if(tb) tb.style.display = open ? 'none' : 'flex';
+            const open = isFoldOpen(grid);
+            setFold(grid, !open, ar?.closest('button'));
             if(hint) hint.style.display = open ? 'block' : 'none';
             if(ar){ ar.textContent = open ? '' : '▼'; ar.classList.toggle('open', !open); }
         }
@@ -2829,6 +3044,7 @@ function toSvg(s){
             const sec = head.closest('.collapse-sec');
             if(!sec) return;
             sec.classList.toggle('open');
+            setFold(sec.querySelector('.collapse-body'), sec.classList.contains('open'), head);
             const hint = head.querySelector('.ch-hint');
             if(hint) hint.textContent = sec.classList.contains('open') ? '点击收起' : '点击展开';
         }
@@ -3683,19 +3899,28 @@ function toSvg(s){
             }
         });
 
+        function renderThemeToggle() {
+            const dark = document.body.classList.contains('dark'), button = document.getElementById('themeToggle');
+            const label = dark ? '切换浅色模式' : '切换深色模式';
+            button.innerHTML = (dark ? I.sun : I.moon) + '<span class="ph-tool-label">' + label + '</span>';
+            button.title = label; button.setAttribute('aria-label', label);
+        }
         function toggleDarkMode() {
             const isDark = document.body.classList.toggle('dark');
             document.documentElement.classList.toggle('dark', isDark);
-            document.getElementById('themeToggle').innerHTML = isDark ? I.sun : I.moon;
+            renderThemeToggle();
             localStorage.setItem('emby_proxy_dark', isDark ? '1' : '0');
             if(trendChartInstance) { updateChartColors(); trendChartInstance.update(); locationChartInstance.update(); }
         }
-        if (localStorage.getItem('emby_proxy_dark') === '1') { document.body.classList.add('dark'); document.documentElement.classList.add('dark'); document.getElementById('themeToggle').innerHTML = I.sun; }
+        if (localStorage.getItem('emby_proxy_dark') === '1') { document.body.classList.add('dark'); document.documentElement.classList.add('dark'); }
+        renderThemeToggle();
 
+        let toastTimer;
         function showToast(msg) {
             const t = document.getElementById('toast');
+            clearTimeout(toastTimer);
             t.textContent = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
         }
 
         async function purgeCache() {
@@ -3880,9 +4105,34 @@ function toSvg(s){
             }
         }
 
-        async function copyTxt(txt) {
-            try { await navigator.clipboard.writeText(txt); showToast(' 复制成功！'); }
-            catch { showToast('复制失败，请允许剪贴板权限后重试，或展开链接手动复制'); }
+        const copyFeedback = new WeakMap();
+        function clearCopyCheck(button) {
+            const feedback = copyFeedback.get(button); if (!feedback) return;
+            clearTimeout(feedback.timer); feedback.mark.remove(); feedback.label.classList.remove('copy-confirm-host'); copyFeedback.delete(button);
+        }
+        function showCopyCheck(button) {
+            if (!button?.isConnected) return;
+            let feedback = copyFeedback.get(button);
+            if (!feedback) {
+                const label = button.querySelector('.tp-label') || button, mark = document.createElement('span');
+                label.classList.add('copy-confirm-host'); mark.className = 'copy-confirm'; mark.setAttribute('aria-hidden', 'true'); mark.innerHTML = I.check; label.append(mark);
+                feedback = { mark, label, timer: null }; copyFeedback.set(button, feedback);
+                if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    // Analytic underdamped spring: damping ratio .5, natural frequency 22 rad/s.
+                    const frames = Array.from({ length: 41 }, (_, i) => {
+                        const t = i / 40 * .65, w = 22 * Math.sqrt(.75);
+                        const scale = i === 40 ? 1 : 1 - .55 * Math.exp(-11 * t) * (Math.cos(w * t) + 11 / w * Math.sin(w * t));
+                        return { transform: 'scale(' + scale + ')', offset: i / 40 };
+                    });
+                    mark.animate(frames, { duration: 650, easing: 'linear' });
+                }
+            }
+            clearTimeout(feedback.timer);
+            feedback.timer = setTimeout(() => clearCopyCheck(button), 2500);
+        }
+        async function copyTxt(txt, button) {
+            try { await navigator.clipboard.writeText(txt); showToast('已复制'); showCopyCheck(button); }
+            catch { clearCopyCheck(button); showToast('复制失败，请允许剪贴板权限后重试，或展开链接手动复制'); }
         }
 
         async function pingTarget(idx, targetUrl) {
@@ -4014,7 +4264,7 @@ function toSvg(s){
                                 <input type="checkbox" class="node-cb admin-only" value="\${r.prefix}" style="width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--primary); flex-shrink: 0;">
                                 <div class="emby-icon" style="margin: 0; display: flex; align-items: center;">\${iconHtml}</div>
                                 <div>
-                                    <div style="font-weight: 600; font-size: 16px; color: var(--text);">\${escHtml(remarkName)}</div>
+                                    <div class="node-name" style="font-weight: 600; font-size: 16px; color: var(--text);">\${escHtml(remarkName)}</div>
                                     <div style="font-size: 13px; color: var(--text-sec); margin-top:2px;">/\${escHtml(r.prefix)}</div>
                                 </div>
                             </div>
@@ -4028,8 +4278,8 @@ function toSvg(s){
                             <span class="bw-val" data-bw="\${esc(r.prefix)}" style="font-size:12px; color:var(--text-sec);">\${todayBw}</span>
                             <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
                                 \${renderNodeBotLink(r)}
-                                <button class="icon-btn" onclick="copyTxt('\${proxyUrl}')" title="复制直达链接">${SVG_COPY}</button>
-                                <button class="icon-btn" onclick="toggleNodeDetail(this)" title="展开详情" style="transition:transform .25s;">${I.arrowdown}</button>
+                                <button class="icon-btn" onclick="copyTxt('\${proxyUrl}', this)" title="复制直达链接">${SVG_COPY}</button>
+                                <button class="icon-btn" onclick="toggleNodeDetail(this)" title="展开详情" aria-expanded="false" style="transition:transform .25s;">${I.arrowdown}</button>
                             </div>
                         </div>
 
@@ -4053,7 +4303,7 @@ function toSvg(s){
                                     <div class="action-group" style="flex:1; justify-content: flex-end; margin-left: 10px; align-items: flex-start;">
                                         <span id="p-\${idx}" data-val="\${proxyUrl}" class="secret-text dynamic-url">••••••••</span>
                                         <button class="icon-btn" style="margin-top: 2px;" onclick="toggleVis('p-\${idx}')" title="查看明文">${SVG_EYE}</button>
-                                        <button class="icon-btn" style="margin-top: 2px;" onclick="copyTxt('\${proxyUrl}')" title="复制链接">${SVG_COPY}</button>
+                                        <button class="icon-btn" style="margin-top: 2px;" onclick="copyTxt('\${proxyUrl}', this)" title="复制链接">${SVG_COPY}</button>
                                     </div>
                                 </div>
                                 <div class="info-row admin-only">
@@ -4094,6 +4344,7 @@ function toSvg(s){
                     </div>\`);
                 });
                 container.innerHTML = htmlParts.join('');
+                container.querySelectorAll('.node-detail').forEach(body => ensureFold(body, 'flex'));
                 if (window.ROLE === 'sub' || window.ROLE === 'subadmin') container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
                 // 自动测速:6 路并发的队列(原先每个节点错开 500ms,110 个节点最后一个要等近一分钟才开始测)
                 if (!nodeSaveFlow || !nodeSaveFlow.pending || nodeSaveFlow.saved) (function () { const q = proxyNodesForPing.filter(n => n.url); function next() { const n = q.shift(); if (!n) return; Promise.resolve(pingTarget(n.idx, n.url)).then(next, next); } for (let i = 0; i < 6; i++) next(); })();
@@ -4261,8 +4512,8 @@ function toSvg(s){
         function toggleNodeDetail(btn) {
             const card = btn.closest('.emby-card');
             const d = card.querySelector('.node-detail');
-            const show = d.style.display === 'none';
-            d.style.display = show ? 'flex' : 'none';
+            const show = !isFoldOpen(d);
+            setFold(d, show, btn);
             btn.classList.toggle('rotated', show);
             btn.title = show ? '收起' : '展开详情';
         }
@@ -4651,8 +4902,8 @@ function toSvg(s){
             const b = document.getElementById('ipguardCardBody');
             const a = document.getElementById('ipguardCardArrow');
             if (!b) return;
-            const open = b.style.display !== 'none';
-            b.style.display = open ? 'none' : 'block';
+            const open = isFoldOpen(b);
+            setFold(b, !open, a?.parentElement);
             if (a) a.textContent = open ? ' 展开' : '▼ 收起';
         }
         // ============ IP 访问控制 ============
@@ -4992,9 +5243,9 @@ function toSvg(s){
         function tgSetSec(id) {
             const b = document.getElementById('setSec-' + id);
             if (!b) return;
-            const open = b.style.display !== 'none';
-            b.style.display = open ? 'none' : '';
+            const open = isFoldOpen(b);
             const arr = document.getElementById('setSecArr-' + id);
+            setFold(b, !open, arr?.parentElement);
             if (arr) arr.textContent = open ? '▸' : '▾';
         }
         // 一键封禁:把申请记录的 IP 加入最高黑名单(仅管理员;子管理员审核时无此能力)
@@ -5396,7 +5647,7 @@ function toSvg(s){
                 tr.className = 'test-row';
                 tr.innerHTML = \`
                     <td data-label="勾选节点" style="text-align: center;"><input type="checkbox" class="ip-checkbox row-checkbox" value="\${ip}"></td>
-                    <td data-label="专属节点"><strong class="ip-text" style="color:var(--primary);cursor:pointer;font-family:monospace;" onclick="copyTxt('\${ip}')" title="点击复制">\${ip}</strong></td>
+                    <td data-label="专属节点"><strong class="ip-text" style="color:var(--primary);cursor:pointer;font-family:monospace;" onclick="copyTxt('\${ip}', this)" title="点击复制">\${ip}</strong></td>
                     <td data-label="预估延迟" class="latency" data-ms="9999" style="font-weight: 600; color: #888;">测算中...</td>
                     <td data-label="连通状态" class="speed" style="color: #888;">-</td>
                     <td data-label="记录/归属地" class="loc" style="color: #666;">等待解析</td>
@@ -5431,7 +5682,7 @@ function toSvg(s){
                     tr.className = 'test-row';
                     tr.innerHTML = \`
                         <td data-label="勾选节点" style="text-align: center;"><input type="checkbox" class="ip-checkbox row-checkbox" value="\${ip}"></td>
-                        <td data-label="专属节点"><strong class="ip-text" style="color:var(--primary);cursor:pointer;font-family:monospace;" onclick="copyTxt('\${ip}')" title="点击复制">\${ip}</strong></td>
+                        <td data-label="专属节点"><strong class="ip-text" style="color:var(--primary);cursor:pointer;font-family:monospace;" onclick="copyTxt('\${ip}', this)" title="点击复制">\${ip}</strong></td>
                         <td data-label="预估延迟" class="latency" data-ms="9999" style="font-weight: 600; color: #888;">测算中...</td>
                         <td data-label="连通状态" class="speed" style="color: #888;">-</td>
                         <td data-label="记录/归属地" class="loc" style="color: #666;">等待解析</td>
@@ -5525,7 +5776,7 @@ function toSvg(s){
                     tr.className = 'test-row';
                     tr.innerHTML = \`
                         <td data-label="勾选节点" style="text-align: center;"><input type="checkbox" class="ip-checkbox row-checkbox" value="\${ip}"></td>
-                        <td data-label="专属节点"><strong class="ip-text" style="color:var(--primary);cursor:pointer;font-family:monospace;" onclick="copyTxt('\${ip}')" title="点击复制">\${ip}</strong></td>
+                        <td data-label="专属节点"><strong class="ip-text" style="color:var(--primary);cursor:pointer;font-family:monospace;" onclick="copyTxt('\${ip}', this)" title="点击复制">\${ip}</strong></td>
                         <td data-label="预估延迟" class="latency" data-ms="9999" style="font-weight: 600; color: #888;">测算中...</td>
                         <td data-label="连通状态" class="speed" style="color: #888;">-</td>
                         <td data-label="记录/归属地" class="loc" style="color: #666;">等待解析</td>
@@ -6252,567 +6503,16 @@ function switchDsView(viewId, btn) {
 // 首次访问默认进入星云深色模式（无本地记录时），已有偏好则跟随
 window.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('emby_proxy_dark')) { document.body.classList.add('dark'); document.documentElement.classList.add('dark'); }
+    renderThemeToggle();
     initRole();
 });
 </script>
-<!-- SHADER_FLOOD_START -->
-<style>
-/* One shared canvas sits between existing card backgrounds and their real DOM. */
-#view-nodes{position:relative;isolation:isolate;container-type:inline-size}
-#view-nodes>.card:has(.sf-bound-card),#view-nodes .emby-card{backdrop-filter:none;-webkit-backdrop-filter:none;transform:none}
-#view-nodes .mode-card,#view-nodes .emby-card{min-width:0;transform:none;transition:color 200ms,border-color 200ms,box-shadow 200ms;touch-action:pan-y}
-#view-nodes .emby-card{border-radius:28px}
-#view-nodes .mode-card{border:1px solid var(--border)!important;box-shadow:none!important;background:var(--card)}
-#view-nodes .mode-card::before,#view-nodes .mode-card::after,#view-nodes .emby-card::before,#view-nodes .emby-card::after{display:none}
-#view-nodes .mode-card .mc-count{margin-left:auto}
-#view-nodes .mode-card .sf-icon{width:20px;height:20px;border-radius:6px}
-#view-nodes .mode-card .sf-icon svg{width:14px;height:14px}
-#view-nodes .mode-card .mc-name,#view-nodes .mode-card .mc-desc{transition:color 200ms}
-#view-nodes .sf-bound-card[data-sf-active=true]{--text:#fff;--text-sec:rgba(255,255,255,.8);--border:rgba(255,255,255,.25);color:var(--text)}
-#view-nodes .sf-bound-card .card-title-group,#view-nodes .sf-bound-card .info-label{transition:color 200ms}
-#view-nodes .sf-bound-card[data-sf-active=true] :is(.icon-btn,.btn-edit,.btn-del,.action-group){--text:#18181b;--text-sec:#52525b;--border:#e4e4e7;--card:#fff}
-#view-nodes .sf-bound-card .watch-meter{border-radius:12px;padding:10px}
-#view-nodes .sf-bound-card[data-sf-active=true] .watch-meter{background:rgba(0,0,0,.22)}
-#view-nodes .sf-bound-card[data-sf-active=true] .node-detail{--text:#18181b;--text-sec:#52525b;--border:#e4e4e7;color:var(--text)}
-body.dark #view-nodes .sf-bound-card[data-sf-active=true] .node-detail{--text:#f4f4f5;--text-sec:#a1a1aa;--border:#27272a}
-#view-nodes .emby-card .card-title-group>div:last-child{min-width:0;overflow-wrap:anywhere}
-#view-nodes .emby-card .node-detail{min-width:0}
-body:not(.dark) #view-nodes .emby-card .node-detail{background:color-mix(in srgb,var(--bg-soft) 68%,transparent)}
-body:not(.dark) #view-nodes .emby-card .node-detail .action-group{background:color-mix(in srgb,var(--card) 65%,transparent)}
-#view-nodes .sf-status{position:relative;display:block;left:auto;bottom:auto;text-align:right;min-height:0}
-#view-nodes .sf-status:empty{display:none}
-@media(prefers-reduced-motion:reduce){#view-nodes .sf-bound-card *{transition:none!important}}
-</style>
+<!-- MODE_ICONS_START -->
 <script>
-/**
- * ShaderFlood — procedural DOM/WebGL1 implementation of the supplied specification.
- * Design reference: Ashish Gogula / Planes, discovered via LeiBox.
- * SVG geometry: Lucide (ISC), see NOTICE.md. No remote assets or effect dependencies.
- */
-function createShaderFlood(host, initialOptions = {}, binding = null) {
-  const doc = host.ownerDocument;
-  const win = doc.defaultView;
-  const palettes = [
-    ['#0b2a5c', '#3b8cff', '#cfe4ff'], ['#2b0b40', '#a34dff', '#ead9ff'],
-    ['#5a1670', '#ef5bd8', '#ffd1f3'], ['#003c34', '#19c7a0', '#c6fff0'],
-    ['#4a2600', '#ffa22b', '#ffe9c9'],
-  ];
-  const defaults = [
-    { title: 'Instant deploys', description: "Push to main and it's live worldwide before the kettle boils.", icon: 'rocket' },
-    { title: 'Edge functions', description: 'Run code a few milliseconds from every visitor, not an ocean away.', icon: 'zap' },
-    { title: 'Design tokens', description: 'One source of colour, type and spacing that every surface reads from.', icon: 'palette' },
-    { title: 'Global CDN', description: 'Assets cached in hundreds of cities and purged in under a second.', icon: 'globe' },
-    { title: 'Media pipeline', description: 'Images and video resized, compressed and served in the right format.', icon: 'aperture' },
-    { title: 'Preview links', description: 'Every branch gets its own URL, so reviews happen on the real thing.', icon: 'clapperboard', colors: ['#3a0a0a', '#ff4d3d', '#ffd2c2'] },
-  ];
-  const icons = {
-    rocket: '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/>',
-    zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
-    palette: '<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>',
-    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
-    aperture: '<circle cx="12" cy="12" r="10"/><path d="m14.31 8 5.74 9.94"/><path d="M9.69 8h11.48"/><path d="m7.38 12 5.74-9.94"/><path d="M9.69 16 3.95 6.06"/><path d="M14.31 16H2.83"/><path d="m16.62 12-5.74 9.94"/>',
-    clapperboard: '<path d="m12.296 3.464 3.02 3.956"/><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="m6.18 5.276 3.1 3.899"/>',
-    layers: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
-  };
-  const css = \`
-    .sf-scene{position:relative;isolation:isolate;container-type:inline-size;box-sizing:border-box;width:100%;min-width:0;background:var(--sf-background,#fff);color:#18181b;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light}
-    .sf-scene[data-sf-theme=dark]{color-scheme:dark}
-    .sf-layout{box-sizing:border-box;min-height:var(--sf-height,720px);padding:48px;display:flex;align-items:center;justify-content:center}
-    .sf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:100%;max-width:1024px}
-    .sf-card{appearance:none;box-sizing:border-box;position:relative;display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:256px;margin:0;padding:28px;border:1px solid #e4e4e7;border-radius:28px;background:#fafafa;text-align:left;font:inherit;cursor:pointer;touch-action:pan-y;overflow-wrap:anywhere;-webkit-tap-highlight-color:transparent}
-    .sf-card>*,.sf-bound-card>*{position:relative;z-index:2}
-    .sf-icon{width:48px;height:48px;flex:none;display:grid;place-items:center;border-radius:16px;background:#fff;color:#18181b;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04),0 2px 4px rgba(0,0,0,.035)}
-    .sf-icon svg{width:24px;height:24px}
-    .sf-copy{margin-top:auto;padding-top:40px;display:block}
-    .sf-title{display:block;margin:0;color:#18181b;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.6px;transition:color 200ms}
-    .sf-description{display:block;margin-top:8px;color:#71717a;font-size:15px;line-height:24px;font-weight:400;transition:color 200ms}
-    [data-sf-theme=dark] .sf-card{background:#18181b;border-color:#27272a}
-    [data-sf-theme=dark] .sf-title{color:#f4f4f5}
-    [data-sf-theme=dark] .sf-description{color:#a1a1aa}
-    .sf-scene .sf-card[data-sf-active=true] .sf-title{color:white}
-    .sf-scene .sf-card[data-sf-active=true] .sf-description{color:rgba(255,255,255,.8)}
-    .sf-card:focus-visible,.sf-bound-card:has(.sf-toggle:focus-visible){outline:2px solid #a1a1aa;outline-offset:4px}
-    .sf-canvas{position:absolute;display:block;pointer-events:none;z-index:1}
-    .sf-status{position:absolute;left:16px;bottom:6px;font:11px/16px ui-sans-serif,system-ui,sans-serif;color:#71717a;z-index:2;pointer-events:none}
-    [data-sf-theme=dark]>.sf-status{color:#a1a1aa}
-    .sf-toggle{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
-    .sf-scene::selection,.sf-scene ::selection{background:#cfe4ff;color:#0b2a5c}
-    [data-sf-reduced=true] .sf-title,[data-sf-reduced=true] .sf-description{transition:none}
-    @container(max-width:899.98px){.sf-layout{padding:24px}}
-    @container(max-width:739.98px){.sf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @container(max-width:569.98px){.sf-grid{grid-template-columns:minmax(0,1fr)}}
-  \`;
-  const vertex = 'attribute vec2 position; varying vec2 vUV; void main(){vUV=position*.5+.5;gl_Position=vec4(position,0.,1.);}';
-  const fragment = \`
-    #extension GL_OES_standard_derivatives : enable
-    precision highp float;
-    varying vec2 vUV;
-    uniform vec2 size, origin;
-    uniform float progress, clock, seed, corner;
-    uniform vec3 deepColor, midColor, lightColor;
-    float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
-    float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
-    float fbm(vec2 p){float v=0.,a=.533;for(int i=0;i<4;i++){v+=a*noise(p);p=mat2(.8,.6,-.6,.8)*p*2.03+vec2(4.7,1.3);a*=.5;}return v;}
-    void main(){
-      vec2 uv=vUV;
-      vec2 pixel=uv*size;
-      vec2 d=abs(pixel-size*.5)-(size*.5-vec2(1.+corner));
-      float rounded=length(max(d,0.))+min(max(d.x,d.y),0.)-corner;
-      float radius=progress*1.5*length(size)/sqrt(2.);
-      float circle=length(pixel-vec2(origin.x,1.-origin.y)*size)-radius;
-      float alpha=(1.-smoothstep(-.65,.65,rounded))*(1.-smoothstep(-.65,.65,circle));
-      if(alpha<=0.||progress<=0.)discard;
-      vec2 p=(uv-.5)*vec2(size.x/size.y,1.)*2.4+vec2(seed*.173,seed*.097);
-      float t=clock*.15;
-      vec2 q=vec2(fbm(p+vec2(t*.22,-t*.17)),fbm(p+vec2(5.2,1.3)+vec2(-t*.18,t*.23)))-.5;
-      vec2 r=vec2(fbm(p+3.3*q+vec2(1.7,9.2)+t*.13),fbm(p+3.3*q+vec2(8.3,2.8)-t*.12))-.5;
-      float field=fbm(p+3.*r+q);
-      float f=smoothstep(.17,.77,field);
-      vec3 color=mix(deepColor,midColor,smoothstep(.05,.57,f));
-      color=mix(color,lightColor,pow(smoothstep(.72,.99,f),1.7)*.58);
-      float slope=length(vec2(dFdx(field),dFdy(field)))*size.y*.17;
-      float folds=(1.-smoothstep(.006,.034,abs(field-.43)))*.88+(1.-smoothstep(.003,.018,abs(field-.59)))*.24;
-      color=mix(color,deepColor*.28,min(.94,folds));
-      color+=pow(max(0.,1.-slope*2.),8.)*.025*lightColor;
-      color*=mix(.24,1.12,smoothstep(-.08,1.,uv.y));
-      gl_FragColor=vec4(color*alpha,alpha);
-    }
-  \`;
-  const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
-  const hex = value => typeof value === 'string' && /^#(?:[\\da-f]{3}|[\\da-f]{6})$/i.test(value);
-  const rgb = value => {
-    const s = value.length === 4 ? value.slice(1).split('').map(c => c + c).join('') : value.slice(1);
-    return [0, 2, 4].map(i => parseInt(s.slice(i, i + 2), 16) / 255);
-  };
-  function validate(next) {
-    if (!Array.isArray(next.items)) throw new TypeError('ShaderFlood: items must be an array');
-    next.items = next.items.map((item, i) => {
-      if (!item || typeof item.title !== 'string' || typeof item.description !== 'string') throw new TypeError('ShaderFlood: each item needs title and description strings');
-      const colors = item.colors ?? palettes[i % palettes.length];
-      if (!Array.isArray(colors) || colors.length !== 3 || !colors.every(hex)) throw new TypeError('ShaderFlood: colors must contain three hex colors');
-      return { ...item, colors: [...colors] };
-    });
-    if (!Number.isFinite(next.seed) || !Number.isFinite(next.speed)) throw new TypeError('ShaderFlood: seed and speed must be finite');
-    next.speed = clamp(next.speed, 0, 3);
-    if (!['light', 'dark'].includes(next.theme)) throw new TypeError('ShaderFlood: theme must be light or dark');
-    if (next.background != null && !hex(next.background)) throw new TypeError('ShaderFlood: background must be a hex color');
-    if (!Number.isFinite(next.height) || next.height < 0) throw new TypeError('ShaderFlood: height must be nonnegative pixels');
-    if (next.reducedMotion != null && typeof next.reducedMotion !== 'boolean') throw new TypeError('ShaderFlood: reducedMotion must be boolean');
-    return next;
-  }
-  let options = validate({ items: defaults, seed: 0, speed: 1, theme: 'light', background: null, height: 720, reducedMotion: null, ...initialOptions });
-  const scene = binding ? host : doc.createElement('div');
-  const style = doc.createElement('style');
-  style.textContent = css;
-  let grid;
-  if (!binding) {
-    scene.className = 'sf-scene';
-    const layout = doc.createElement('div');
-    layout.className = 'sf-layout';
-    grid = doc.createElement('div');
-    grid.className = 'sf-grid';
-    layout.append(grid);
-    scene.append(layout);
-    host.append(scene);
-  }
-  scene.append(style);
-  const status = doc.createElement('span');
-  status.className = 'sf-status';
-  status.setAttribute('role', 'status');
-  scene.append(status);
-  let canvas, gl = null, ctx = null, program = null, buffer = null, uniforms = {};
-  let cards = [], destroyed = false, raf = 0, lastFrame = null, textureTime = 0;
-  let reduced = false, pointerFocus = false, gesture = null;
-  let canvasBox = { left: 0, top: 0, width: 1, height: 1 }, dpr = 1;
-  const media = win.matchMedia('(prefers-reduced-motion: reduce)');
-  const listeners = [];
-  function listen(target, type, fn, settings) {
-    target.addEventListener(type, fn, settings);
-    listeners.push(() => target.removeEventListener(type, fn, settings));
-  }
-  function releaseGL(lose = true) {
-    if (!gl) return;
-    if (buffer) gl.deleteBuffer(buffer);
-    if (program) gl.deleteProgram(program);
-    if (lose) gl.getExtension('WEBGL_lose_context')?.loseContext();
-    buffer = program = null;
-    gl = null;
-  }
-  function makeCanvas() {
-    const next = doc.createElement('canvas');
-    next.className = 'sf-canvas';
-    next.setAttribute('aria-hidden', 'true');
-    if (canvas) { canvas.removeEventListener('webglcontextlost', contextLost); canvas.replaceWith(next); }
-    else scene.append(next);
-    canvas = next;
-  }
-  function fallback(message) {
-    releaseGL();
-    makeCanvas();
-    ctx = canvas.getContext('2d');
-    scene.dataset.sfRenderer = ctx ? 'canvas2d' : 'unavailable';
-    status.textContent = ctx ? 'canvas2d · ' + message : '画布不可用 · 卡片交互仍可用';
-  }
-  function contextLost(event) {
-    event.preventDefault();
-    fallback('WebGL 已中断，使用渐变与曲线回退');
-    invalidate();
-  }
-  function setupRenderer() {
-    makeCanvas();
-    try {
-      gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true });
-      if (!gl || !gl.getExtension('OES_standard_derivatives')) throw new Error('WebGL derivatives unavailable');
-      const shaders = [];
-      try {
-        for (const [type, source] of [[gl.VERTEX_SHADER, vertex], [gl.FRAGMENT_SHADER, fragment]]) {
-          const shader = gl.createShader(type);
-          shaders.push(shader);
-          gl.shaderSource(shader, source);
-          gl.compileShader(shader);
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
-        }
-        program = gl.createProgram();
-        shaders.forEach(shader => gl.attachShader(program, shader));
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
-      } finally { shaders.forEach(shader => gl.deleteShader(shader)); }
-      gl.useProgram(program);
-      buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
-      const location = gl.getAttribLocation(program, 'position');
-      gl.enableVertexAttribArray(location);
-      gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 0, 0);
-      for (const name of ['size', 'origin', 'progress', 'clock', 'seed', 'corner', 'deepColor', 'midColor', 'lightColor']) uniforms[name] = gl.getUniformLocation(program, name);
-      canvas.addEventListener('webglcontextlost', contextLost);
-      scene.dataset.sfRenderer = 'webgl';
-    } catch { fallback('WebGL 不可用，使用渐变与曲线回退'); }
-  }
-  const resizeObserver = new win.ResizeObserver(() => invalidate());
-  const intersectionObserver = new win.IntersectionObserver(entries => {
-    for (const entry of entries) {
-      const card = cards.find(c => c.el === entry.target);
-      if (card) card.visible = entry.isIntersecting;
-    }
-    invalidate();
-  });
-  function svg(key) {
-    const box = doc.createElement('span');
-    box.className = 'sf-icon';
-    box.setAttribute('aria-hidden', 'true');
-    box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (Object.hasOwn(icons, key) ? icons[key] : icons.layers) + '</svg>';
-    return box;
-  }
-  function reflect(card) {
-    card.el.dataset.sfActive = String(!!card.target);
-    card.control.setAttribute('aria-pressed', String(!!card.target));
-  }
-  function rebuild() {
-    const previous = cards;
-    const focused = previous.findIndex(c => c.control === doc.activeElement);
-    resizeObserver.disconnect();
-    intersectionObserver.disconnect();
-    if (!binding) {
-      grid.replaceChildren();
-      for (const item of options.items) {
-        const el = doc.createElement('button');
-        el.type = 'button';
-        el.className = 'sf-card';
-        const copy = doc.createElement('span');
-        copy.className = 'sf-copy';
-        const title = doc.createElement('span');
-        title.className = 'sf-title';
-        title.textContent = item.title;
-        const description = doc.createElement('span');
-        description.className = 'sf-description';
-        description.textContent = item.description;
-        copy.append(title, description);
-        el.append(svg(item.icon), copy);
-        grid.append(el);
-      }
-    }
-    const elements = [...scene.querySelectorAll(binding ? binding.cards : '.sf-card')];
-    cards = elements.map((el, i) => {
-      const old = binding ? previous.find(c => c.el === el) : previous[i];
-      let control = el;
-      if (binding) {
-        el.classList.add('sf-bound-card');
-        control = el.querySelector('.sf-toggle');
-        if (!control) {
-          control = doc.createElement('button');
-          control.type = 'button';
-          control.className = 'sf-toggle';
-          control.textContent = '切换液体效果：' + (el.querySelector('.mc-name,.card-title-group')?.textContent.trim() || '卡片');
-          if (el.matches('.mode-card')) control.textContent = el.dataset.mode === 'all' ? '显示全部节点' : '管理' + el.querySelector('.mc-name').textContent + '模式';
-          el.prepend(control);
-        }
-      }
-      const colors = options.items[i]?.colors ?? palettes[i % palettes.length];
-      const card = { progress: 0, target: 0, from: 0, origin: [.5, .5], started: 0, duration: 0, ...old, el, control, colors, rgb: colors.map(rgb), index: i, visible: false };
-      reflect(card);
-      resizeObserver.observe(el);
-      intersectionObserver.observe(el);
-      return card;
-    });
-    resizeObserver.observe(scene);
-    if (!binding && focused >= 0 && cards.length) {
-      pointerFocus = true;
-      cards[Math.min(focused, cards.length - 1)].control.focus({ preventScroll: true });
-      pointerFocus = false;
-    }
-    invalidate();
-  }
-  function sample(card, now) {
-    if (reduced || !card.duration) card.progress = card.target;
-    else {
-      const t = clamp((now - card.started) / card.duration);
-      card.progress = card.from + (card.target - card.from) * (1 - (1 - t) ** 3);
-    }
-  }
-  function setTarget(card, target, origin = [.5, .5]) {
-    if (!card || card.target === target) return;
-    const now = win.performance.now();
-    sample(card, now);
-    card.from = card.progress;
-    card.target = target;
-    card.origin = origin;
-    card.started = now;
-    card.duration = target ? 520 : 420;
-    if (reduced) card.progress = target;
-    reflect(card);
-    invalidate();
-  }
-  function point(card, event) {
-    const rect = card.el.getBoundingClientRect();
-    return [clamp((event.clientX - rect.left) / rect.width), clamp((event.clientY - rect.top) / rect.height)];
-  }
-  function findCard(target) {
-    if (!(target instanceof win.Element)) return null;
-    const el = target.closest(binding ? binding.cards : '.sf-card');
-    return cards.find(c => c.el === el) || null;
-  }
-  function isControl(event, card) {
-    const control = event.target.closest('button,a,input,select,textarea,[contenteditable],.drag-handle,[onclick]');
-    return control && control !== card.el && control !== card.control;
-  }
-  function closeOthers(except) { cards.forEach(c => { if (c !== except) setTarget(c, 0); }); }
-  listen(scene, 'pointerover', event => {
-    if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
-    const card = findCard(event.target);
-    if (card && !card.el.contains(event.relatedTarget)) setTarget(card, 1, point(card, event));
-  });
-  listen(scene, 'pointerout', event => {
-    if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
-    const card = findCard(event.target);
-    if (card && !card.el.contains(event.relatedTarget)) setTarget(card, 0, point(card, event));
-  });
-  listen(doc, 'pointerdown', event => {
-    pointerFocus = true;
-    const card = findCard(event.target);
-    if (!card) { closeOthers(null); gesture = null; return; }
-    gesture = { card, x: event.clientX, y: event.clientY, id: event.pointerId, moved: false, type: event.pointerType };
-  }, { passive: true });
-  listen(doc, 'pointermove', event => {
-    if (gesture?.id === event.pointerId && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 8) gesture.moved = true;
-  }, { passive: true });
-  listen(doc, 'pointerup', event => {
-    if (gesture?.id === event.pointerId) {
-      const { card, type, moved } = gesture;
-      if (type === 'touch' && !moved && findCard(event.target) === card && !isControl(event, card)) {
-        const target = card.el.matches('.mode-card') ? 1 : 1 - card.target;
-        closeOthers(card);
-        setTarget(card, target, point(card, event));
-      }
-    }
-    gesture = null;
-    pointerFocus = false;
-  }, { passive: true });
-  listen(doc, 'pointercancel', () => { gesture = null; pointerFocus = false; }, { passive: true });
-  listen(scene, 'click', event => {
-    const card = findCard(event.target);
-    if (card && card.el.matches('.mode-card')) { closeOthers(card); setTarget(card, 1, event.detail ? point(card, event) : [.5, .5]); return; }
-    // Native/assistive button activation; pointer gestures are handled above.
-    if (card && event.detail === 0 && !isControl(event, card)) { closeOthers(card); setTarget(card, 1 - card.target); }
-  });
-  listen(scene, 'focusin', event => {
-    const card = findCard(event.target);
-    if (card && !pointerFocus && !card.el.contains(event.relatedTarget)) setTarget(card, 1);
-  });
-  listen(scene, 'focusout', event => {
-    const card = findCard(event.target);
-    if (card && !card.el.contains(event.relatedTarget)) setTarget(card, 0);
-  });
-  listen(doc, 'keydown', () => { pointerFocus = false; }, true);
-  listen(scene, 'keydown', event => {
-    const card = findCard(event.target);
-    if (!card || isControl(event, card)) return;
-    if (event.key === 'Escape') { event.preventDefault(); setTarget(card, 0); return; }
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      if (!event.repeat) {
-        if (card.el.matches('.mode-card')) card.el.click();
-        else { closeOthers(card); setTarget(card, 1 - card.target); }
-      }
-      return;
-    }
-    const visible = cards.filter(c => c.el.getClientRects().length);
-    const index = visible.indexOf(card);
-    let next;
-    if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = visible.length - 1;
-    else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % visible.length;
-    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + visible.length) % visible.length;
-    if (next != null) { event.preventDefault(); visible[next].control.focus(); }
-  });
-  function measure() {
-    const rect = scene.getBoundingClientRect();
-    // Allocate only the visible slice, even for very long single-column lists.
-    const top = Math.max(rect.top, 0), bottom = Math.min(rect.bottom, win.innerHeight);
-    const left = Math.max(rect.left, 0), right = Math.min(rect.right, win.innerWidth);
-    canvasBox = { left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
-    dpr = Math.min(win.devicePixelRatio || 1, 1.5);
-    canvas.style.left = (left - rect.left - scene.clientLeft) + 'px';
-    canvas.style.top = (top - rect.top - scene.clientTop) + 'px';
-    canvas.style.width = canvasBox.width + 'px';
-    canvas.style.height = canvasBox.height + 'px';
-    const width = Math.round(canvasBox.width * dpr), height = Math.round(canvasBox.height * dpr);
-    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-  }
-  function clear() {
-    if (gl) { gl.disable(gl.SCISSOR_TEST); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
-    else if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); }
-  }
-  function drawGL(card, rect, time) {
-    const x = Math.round((rect.left - canvasBox.left) * dpr);
-    const y = Math.round((canvasBox.top + canvasBox.height - rect.bottom) * dpr);
-    const w = Math.round(rect.width * dpr), h = Math.round(rect.height * dpr);
-    gl.viewport(x, y, w, h);
-    gl.scissor(x, y, w, h);
-    gl.enable(gl.SCISSOR_TEST);
-    gl.uniform2f(uniforms.size, rect.width, rect.height);
-    gl.uniform2fv(uniforms.origin, card.origin);
-    gl.uniform1f(uniforms.progress, card.progress);
-    gl.uniform1f(uniforms.clock, time);
-    gl.uniform1f(uniforms.seed, options.seed + card.index * 7.31);
-    gl.uniform1f(uniforms.corner, card.corner);
-    gl.uniform3fv(uniforms.deepColor, card.rgb[0]);
-    gl.uniform3fv(uniforms.midColor, card.rgb[1]);
-    gl.uniform3fv(uniforms.lightColor, card.rgb[2]);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-  }
-  function draw2D(card, rect, time) {
-    const w = rect.width, h = rect.height;
-    ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, (rect.left - canvasBox.left) * dpr, (rect.top - canvasBox.top) * dpr);
-    ctx.beginPath(); ctx.roundRect(1, 1, w - 2, h - 2, card.corner); ctx.clip();
-    ctx.beginPath(); ctx.arc(card.origin[0] * w, card.origin[1] * h, card.progress * 1.5 * Math.hypot(w, h) / Math.SQRT2, 0, Math.PI * 2); ctx.clip();
-    const phase = time * .15 + options.seed * .173 + card.index * 7.31;
-    const gradient = ctx.createLinearGradient(0, h, w * (.6 + Math.sin(phase) * .2), 0);
-    gradient.addColorStop(0, card.colors[0]); gradient.addColorStop(.65, card.colors[1]); gradient.addColorStop(1, card.colors[2]);
-    ctx.fillStyle = gradient; ctx.fillRect(0, 0, w, h);
-    for (let i = 0; i < 18; i++) {
-      const y = h * i / 16, wave = Math.sin(phase + i * .65) * h * .17;
-      ctx.beginPath(); ctx.moveTo(-20, y);
-      ctx.bezierCurveTo(w * .3, y + wave, w * .62, y - wave * 1.6, w + 20, y + Math.cos(phase + i) * 40);
-      ctx.strokeStyle = card.colors[0]; ctx.globalAlpha = .14 + (i % 3) * .1; ctx.lineWidth = 1 + (i % 3); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    const shade = ctx.createLinearGradient(0, 0, 0, h);
-    shade.addColorStop(0, 'rgba(0,0,0,0)'); shade.addColorStop(1, 'rgba(0,0,0,.65)');
-    ctx.fillStyle = shade; ctx.fillRect(0, 0, w, h);
-    ctx.restore();
-  }
-  function stop() { if (raf) win.cancelAnimationFrame(raf); raf = 0; lastFrame = null; }
-  function frame(now) {
-    raf = 0;
-    if (destroyed || doc.hidden) { lastFrame = null; return; }
-    const dt = lastFrame == null ? 0 : Math.min(.08, (now - lastFrame) / 1000);
-    lastFrame = now;
-    if (!reduced) textureTime += dt * options.speed;
-    measure();
-    clear();
-    let animate = false;
-    for (const card of cards) {
-      sample(card, now);
-      if (!card.visible || card.el.classList.contains('ng-card')) continue;
-      const rect = card.el.getBoundingClientRect();
-      if (!rect.width || !rect.height || rect.bottom <= 0 || rect.top >= win.innerHeight || rect.right <= 0 || rect.left >= win.innerWidth) continue;
-      // A pointer event can arrive after this frame's timestamp: keep its zero-progress first frame alive.
-      animate ||= !reduced && (card.progress !== card.target || (card.progress > 0 && options.speed > 0 && (gl || ctx)));
-      if (card.progress <= 0) continue;
-      card.corner = Math.max(0, parseFloat(win.getComputedStyle(card.el).borderTopLeftRadius) - 1);
-      if (gl) drawGL(card, rect, reduced ? 0 : textureTime);
-      else if (ctx) draw2D(card, rect, reduced ? 0 : textureTime);
-    }
-    if (animate) raf = win.requestAnimationFrame(frame);
-    else lastFrame = null;
-  }
-  function invalidate() {
-    if (destroyed) return;
-    if (doc.hidden || !cards.some(c => c.visible && (c.target || c.progress))) { stop(); clear(); canvas.style.width = canvas.style.height = '0px'; return; }
-    if (!raf) raf = win.requestAnimationFrame(frame);
-  }
-  function applyOptions() {
-    reduced = options.reducedMotion ?? media.matches;
-    scene.dataset.sfTheme = options.theme;
-    scene.dataset.sfReduced = String(reduced);
-    if (!binding) {
-      scene.style.setProperty('--sf-background', options.background ?? (options.theme === 'dark' ? '#09090b' : '#ffffff'));
-      scene.style.setProperty('--sf-height', options.height + 'px');
-    }
-    if (reduced) cards.forEach(c => { c.progress = c.target; });
-    invalidate();
-  }
-  listen(media, 'change', applyOptions);
-  listen(win, 'resize', invalidate, { passive: true });
-  listen(win, 'scroll', invalidate, { passive: true, capture: true });
-  listen(doc, 'visibilitychange', invalidate);
-  setupRenderer();
-  rebuild();
-  applyOptions();
-  return {
-    update(patch = {}) {
-      if (destroyed) return;
-      const next = validate({ ...options, ...patch });
-      options = next;
-      if (Object.hasOwn(patch, 'items')) rebuild();
-      applyOptions();
-    },
-    refresh() { if (!destroyed) rebuild(); },
-    getState() {
-      return { renderer: scene.dataset.sfRenderer, running: !!raf, destroyed, textureTime, reducedMotion: reduced,
-        cards: cards.map(({ progress, target, from, origin, started, duration, colors, index }) => ({ progress, target, from, origin: [...origin], started, duration, colors: [...colors], seed: options.seed + index * 7.31 })) };
-    },
-    destroy() {
-      if (destroyed) return;
-      destroyed = true;
-      stop();
-      listeners.forEach(remove => remove());
-      listeners.length = 0;
-      resizeObserver.disconnect();
-      intersectionObserver.disconnect();
-      canvas.removeEventListener('webglcontextlost', contextLost);
-      releaseGL();
-      ctx = null;
-      canvas.width = canvas.height = 0;
-      if (binding) {
-        for (const card of cards) { card.el.classList.remove('sf-bound-card'); delete card.el.dataset.sfActive; card.control.remove(); }
-        for (const key of ['sfRenderer', 'sfTheme', 'sfReduced']) delete scene.dataset[key];
-        canvas.remove(); style.remove(); status.remove();
-      } else scene.remove();
-      cards = [];
-      gesture = null;
-    },
-  };
-}
-
-/* The Worker embeds this adapter and the complete framework-neutral engine. */
+/* Lucide icon geometry (ISC), retained from the LeiBox / ShaderFlood adapter. */
 (() => {
   const host = document.getElementById('view-nodes');
   if (!host) return;
-  let instance;
-  const theme = () => document.body.classList.contains('dark') ? 'dark' : 'light';
   const iconKeys = ['rocket', 'zap', 'palette', 'globe', 'aperture', 'clapperboard'];
   const modeIcons = [
     '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/>',
@@ -6823,6 +6523,8 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     '<path d="m12.296 3.464 3.02 3.956M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3zM3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM6.18 5.276l3.1 3.899"/>',
   ];
   host.querySelectorAll('.mode-card').forEach((card, index) => {
+    card.tabIndex = 0; card.setAttribute('role', 'button'); card.setAttribute('aria-label', card.querySelector('.mc-name').textContent);
+    card.addEventListener('keydown', foldKeyboard);
     const icon = document.createElement('span');
     icon.className = 'sf-icon';
     icon.dataset.icon = iconKeys[index];
@@ -6830,27 +6532,10 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + modeIcons[index] + '</svg>';
     card.querySelector('.mc-idx').replaceWith(icon);
   });
-  const nodes = document.getElementById('list-grid');
-  const nodeObserver = new MutationObserver(() => instance?.refresh());
-  const themeObserver = new MutationObserver(() => instance?.update({ theme: theme() }));
-  function mount() {
-    instance = createShaderFlood(host, { theme: theme() }, { cards: '.mode-card,.emby-card' });
-    nodeObserver.observe(nodes, { childList: true });
-    themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  }
-  function destroy() {
-    nodeObserver.disconnect();
-    themeObserver.disconnect();
-    instance?.destroy();
-    instance = null;
-  }
-  mount();
-  window.addEventListener('pagehide', destroy);
-  window.addEventListener('pageshow', event => { if (event.persisted) mount(); });
 })();
 
 </script>
-<!-- SHADER_FLOOD_END -->
+<!-- MODE_ICONS_END -->
 <!-- TACTILE_PUSH_START -->
 <style>
 body.dark button.tp-button{--tp-base:#465367;--tp-light:#303b4b;--tp-silver:#202a38;--tp-ink:#e7eef8;--tp-shadow:rgba(0,0,0,.18);--tp-highlight:rgba(148,163,184,.09);--tp-edge-light:rgba(255,255,255,.07);--tp-edge-shadow:rgba(0,0,0,.14)}
@@ -7313,9 +6998,9 @@ function findSavedNodeCard(prefix) {
 function expandSavedNodeCard(card, reveal = false) {
   if (!card) return;
   const detail = card.querySelector('.node-detail');
-  if (detail) detail.style.display = 'flex';
+  if (detail) setFold(detail, true);
   const toggle = card.querySelector('[onclick="toggleNodeDetail(this)"]');
-  if (toggle) { toggle.classList.add('rotated'); toggle.title = '收起'; }
+  if (toggle) { toggle.classList.add('rotated'); toggle.title = '收起'; toggle.setAttribute('aria-expanded', 'true'); }
   if (!reveal) return;
   card.classList.add('node-save-revealed');
   for (const el of card.querySelectorAll('.dynamic-url')) {
@@ -7371,7 +7056,7 @@ function resetSavedNodeForm() {
 
 function mountNodeSaveGlow(flow, autoStart = true) {
   flow.glow = createTransferGlow(flow.card, {
-    autoStart, awaitResult: true, duration: 5200,
+    autoStart, awaitResult: true, duration: 5200, reducedMotion: true,
     onReveal() { flow.revealed = true; expandSavedNodeCard(flow.card, true); },
     onComplete() { if (nodeSaveFlow === flow) showToast('节点已保存，源站和直达链接已展开'); },
     onRetry() { if (!flow.pending) persistNodeWithGlow(flow); },
@@ -7454,7 +7139,7 @@ async function saveNodeWithGlow(payload) {
   closeNodeModal();
   activeModeFilter = ''; document.getElementById('searchNode').value = '';
   switchDsView('nodes', document.querySelector('.ds-dock-item'));
-  if (document.getElementById('list-grid').style.display === 'none') toggleNodesCollapse();
+  if (!isFoldOpen(document.getElementById('list-grid'))) toggleNodesCollapse();
   await load(preview);
   flow.card = findSavedNodeCard(payload.prefix);
   if (!flow.card) {

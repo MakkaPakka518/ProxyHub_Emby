@@ -5,12 +5,13 @@ import { createRequire } from 'node:module';
 import { resolve, join } from 'node:path';
 import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
+import { verifyRefinements } from './refinements.browser.mjs';
 
 const require = createRequire(resolve(process.env.UI_TEST_TOOLS || '.', 'package.json'));
 const { chromium } = require('playwright');
 const source = readFileSync(new URL('./worker.js', import.meta.url), 'utf8');
 const sandbox = vm.createContext({ console, URL, URLSearchParams, Request, Response, Headers, TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, crypto: webcrypto, atob, btoa });
-const worker = new vm.SourceTextModule(source + '\nexport { HTML_UI };', { context: sandbox });
+const worker = new vm.SourceTextModule(source + '\nexport { HTML_UI, LOGIN_UI };', { context: sandbox });
 await worker.link(() => new vm.SyntheticModule(['connect'], function () {
   this.setExport('connect', () => { throw new Error('No sockets in UI checks'); });
 }, { context: sandbox }));
@@ -36,6 +37,7 @@ try {
     const json = (body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
     if (url.origin === 'https://panel.test') {
       if (url.pathname === '/') return route.fulfill({ contentType: 'text/html', body: worker.namespace.HTML_UI });
+      if (url.pathname === '/login') return route.fulfill({ contentType: 'text/html', body: worker.namespace.LOGIN_UI });
       if (url.pathname === '/api/routes') {
         if (req.method() === 'POST') {
           const data = req.postDataJSON(); posts.push(data);
@@ -49,6 +51,7 @@ try {
       if (url.pathname === '/api/me') return json({ success: true, role: 'admin' });
       if (url.pathname === '/api/version') return json({ success: true, version: '4.1.3', updateNotify: false });
       if (url.pathname === '/api/ping-node') return json({ ms: 42 });
+      if (url.pathname === '/api/trace') return json({ success: true, entryCountry: 'JP', entryCity: 'Tokyo', entryColo: 'NRT', egressColo: 'NRT' });
       if (url.pathname === '/api/ipguard') return json({ success: true, mode: 'off', ips: [], countries: [] });
       if (url.pathname === '/__client_rtt__') return route.fulfill({ status: 204 });
       return json({ success: true, list: [], items: [], requests: [], users: [], logs: [], stats: {} });
@@ -61,6 +64,7 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto('https://panel.test');
   await page.waitForFunction(() => document.querySelectorAll('.emby-card').length === 1);
+  await verifyRefinements(page, output);
   const drawer = page.locator('#nodeModal');
   const add = page.locator('button[onclick="openNodeModal()"]').first();
   for (const [width, height] of [[1440, 1000], [1024, 768], [768, 1024], [640, 844], [390, 844], [320, 700]]) {
@@ -69,12 +73,13 @@ try {
       await page.evaluate(dark => { document.body.classList.toggle('dark', dark); document.documentElement.classList.toggle('dark', dark); }, dark);
       await page.evaluate(() => { window.drawerInputFocuses = []; });
       await add.click();
+      await drawer.evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished.catch(() => {}))));
       assert.equal(await drawer.evaluate(el => el.matches(':modal')), true);
       assert.equal(await page.getByRole('dialog', { name: '添加节点', exact: true }).count(), 1);
       assert.deepEqual(await page.evaluate(() => window.drawerInputFocuses), [], 'Opening must never focus an editable field, even briefly');
       assert.equal(await page.locator('#nodeModalTitle').evaluate(el => el === document.activeElement), true);
       const bounds = await drawer.boundingBox();
-      assert.ok(Math.abs(bounds.x + bounds.width - width) < 1 && Math.abs(bounds.y) < 1);
+      assert.ok(Math.abs(bounds.x + bounds.width - width) < 1 && Math.abs(bounds.y) < 1, JSON.stringify({ bounds, width, height }));
       assert.ok(Math.abs(bounds.height - height) < 1);
       assert.ok(width <= 640 ? bounds.width === width : bounds.width === 720);
       const header = await page.locator('.node-drawer-head').boundingBox();
@@ -156,6 +161,7 @@ try {
   assert.equal(posts.at(-1).target, 'https://new-origin.example,https://new-backup.example');
 
   await page.setViewportSize({ width: 390, height: 500 }); await add.click();
+  await drawer.evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished.catch(() => {}))));
   assert.ok((await page.locator('.node-drawer-footer').boundingBox()).y < 500, 'Save stays in a keyboard-sized viewport');
   await drawer.locator('.close-x').click();
   await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -177,6 +183,7 @@ try {
   const touch = await touchContext.newPage();
   await touch.goto('https://panel.test');
   await touch.locator('button[onclick="openNodeModal()"]').first().tap();
+  await touch.locator('#nodeModal').evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished.catch(() => {}))));
   assert.deepEqual(await touch.evaluate(() => window.drawerInputFocuses), [], 'Touch opening leaves inputs unfocused');
   assert.equal((await touch.locator('#nodeModal').boundingBox()).width, 844, 'Touch phones remain full width in landscape');
   await touch.setViewportSize({ width: 390, height: 844 });
