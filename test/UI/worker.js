@@ -6762,6 +6762,145 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
 
 </script>
 <!-- SHADER_FLOOD_END -->
+<!-- TACTILE_PUSH_START -->
+<style>
+body.dark button.tp-button{--tp-shadow:rgba(0,0,0,.48);--tp-highlight:rgba(255,255,255,.075)}
+body button.tp-button:is(.icon-btn,.tb-icon-btn,.sf-mode-action,.close-x,.mm-close,.purge-mini){--tp-depth:2px;--tp-blur:5px}
+body button.tp-button:is(.btn-danger,.btn-del,.danger,.pill-close){--tp-ink:#9f1239}
+body button.tp-button:is(.btn-submit,.ds-dock-item.active,.geo-mode-btn.active){--tp-ink:#123e74;--tp-light:#f5fbff;--tp-silver:#b8cce2}
+body button.tp-button>.tp-label>svg{flex-shrink:0}
+body .ds-dock-item.tp-button>.tp-label{width:100%}
+body .ds-dock-item.tp-button :is(span,svg){color:var(--tp-ink)!important}
+body .ds-dock-item.tp-button svg{fill:currentColor}
+</style>
+<script>
+/** Independent HTML/CSS implementation of the supplied tactile-button brief.
+ * Discovery: LeiBox / tactile-push-button; community design credited to 少荃.
+ */
+function createTactilePushButton(host, initialOptions = {}, binding = null) {
+  const doc = host.ownerDocument;
+  let options = { height: 360, reducedMotion: null, label: 'button', disabled: false, onClick: null, ...initialOptions };
+  function validate(next) {
+    if (!Number.isFinite(next.height) || next.height < 0) throw new TypeError('height must be nonnegative pixels');
+    if (next.reducedMotion != null && typeof next.reducedMotion !== 'boolean') throw new TypeError('reducedMotion must be boolean or null');
+    if (typeof next.label !== 'string' || typeof next.disabled !== 'boolean') throw new TypeError('Invalid label or disabled value');
+    if (next.onClick != null && typeof next.onClick !== 'function') throw new TypeError('onClick must be a function');
+    return next;
+  }
+  validate(options);
+  const css = \`
+    .tp-scene{box-sizing:border-box;display:grid;place-items:center;min-width:0;width:100%;min-height:var(--tp-height,360px);padding:32px 24px;background:#e1e1e1;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .tp-scene>.tp-button{appearance:none;border:0;padding:24px 56px;font:inherit;font-size:48px;line-height:1.2;max-width:100%;cursor:pointer}
+    button.tp-button{--tp-base:#4b4b50;--tp-light:#fafafa;--tp-silver:#c7c9ce;--tp-ink:#27272a;--tp-shadow:rgba(45,48,55,.32);--tp-highlight:rgba(255,255,255,.88);--tp-depth:6px;--tp-blur:12px;--tp-shadow-time:300ms;--tp-surface-time:250ms;position:relative;isolation:isolate;overflow:visible!important;background:var(--tp-base)!important;color:var(--tp-ink)!important;border-color:transparent!important;border-radius:999px!important;text-shadow:none!important;box-shadow:calc(-1*var(--tp-depth)) calc(-1*var(--tp-depth)) var(--tp-blur) var(--tp-highlight),var(--tp-depth) var(--tp-depth) var(--tp-blur) var(--tp-shadow)!important;transform:none!important;filter:none!important;transition:box-shadow var(--tp-shadow-time) ease!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    .tp-scene>.tp-button{--tp-depth:12px;--tp-blur:24px}
+    button.tp-button::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(135deg,var(--tp-light),var(--tp-silver));box-shadow:inset 1px 1px 1px rgba(255,255,255,.85),inset -2px -2px 4px rgba(76,78,86,.18);clip-path:inset(0 round 999px);transform:scale(1);transition:box-shadow var(--tp-shadow-time) ease,clip-path var(--tp-surface-time) ease,transform var(--tp-surface-time) ease!important;pointer-events:none}
+    button.tp-button::after{content:none!important}
+    button.tp-button>.tp-label{display:inline-flex;flex-direction:inherit;align-items:center;justify-content:center;gap:inherit;min-width:0;max-width:100%;vertical-align:middle;position:relative;transform:scale(1);transition:transform var(--tp-surface-time) ease!important;pointer-events:none}
+    button.tp-button>.tp-label *{pointer-events:none}
+    button.tp-button:focus-visible{outline:2px solid #71717a!important;outline-offset:4px}
+    @media(hover:hover){
+      button.tp-button:not(:disabled):hover{box-shadow:0 0 0 transparent,0 0 0 transparent!important}
+      button.tp-button:not(:disabled):hover::before{clip-path:inset(2px round 999px);box-shadow:inset 3px 3px 7px rgba(57,60,68,.3),inset -3px -3px 7px rgba(255,255,255,.75)}
+      button.tp-button:not(:disabled):hover>.tp-label{transform:scale(.975)}
+    }
+    button.tp-button:not(:disabled):active{box-shadow:0 0 0 transparent,0 0 0 transparent!important}
+    button.tp-button:not(:disabled):active::before{transform:scale(.93);clip-path:inset(2px round 999px);box-shadow:inset 4px 4px 9px rgba(57,60,68,.35),inset -3px -3px 7px rgba(255,255,255,.65)}
+    button.tp-button:not(:disabled):active>.tp-label{transform:scale(.93)}
+    button.tp-button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important}
+    button.tp-button[data-tp-reduced=true]{--tp-shadow-time:0ms;--tp-surface-time:0ms}
+    @media(prefers-reduced-motion:reduce){button.tp-button:not([data-tp-reduced=false]){--tp-shadow-time:0ms;--tp-surface-time:0ms}}
+    @media(forced-colors:active){button.tp-button{border:2px solid ButtonText!important;color:ButtonText!important;background:ButtonFace!important;box-shadow:none!important}button.tp-button::before{background:ButtonFace;box-shadow:none}}
+    .tp-scene ::selection{color:#27272a;background:#fff}
+  \`;
+  const scene = binding ? host : doc.createElement('div');
+  const style = doc.createElement('style');
+  style.textContent = css;
+  let button, observer, destroyed = false;
+  const enhanced = new Set();
+  if (!binding) {
+    scene.className = 'tp-scene';
+    button = doc.createElement('button');
+    button.type = 'button';
+    scene.append(button);
+    host.append(scene);
+  }
+  scene.append(style);
+  function enhance(button) {
+    if (button.matches('.sf-toggle')) return;
+    if (button.childNodes.length !== 1 || !button.firstElementChild?.classList.contains('tp-label')) {
+      const label = doc.createElement('span');
+      label.className = 'tp-label';
+      label.append(...button.childNodes);
+      button.append(label);
+    }
+    button.classList.add('tp-button');
+    button.dataset.tpReduced = options.reducedMotion == null ? 'system' : String(options.reducedMotion);
+    enhanced.add(button);
+  }
+  function update(next = {}) {
+    if (destroyed) return;
+    options = validate({ ...options, ...next });
+    if (!binding) {
+      scene.style.setProperty('--tp-height', options.height + 'px');
+      const label = button.querySelector('.tp-label');
+      if (label) label.textContent = options.label;
+      else button.textContent = options.label;
+      button.disabled = options.disabled;
+      enhance(button);
+    } else for (const el of enhanced) el.dataset.tpReduced = options.reducedMotion == null ? 'system' : String(options.reducedMotion);
+  }
+  const onClick = event => options.onClick?.(event);
+  if (binding) {
+    scene.querySelectorAll(binding.buttons).forEach(enhance);
+    observer = new doc.defaultView.MutationObserver(records => {
+      const changed = new Set();
+      for (const record of records) {
+        const parent = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+        const button = parent?.closest(binding.buttons);
+        if (button && scene.contains(button)) changed.add(button);
+        for (const node of record.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          if (node.matches(binding.buttons)) changed.add(node);
+          node.querySelectorAll(binding.buttons).forEach(button => changed.add(button));
+        }
+      }
+      for (const button of enhanced) if (!scene.contains(button)) enhanced.delete(button);
+      changed.forEach(button => { if (scene.contains(button)) enhance(button); });
+    });
+    observer.observe(scene, { childList: true, subtree: true, characterData: true });
+  } else button.addEventListener('click', onClick);
+  update();
+  return {
+    update,
+    destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      observer?.disconnect();
+      button?.removeEventListener('click', onClick);
+      if (binding) {
+        for (const el of enhanced) {
+          const label = el.querySelector(':scope > .tp-label');
+          if (label) label.replaceWith(...label.childNodes);
+          el.classList.remove('tp-button');
+          delete el.dataset.tpReduced;
+        }
+        style.remove();
+      } else scene.remove();
+      enhanced.clear();
+    },
+  };
+}
+
+
+(() => {
+  let buttons;
+  const mount = () => { buttons = createTactilePushButton(document.body, {}, { buttons: 'button:not(.sf-toggle)' }); };
+  mount();
+  window.addEventListener('pagehide', () => buttons.destroy());
+  window.addEventListener('pageshow', event => { if (event.persisted) mount(); });
+})();
+</script>
+<!-- TACTILE_PUSH_END -->
 `;
 
 // ==========================================
