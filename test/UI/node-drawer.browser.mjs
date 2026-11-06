@@ -20,10 +20,17 @@ const output = resolve(process.env.UI_TEST_OUTPUT || '/tmp/opencode/proxyhub-nod
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}), args: ['--no-sandbox'] });
 const errors = [], posts = [];
+const trackDrawerInputFocus = () => {
+  window.drawerInputFocuses = [];
+  document.addEventListener('focusin', event => {
+    if (event.target.closest('#nodeModal') && event.target.matches('input,textarea,select,[contenteditable=true]')) window.drawerInputFocuses.push(event.target.id);
+  });
+};
 let failSave = false;
 let routes = [{ prefix: 'existing', remark: '现有媒体节点', target: 'https://origin.example,https://backup.example', mode: 'off', cache_img: 'on', watch_limit: '7', last_play: new Date().toISOString(), todayReqs: 0, totalReqs: 0, todayBandwidth: '0 B', node_user: 'viewer', node_pass: 'example-password' }];
 try {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await context.addInitScript(trackDrawerInputFocus);
   const routeHandler = async route => {
     const req = route.request(), url = new URL(req.url());
     const json = (body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
@@ -60,10 +67,12 @@ try {
     await page.setViewportSize({ width, height });
     for (const dark of [false, true]) {
       await page.evaluate(dark => { document.body.classList.toggle('dark', dark); document.documentElement.classList.toggle('dark', dark); }, dark);
+      await page.evaluate(() => { window.drawerInputFocuses = []; });
       await add.click();
       assert.equal(await drawer.evaluate(el => el.matches(':modal')), true);
       assert.equal(await page.getByRole('dialog', { name: '添加节点', exact: true }).count(), 1);
-      assert.equal(await page.locator('#remark').evaluate(el => el === document.activeElement), true);
+      assert.deepEqual(await page.evaluate(() => window.drawerInputFocuses), [], 'Opening must never focus an editable field, even briefly');
+      assert.equal(await page.locator('#nodeModalTitle').evaluate(el => el === document.activeElement), true);
       const bounds = await drawer.boundingBox();
       assert.ok(Math.abs(bounds.x + bounds.width - width) < 1 && Math.abs(bounds.y) < 1);
       assert.ok(Math.abs(bounds.height - height) < 1);
@@ -102,7 +111,9 @@ try {
   if (!await page.locator('#list-grid').isVisible()) await page.locator('#nodesHint').click();
   await page.locator('[data-prefix="existing"] button[title="展开详情"]').click();
   const edit = page.locator('[data-prefix="existing"] button[onclick^="editNode("]').first();
+  await page.evaluate(() => { window.drawerInputFocuses = []; });
   await edit.click();
+  assert.deepEqual(await page.evaluate(() => window.drawerInputFocuses), [], 'Editing opens without starting input');
   assert.equal(await page.getByRole('dialog', { name: '编辑节点', exact: true }).count(), 1);
   assert.equal(await page.getByLabel('节点备注', { exact: true }).inputValue(), '现有媒体节点');
   assert.equal(await page.getByLabel('备用线路 1', { exact: true }).inputValue(), 'https://backup.example');
@@ -118,7 +129,9 @@ try {
   failSave = true; await page.locator('#submitBtn').click();
   await page.waitForFunction(() => document.querySelector('.ng-card')?.dataset.ngState === 'error');
   assert.equal(await drawer.evaluate(el => el.open), false);
+  await page.evaluate(() => { window.drawerInputFocuses = []; });
   await page.getByRole('button', { name: '返回编辑', exact: true }).click();
+  assert.deepEqual(await page.evaluate(() => window.drawerInputFocuses), [], 'Returning to a failed draft must not summon the keyboard');
   assert.equal(await drawer.evaluate(el => el.open), true);
   assert.equal(await page.locator('#remark').inputValue(), '编辑后保留的节点');
   assert.equal(await page.locator('#nodePass').inputValue(), 'example-password');
@@ -159,12 +172,26 @@ try {
   assert.deepEqual(errors, []);
   await context.close();
   const touchContext = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 844, height: 390 }, reducedMotion: 'reduce' });
+  await touchContext.addInitScript(trackDrawerInputFocus);
   await touchContext.route('**/*', routeHandler);
   const touch = await touchContext.newPage();
   await touch.goto('https://panel.test');
   await touch.locator('button[onclick="openNodeModal()"]').first().tap();
+  assert.deepEqual(await touch.evaluate(() => window.drawerInputFocuses), [], 'Touch opening leaves inputs unfocused');
   assert.equal((await touch.locator('#nodeModal').boundingBox()).width, 844, 'Touch phones remain full width in landscape');
   await touch.setViewportSize({ width: 390, height: 844 });
+  await touch.locator('#remark').tap();
+  assert.equal(await touch.locator('#remark').evaluate(el => el === document.activeElement), true, 'Manual tapping still starts input');
+  await touch.locator('#remark').fill('手动输入的节点');
+  assert.equal(await touch.locator('#remark').inputValue(), '手动输入的节点');
+  await touch.locator('#nodeModal .close-x').tap();
+  if (!await touch.locator('#list-grid').isVisible()) await touch.locator('#nodesHint').tap();
+  await touch.locator('[data-prefix="existing"] button[title="展开详情"]').tap();
+  await touch.evaluate(() => { window.drawerInputFocuses = []; });
+  await touch.locator('[data-prefix="existing"] button[onclick^="editNode("]').first().tap();
+  assert.deepEqual(await touch.evaluate(() => window.drawerInputFocuses), [], 'Touch editing leaves prefilled inputs unfocused');
+  await touch.locator('#remark').tap();
+  assert.equal(await touch.locator('#remark').evaluate(el => el === document.activeElement), true);
   await touch.evaluate(() => {
     Object.defineProperty(visualViewport, 'height', { configurable: true, value: 500 });
     Object.defineProperty(visualViewport, 'offsetTop', { configurable: true, value: 20 });
