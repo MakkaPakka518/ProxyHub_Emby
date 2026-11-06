@@ -1058,6 +1058,7 @@ const CSS_COMMON = `
     .node-drawer #toast{position:static;display:none;transform:none;max-width:none;width:100%;padding:10px 12px;border-radius:10px;text-align:left;font-size:13px;line-height:1.6;box-shadow:none;backdrop-filter:none;transition:none}
     .node-drawer #toast.show{display:block}
     .node-drawer :focus-visible{outline:2px solid var(--primary);outline-offset:3px;box-shadow:none!important}
+    #nodeModalTitle:focus{outline:none}
     @starting-style{.node-drawer[open]{transform:translateX(100%)}.node-drawer[open]::backdrop{opacity:0}}
     @media(max-width:640px),(max-width:900px) and (pointer:coarse){
         .node-drawer{--drawer-inset:20px;inset:var(--drawer-top,0px) 0 auto;width:100%;border:0;border-radius:0;transform:translateY(100%)}
@@ -2173,7 +2174,7 @@ function toSvg(s){
 
     <dialog id="nodeModal" class="node-drawer" aria-labelledby="nodeModalTitle">
             <div class="node-drawer-head">
-                <h2 id="nodeModalTitle">${I.pencil} 添加节点</h2>
+                <h2 id="nodeModalTitle" tabindex="-1" autofocus>${I.pencil} 添加节点</h2>
                 <button class="close-x" type="button" onclick="closeNodeModal()" title="关闭" aria-label="关闭节点配置">${I.xmark}</button>
             </div>
             <form id="addForm">
@@ -2181,7 +2182,7 @@ function toSvg(s){
                 <input type="hidden" id="oldPrefix" value="">
                 <h3 class="node-drawer-section-title">基本信息</h3>
                 <div class="form-row node-drawer-basics">
-                    <div class="field"><label for="remark">节点备注</label><input type="text" id="remark" placeholder="如: Misaka服" required autofocus></div>
+                    <div class="field"><label for="remark">节点备注</label><input type="text" id="remark" placeholder="如: Misaka服" required></div>
                     <div class="field"><label for="prefix">短路径后缀</label><input type="text" id="prefix" placeholder="如: misaka" required></div>
                     <div class="field sub-lite"><label for="mode">反代模式</label>
                         <select id="mode" onchange="toggleEmosFields()">
@@ -7359,7 +7360,6 @@ function restoreNodeSaveDraft(flow) {
   updateNodeBotPreview();
   document.getElementById('nodeModalTitle').textContent = p.oldPrefix || flow.saved ? '编辑节点' : '添加节点';
   document.getElementById('submitBtn').textContent = p.oldPrefix || flow.saved ? '保存修改' : '保存部署';
-  document.getElementById('remark').focus();
 }
 
 function resetSavedNodeForm() {
