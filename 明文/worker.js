@@ -1,5 +1,5 @@
-// VERSION: 4.1.3
-const CURRENT_VERSION = "4.1.3";
+// VERSION: 4.1.4
+const CURRENT_VERSION = "4.1.4";
 
 import { connect as __cfSocketConnect } from "cloudflare:sockets";
 globalThis.__cfConnect = __cfSocketConnect;
