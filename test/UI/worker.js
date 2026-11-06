@@ -6163,17 +6163,17 @@ window.addEventListener('DOMContentLoaded', () => {
 #view-nodes .mode-card .sf-icon{width:20px;height:20px;border-radius:6px}
 #view-nodes .mode-card .sf-icon svg{width:14px;height:14px}
 #view-nodes .mode-card .mc-name,#view-nodes .mode-card .mc-desc{transition:color 200ms}
-#view-nodes .sf-mode-action{flex:none;min-height:24px;padding:2px 4px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:10.5px;line-height:16px;white-space:nowrap;cursor:pointer}
-#view-nodes .sf-mode-action:focus-visible{outline:2px solid #a1a1aa;outline-offset:4px}
 #view-nodes .sf-bound-card[data-sf-active=true]{--text:#fff;--text-sec:rgba(255,255,255,.8);--border:rgba(255,255,255,.25);color:var(--text)}
 #view-nodes .sf-bound-card .card-title-group,#view-nodes .sf-bound-card .info-label{transition:color 200ms}
-#view-nodes .sf-bound-card[data-sf-active=true] :is(.icon-btn,.btn-edit,.btn-del,.action-group,.sf-mode-action){--text:#18181b;--text-sec:#52525b;--border:#e4e4e7;--card:#fff}
+#view-nodes .sf-bound-card[data-sf-active=true] :is(.icon-btn,.btn-edit,.btn-del,.action-group){--text:#18181b;--text-sec:#52525b;--border:#e4e4e7;--card:#fff}
 #view-nodes .sf-bound-card .watch-meter{border-radius:12px;padding:10px}
 #view-nodes .sf-bound-card[data-sf-active=true] .watch-meter{background:rgba(0,0,0,.22)}
 #view-nodes .sf-bound-card[data-sf-active=true] .node-detail{--text:#18181b;--text-sec:#52525b;--border:#e4e4e7;color:var(--text)}
 body.dark #view-nodes .sf-bound-card[data-sf-active=true] .node-detail{--text:#f4f4f5;--text-sec:#a1a1aa;--border:#27272a}
 #view-nodes .emby-card .card-title-group>div:last-child{min-width:0;overflow-wrap:anywhere}
 #view-nodes .emby-card .node-detail{min-width:0}
+body:not(.dark) #view-nodes .emby-card .node-detail{background:color-mix(in srgb,var(--bg-soft) 68%,transparent)}
+body:not(.dark) #view-nodes .emby-card .node-detail .action-group{background:color-mix(in srgb,var(--card) 65%,transparent)}
 #view-nodes .sf-status{position:relative;display:block;left:auto;bottom:auto;text-align:right;min-height:0}
 #view-nodes .sf-status:empty{display:none}
 @media(prefers-reduced-motion:reduce){#view-nodes .sf-bound-card *{transition:none!important}}
@@ -6439,6 +6439,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
           control.type = 'button';
           control.className = 'sf-toggle';
           control.textContent = '切换液体效果：' + (el.querySelector('.mc-name,.card-title-group')?.textContent.trim() || '卡片');
+          if (el.matches('.mode-card')) control.textContent = el.dataset.mode === 'all' ? '显示全部节点' : '管理' + el.querySelector('.mc-name').textContent + '模式';
           el.prepend(control);
         }
       }
@@ -6514,7 +6515,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     if (gesture?.id === event.pointerId) {
       const { card, type, moved } = gesture;
       if (type === 'touch' && !moved && findCard(event.target) === card && !isControl(event, card)) {
-        const target = 1 - card.target;
+        const target = card.el.matches('.mode-card') ? 1 : 1 - card.target;
         closeOthers(card);
         setTarget(card, target, point(card, event));
       }
@@ -6525,6 +6526,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
   listen(doc, 'pointercancel', () => { gesture = null; pointerFocus = false; }, { passive: true });
   listen(scene, 'click', event => {
     const card = findCard(event.target);
+    if (card && card.el.matches('.mode-card')) { closeOthers(card); setTarget(card, 1, event.detail ? point(card, event) : [.5, .5]); return; }
     // Native/assistive button activation; pointer gestures are handled above.
     if (card && event.detail === 0 && !isControl(event, card)) { closeOthers(card); setTarget(card, 1 - card.target); }
   });
@@ -6543,7 +6545,10 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     if (event.key === 'Escape') { event.preventDefault(); setTarget(card, 0); return; }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      if (!event.repeat) { closeOthers(card); setTarget(card, 1 - card.target); }
+      if (!event.repeat) {
+        if (card.el.matches('.mode-card')) card.el.click();
+        else { closeOthers(card); setTarget(card, 1 - card.target); }
+      }
       return;
     }
     const visible = cards.filter(c => c.el.getClientRects().length);
@@ -6703,7 +6708,6 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
   if (!host) return;
   let instance;
   const theme = () => document.body.classList.contains('dark') ? 'dark' : 'light';
-  // Mode actions remain explicit buttons so a touch on the card can toggle the liquid.
   const iconKeys = ['rocket', 'zap', 'palette', 'globe', 'aperture', 'clapperboard'];
   const modeIcons = [
     '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/>',
@@ -6714,13 +6718,6 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     '<path d="m12.296 3.464 3.02 3.956M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3zM3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM6.18 5.276l3.1 3.899"/>',
   ];
   host.querySelectorAll('.mode-card').forEach((card, index) => {
-    const action = document.createElement('button');
-    action.type = 'button';
-    action.className = 'sf-mode-action';
-    action.textContent = card.dataset.mode === 'all' ? '显示全部' : '管理模式';
-    action.setAttribute('onclick', card.getAttribute('onclick'));
-    card.removeAttribute('onclick');
-    card.querySelector('.mc-top').append(action);
     const icon = document.createElement('span');
     icon.className = 'sf-icon';
     icon.dataset.icon = iconKeys[index];
@@ -6777,9 +6774,9 @@ function createTactilePushButton(host, initialOptions = {}, binding = null) {
   const css = \`
     .tp-scene{box-sizing:border-box;display:grid;place-items:center;min-width:0;width:100%;min-height:var(--tp-height,360px);padding:32px 24px;background:#e1e1e1;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     .tp-scene>.tp-button{appearance:none;border:0;padding:24px 56px;font:inherit;font-size:48px;line-height:1.2;max-width:100%;cursor:pointer}
-    button.tp-button{--tp-base:#ccd2da;--tp-light:#fafafa;--tp-silver:#d3d6db;--tp-ink:#27272a;--tp-shadow:rgba(45,48,55,.16);--tp-highlight:rgba(255,255,255,.6);--tp-edge-light:rgba(255,255,255,.6);--tp-edge-shadow:rgba(76,78,86,.1);--tp-depth:4px;--tp-blur:10px;--tp-shadow-time:300ms;--tp-surface-time:250ms;position:relative;isolation:isolate;overflow:visible!important;background:var(--tp-base)!important;color:var(--tp-ink)!important;border-color:transparent!important;border-radius:999px!important;text-shadow:none!important;box-shadow:calc(-1*var(--tp-depth)) calc(-1*var(--tp-depth)) var(--tp-blur) var(--tp-highlight),var(--tp-depth) var(--tp-depth) var(--tp-blur) var(--tp-shadow)!important;transform:none!important;filter:none!important;transition:box-shadow var(--tp-shadow-time) ease!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    button.tp-button{--tp-base:#ccd2da;--tp-light:#fafafa;--tp-silver:#d3d6db;--tp-ink:#27272a;--tp-shadow:rgba(45,48,55,.16);--tp-highlight:rgba(255,255,255,.6);--tp-edge-light:rgba(255,255,255,.6);--tp-edge-shadow:rgba(76,78,86,.1);--tp-depth:4px;--tp-blur:10px;--tp-shadow-time:300ms;--tp-surface-time:250ms;position:relative;isolation:isolate;overflow:visible!important;background:color-mix(in srgb,var(--tp-base) 28%,transparent)!important;color:var(--tp-ink)!important;border-color:transparent!important;border-radius:999px!important;text-shadow:none!important;box-shadow:calc(-1*var(--tp-depth)) calc(-1*var(--tp-depth)) var(--tp-blur) var(--tp-highlight),var(--tp-depth) var(--tp-depth) var(--tp-blur) var(--tp-shadow)!important;transform:none!important;filter:none!important;transition:box-shadow var(--tp-shadow-time) ease!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     .tp-scene>.tp-button{--tp-depth:12px;--tp-blur:24px}
-    button.tp-button::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(135deg,var(--tp-light),var(--tp-silver));box-shadow:inset 1px 1px 1px var(--tp-edge-light),inset -1px -1px 3px var(--tp-edge-shadow);clip-path:inset(0 round 999px);transform:scale(1);transition:box-shadow var(--tp-shadow-time) ease,clip-path var(--tp-surface-time) ease,transform var(--tp-surface-time) ease!important;pointer-events:none}
+    button.tp-button::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;opacity:.88;background:linear-gradient(135deg,var(--tp-light),var(--tp-silver));box-shadow:inset 1px 1px 1px var(--tp-edge-light),inset -1px -1px 3px var(--tp-edge-shadow);clip-path:inset(0 round 999px);transform:scale(1);transition:box-shadow var(--tp-shadow-time) ease,clip-path var(--tp-surface-time) ease,transform var(--tp-surface-time) ease!important;pointer-events:none}
     button.tp-button::after{content:none!important}
     button.tp-button>.tp-label{display:inline-flex;flex-direction:inherit;align-items:center;justify-content:center;gap:inherit;min-width:0;max-width:100%;vertical-align:middle;position:relative;transform:scale(1);transition:transform var(--tp-surface-time) ease!important;pointer-events:none}
     button.tp-button>.tp-label *{pointer-events:none}
