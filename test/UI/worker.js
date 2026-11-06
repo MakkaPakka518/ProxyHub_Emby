@@ -6168,15 +6168,15 @@ window.addEventListener('DOMContentLoaded', () => {
 /* One shared canvas sits between existing card backgrounds and their real DOM. */
 #view-nodes{position:relative;isolation:isolate;container-type:inline-size}
 #view-nodes>.card:has(.sf-bound-card),#view-nodes .emby-card{backdrop-filter:none;-webkit-backdrop-filter:none;transform:none}
-#view-nodes .mode-cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:1024px;margin:0 auto}
-#view-nodes .mode-card,#view-nodes .emby-card{border-radius:28px;min-width:0;transform:none;transition:color 200ms,border-color 200ms,box-shadow 200ms;touch-action:pan-y}
-#view-nodes .mode-card{display:flex;flex-direction:column;min-height:256px;padding:28px;border:1px solid var(--border)!important;box-shadow:none!important;background:var(--card)}
+#view-nodes .mode-card,#view-nodes .emby-card{min-width:0;transform:none;transition:color 200ms,border-color 200ms,box-shadow 200ms;touch-action:pan-y}
+#view-nodes .emby-card{border-radius:28px}
+#view-nodes .mode-card{border:1px solid var(--border)!important;box-shadow:none!important;background:var(--card)}
 #view-nodes .mode-card::before,#view-nodes .mode-card::after,#view-nodes .emby-card::before,#view-nodes .emby-card::after{display:none}
-#view-nodes .mode-card .mc-top{display:flex;align-items:flex-start;margin-bottom:0}
 #view-nodes .mode-card .mc-count{margin-left:auto}
-#view-nodes .mode-card .mc-name{margin-top:auto;padding-top:40px;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.6px;transition:color 200ms}
-#view-nodes .mode-card .mc-desc{margin-top:8px;font-size:15px;line-height:24px;font-weight:400;transition:color 200ms}
-#view-nodes .sf-mode-action{align-self:flex-start;margin-top:16px;min-height:36px;padding:6px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
+#view-nodes .mode-card .sf-icon{width:20px;height:20px;border-radius:6px}
+#view-nodes .mode-card .sf-icon svg{width:14px;height:14px}
+#view-nodes .mode-card .mc-name,#view-nodes .mode-card .mc-desc{transition:color 200ms}
+#view-nodes .sf-mode-action{flex:none;min-height:24px;padding:2px 4px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:10.5px;line-height:16px;white-space:nowrap;cursor:pointer}
 #view-nodes .sf-mode-action:focus-visible{outline:2px solid #a1a1aa;outline-offset:4px}
 #view-nodes .sf-bound-card[data-sf-active=true]{--text:#fff;--text-sec:rgba(255,255,255,.8);--border:rgba(255,255,255,.25);color:var(--text)}
 #view-nodes .sf-bound-card .card-title-group,#view-nodes .sf-bound-card .info-label{transition:color 200ms}
@@ -6189,8 +6189,6 @@ body.dark #view-nodes .sf-bound-card[data-sf-active=true] .node-detail{--text:#f
 #view-nodes .emby-card .node-detail{min-width:0}
 #view-nodes .sf-status{position:relative;display:block;left:auto;bottom:auto;text-align:right;min-height:0}
 #view-nodes .sf-status:empty{display:none}
-@container(max-width:739.98px){#view-nodes .mode-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container(max-width:569.98px){#view-nodes .mode-cards{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){#view-nodes .sf-bound-card *{transition:none!important}}
 </style>
 <script>
@@ -6600,7 +6598,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     gl.uniform1f(uniforms.progress, card.progress);
     gl.uniform1f(uniforms.clock, time);
     gl.uniform1f(uniforms.seed, options.seed + card.index * 7.31);
-    gl.uniform1f(uniforms.corner, 27);
+    gl.uniform1f(uniforms.corner, card.corner);
     gl.uniform3fv(uniforms.deepColor, card.rgb[0]);
     gl.uniform3fv(uniforms.midColor, card.rgb[1]);
     gl.uniform3fv(uniforms.lightColor, card.rgb[2]);
@@ -6610,7 +6608,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     const w = rect.width, h = rect.height;
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, (rect.left - canvasBox.left) * dpr, (rect.top - canvasBox.top) * dpr);
-    ctx.beginPath(); ctx.roundRect(1, 1, w - 2, h - 2, 27); ctx.clip();
+    ctx.beginPath(); ctx.roundRect(1, 1, w - 2, h - 2, card.corner); ctx.clip();
     ctx.beginPath(); ctx.arc(card.origin[0] * w, card.origin[1] * h, card.progress * 1.5 * Math.hypot(w, h) / Math.SQRT2, 0, Math.PI * 2); ctx.clip();
     const phase = time * .15 + options.seed * .173 + card.index * 7.31;
     const gradient = ctx.createLinearGradient(0, h, w * (.6 + Math.sin(phase) * .2), 0);
@@ -6646,6 +6644,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
       // A pointer event can arrive after this frame's timestamp: keep its zero-progress first frame alive.
       animate ||= !reduced && (card.progress !== card.target || (card.progress > 0 && options.speed > 0 && (gl || ctx)));
       if (card.progress <= 0) continue;
+      card.corner = Math.max(0, parseFloat(win.getComputedStyle(card.el).borderTopLeftRadius) - 1);
       if (gl) drawGL(card, rect, reduced ? 0 : textureTime);
       else if (ctx) draw2D(card, rect, reduced ? 0 : textureTime);
     }
@@ -6734,7 +6733,7 @@ function createShaderFlood(host, initialOptions = {}, binding = null) {
     action.textContent = card.dataset.mode === 'all' ? '显示全部' : '管理模式';
     action.setAttribute('onclick', card.getAttribute('onclick'));
     card.removeAttribute('onclick');
-    card.append(action);
+    card.querySelector('.mc-top').append(action);
     const icon = document.createElement('span');
     icon.className = 'sf-icon';
     icon.dataset.icon = iconKeys[index];
